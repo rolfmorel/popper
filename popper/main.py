@@ -1,3 +1,4 @@
+import sys
 import argparse
 import json
 
@@ -17,13 +18,12 @@ def run(args):
 
     program, context = timed_loop(main_context, examples,
                                   clingo, prolog,
-                                  args.max_literals, args.ground_constraints,
-                                  generate_contraints=(not args.no_constraints),
-                                  timeout=args.timeout)
+                                  args.max_literals, args.ground_spec_constraints,
+                                  args.no_pruning, timeout=args.timeout)
 
     if args.verbose:
         info = context.as_dict()
         info["programs_tested"] = context.programs_tested
-        print(json.dumps(info, indent=2))
+        print(json.dumps(info, indent=2), file=sys.stderr)
 
     return program, context

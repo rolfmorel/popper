@@ -46,7 +46,7 @@ def timed_loop(*args, timeout=None, **kwargs):
 def loop(main_context, examples,
          clingo, prolog,
          max_literals, ground_constraints,
-         generate_contraints=True):
+         no_pruning=False):
     main_context.enter()
     prolog_context, clingo_context = main_context.prolog, main_context.clingo
     try:
@@ -106,7 +106,7 @@ def loop(main_context, examples,
 
                     # derive the relevant constraints and add them (non-grounded) to the solver
                     prog_id = main_context.programs_tested
-                    if not generate_contraints:
+                    if no_pruning:
                         constraints += impose_constraint_(elim_constr, program,
                                 f"elimination_constraint{prog_id}")
                     else:

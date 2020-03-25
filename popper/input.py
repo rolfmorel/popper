@@ -1,19 +1,19 @@
+import sys
 import argparse
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Popper, a generate-test-and-constrain ILP system")
 
     parser.add_argument("EXAMPLES_FILE", help="Ground examples for the testing stage")
     parser.add_argument("MODES_FILE", help="ASP mode declerations and constraints for the generate stage")
-    parser.add_argument("BK_FILE", help="Prolog definitions for back ground knowledge predicates")
+    parser.add_argument("BK_FILE", help="Prolog definitions for background knowledge predicates")
 
-    parser.add_argument("--no-constraints", default=False, action='store_true', help="Only generate elimination constraints (i.e. no pruning of specializations/generalizations)")
-    parser.add_argument("--ground-constraints", default=False, action='store_true', help="Generate only ground specialization constraints")
-    parser.add_argument("--timeout", type=float, default=600, help="timeout that needs to be enforced")
-    parser.add_argument("-n","--max-literals", type=int, default=5, help="maximum number of literals allowed")
+    parser.add_argument("--no-pruning", default=False, action='store_true', help="Only generate elimination constraints (i.e. no pruning of specializations/generalizations)")
+    parser.add_argument("--ground-spec-constraints", default=False, action='store_true', help="Generate only ground specialization constraints")
+    parser.add_argument("--timeout", type=float, default=600, help="Timeout that needs to be enforced (in seconds)")
+    parser.add_argument("-n","--max-literals", type=int, default=5, help="Maximum number of literals allowed in program")
 
-    parser.add_argument("--verbose", default=False, action='store_true', help="Upon return print statistics")
+    parser.add_argument("--verbose", default=False, action='store_true', help="Upon return, print statistics")
 
     return parser.parse_args()
 
