@@ -1,4 +1,3 @@
-import sys #TODO: remove
 import copy
 
 import pyswip
