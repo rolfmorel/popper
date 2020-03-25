@@ -61,7 +61,7 @@ def loop(main_context, examples,
         for size in range(1, max_literals + 1):
             with clingo_context.sizing:
                 set_program_size(clingo, size)
-            
+
             while True:
                 constraints = []
 
@@ -70,12 +70,12 @@ def loop(main_context, examples,
                     clingo_context.solving.exit()
                     try:
                         model = next(handle)
-                    except StopIteration: 
+                    except StopIteration:
                         break  # No model could be found. Can try with more allowed literals
 
                     # get rid of previously guessed clauses on the meta-interpreter side
                     with prolog_context.misc:
-                        prolog.retractall("program(_)") 
+                        prolog.retractall("program(_)")
 
                     # extract program from answer set and add it to the meta-interpreter
                     program = generate.model_to_program(model.symbols(atoms=True))
@@ -123,7 +123,10 @@ def loop(main_context, examples,
         return None, main_context
     except KeyboardInterrupt: # Also happens when timer interrupt happens
         return False, main_context
+    except Exception as e:
+        print(e)
+        return False, main_context
     finally:
         main_context.exit()
         # NB: Hack to deal with inner context entered while outer context was still on
-        main_context._accumulated -= (prolog_context.accumulated + clingo_context.accumulated) 
+        main_context._accumulated -= (prolog_context.accumulated + clingo_context.accumulated)

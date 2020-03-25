@@ -131,7 +131,7 @@ var_in_body(Clause,Var):-
 %% PREVENT SINGLETONS
 %% CONTROL
 :-
-    %% clause(Clause),
+    var(Clause,_,_,Var),
     #count{Literal,Pos : var(Clause,Literal,Pos,Var)} == 1.
 
 %% %% TREATMENT

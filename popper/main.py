@@ -5,12 +5,22 @@ import json
 from .input import parse_args
 from .setup import setup
 from .loop import timed_loop
+from .test.util import program_to_prolog
 
 
 def main():
     args = parse_args()
 
     return run(args)
+
+
+def run2(mode_file, bk_file, examples_file, max_literals, ground_constraints, no_pruning, timeout):
+    main_context, examples, (clingo, prolog) = setup(mode_file, bk_file, examples_file)
+
+    program, context = timed_loop(main_context, examples, clingo, prolog, max_literals, ground_constraints, no_pruning, timeout=timeout)
+    if program:
+        program = program_to_prolog(program)
+    return program, context
 
 
 def run(args):

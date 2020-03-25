@@ -21,6 +21,7 @@ def parse_args():
 def retrieve_examples(filename):
     pos_exs, neg_exs = [], []
     for line in open(filename).readlines():
+        # TODO: REPLACE WITH REGEX
         if line.startswith("pos(") and line.endswith(").\n"):
             pos_exs += [(line[4:-3])]
         elif line.startswith("neg(") and line.endswith(").\n"):

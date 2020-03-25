@@ -14,7 +14,7 @@ def specialization_constraint(program, ground=True):
         spec_constraint += lits
 
         for atom in body:
-            lits = atom_to_asp_literals(atom, not ground and clause_var, 
+            lits = atom_to_asp_literals(atom, not ground and clause_var,
                                         not ground and next(lit_id_var_gen))
             spec_constraint += lits
     spec_constraint.append(f"not clause({len(program)})")
