@@ -1,9 +1,11 @@
+import traceback
 import threading
 try:
     import thread
 except ImportError:
     import _thread as thread
 
+from sys import stderr
 from functools import partial
 
 from clingo import Function
@@ -11,6 +13,7 @@ from clingo import Function
 from . import generate
 from . import test
 from .test import evaluate
+from .test.util import program_to_prolog
 from . import constrain
 from .util import SUCCESS, FAILURE
 
@@ -35,10 +38,11 @@ def timed_loop(*args, timeout=None, **kwargs):
         timer = threading.Timer(timeout, lambda: thread.interrupt_main())
         timer.start()
 
-    program, context = loop(*args, **kwargs)
-
-    if timeout:
-        timer.cancel()
+    try:
+        program, context = loop(*args, **kwargs)
+    finally:
+        if timeout:
+            timer.cancel()
 
     return program, context
 
@@ -50,6 +54,7 @@ def loop(main_context, examples,
     main_context.enter()
     prolog_context, clingo_context = main_context.prolog, main_context.clingo
     try:
+        program = None
         pos_examples, neg_examples = examples
 
         elim_constr = constrain.elimination_constraint
@@ -123,9 +128,11 @@ def loop(main_context, examples,
         return None, main_context
     except KeyboardInterrupt: # Also happens when timer interrupt happens
         return False, main_context
-    except Exception as e:
-        print(e)
-        return False, main_context
+    except Exception as ex:
+        print("LAST CONSIDERED PROGRAM:", file=stderr)
+        for clause in program_to_prolog(program):
+            print("  " + clause, file=stderr)
+        raise ex
     finally:
         main_context.exit()
         # NB: Hack to deal with inner context entered while outer context was still on
