@@ -16,7 +16,8 @@ def meta_interpret(prolog, program, example):
 
     if len(result) == 1 and str(result[0].name) == 'success':
         success = result[0]
-        responsible_clause_ids = set(success.args[0]) # NB: using set() due to MI returning a clause multiple times if used multiple times
+        clause_id_rec_depth_pairs = map(lambda functor: functor.args, success.args[0])
+        responsible_clause_ids = set(map(lambda pair: pair[0], clause_id_rec_depth_pairs))
         responsible_clauses = list(map(lambda idx_cl : idx_cl[1], 
                                   filter(lambda idx_cl: idx_cl[0] in responsible_clause_ids,
                                   enumerate(program))))
