@@ -1,9 +1,7 @@
 %% CHECK FOR SUBSUMPION BETWEEN CLAUSES
 duplicate_literals(Clause1,Literal1,Clause2,Literal2):-
-    Literal1 > 0,
-    Literal2 > 0,
-    literal(Clause1,Literal1,P,A),
-    literal(Clause2,Literal2,P,A),
+    body_literal(Clause1,Literal1,P,A),
+    body_literal(Clause2,Literal2,P,A),
     Clause1 != Clause2,
     #count{Pos :
         var(Clause1,Literal1,Pos,V),
@@ -45,7 +43,7 @@ different(Clause1,Clause2):-
     Var1 != Var2,
     Clause1 != Clause2.
 
-:-
+a:-
     clause(Clause1),
     clause(Clause2),
     Clause1 != Clause2,
