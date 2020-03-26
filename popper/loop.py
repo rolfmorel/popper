@@ -17,6 +17,11 @@ from .test.util import program_to_prolog
 from . import constrain
 from .util import SUCCESS, FAILURE
 
+def DBG_output_program(program):
+    print("PROGRAM:", file=stderr)
+    for clause in program_to_prolog(program):
+        print("  " + clause, file=stderr)
+
 
 def set_program_size(clingo, size):
     clingo.release_external(Function("num_literals", [size-1]))
@@ -50,7 +55,7 @@ def timed_loop(*args, timeout=None, **kwargs):
 def loop(main_context, examples,
          clingo, prolog,
          max_literals, ground_constraints,
-         no_pruning=False):
+         no_pruning=False, debug=False):
     main_context.enter()
     prolog_context, clingo_context = main_context.prolog, main_context.clingo
     try:
@@ -88,6 +93,8 @@ def loop(main_context, examples,
                     with prolog_context.misc:
                         for clause in prolog_program:
                             prolog.assertz(clause)
+
+                    if debug: DBG_output_program(program)
 
                     # evaluate the examples with the hypothesis loaded, using the meta-interpreter
                     with prolog_context.example_eval:
@@ -129,9 +136,7 @@ def loop(main_context, examples,
     except KeyboardInterrupt: # Also happens when timer interrupt happens
         return False, main_context
     except Exception as ex:
-        print("LAST CONSIDERED PROGRAM:", file=stderr)
-        for clause in program_to_prolog(program):
-            print("  " + clause, file=stderr)
+        DBG_output_program(program)
         raise ex
     finally:
         main_context.exit()
