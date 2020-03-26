@@ -1,7 +1,7 @@
 def convert_literal(lit):
     clause_key, literal_key, predicate, args = lit
     args = map(lambda arg: f"V{arg}" if type(arg) == int else arg, args)
-    return f"({clause_key}, {literal_key}, {predicate}, [{','.join(args)}])"
+    return f"({clause_key}, {literal_key}, RecursionDepth, {predicate}, [{','.join(args)}])"
 
 
 def program_to_metaint_repr(program):

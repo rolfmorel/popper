@@ -6,7 +6,7 @@ from ..util import SUCCESS, FAILURE
 
 
 def query_prolog(prolog, example):
-    assignments = list(prolog.query(f"{example} =.. [Pred|Args],prove([(_,_,Pred,Args)],Result)."))
+    assignments = list(prolog.query(f"{example} =.. [Pred|Args],prove([(_,_,0,Pred,Args)],Result)."))
     assert (len(assignments) == 1) # NB: invariant of a (properly functioning) meta-interpreter
     return assignments[0]['Result']
 
@@ -27,7 +27,7 @@ def meta_interpret(prolog, program, example):
         for failure in result:
             assert str(failure.name) == 'failure'
 
-            clause_id, literal_id, _, args = failure.args
+            clause_id, literal_id, _, _, args = failure.args
             non_failing_part_clause = program[clause_id][:literal_id]
             failing_literal = copy.deepcopy(program[clause_id][literal_id])
             for arg_id, arg in enumerate(args):
