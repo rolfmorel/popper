@@ -13,8 +13,15 @@ def query_prolog(prolog, example):
     return assignments[0]['Result']
 
 
-def meta_interpret(prolog, program, example):
-    result = query_prolog(prolog, example)
+def meta_interpret(prolog, program, example, debug):
+    try:
+        result = query_prolog(prolog, example)
+    except pyswip.prolog.PrologError as ex:
+        if "stack_overflow" in ex.args[0]:  # NB: not so nice way to detect a stack-overflowing program
+            if debug:
+                print(f"STACK OVERFLOW for {example}!", file=stderr)
+            return FAILURE, program
+        raise ex
 
     if len(result) == 1 and str(result[0].name) == 'success':
         success = result[0]
@@ -23,6 +30,7 @@ def meta_interpret(prolog, program, example):
         responsible_clauses = list(map(lambda idx_cl : idx_cl[1], 
                                   filter(lambda idx_cl: idx_cl[0] in responsible_clause_ids,
                                   enumerate(program))))
+
         return SUCCESS, responsible_clauses
     else:
         assert (len(result) == len(program))
