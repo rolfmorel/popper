@@ -17,7 +17,7 @@ def meta_interpret(prolog, program, example, debug):
     try:
         result = query_prolog(prolog, example)
     except pyswip.prolog.PrologError as ex:
-        if "stack_overflow" in ex.args[0]:  # NB: not so nice way to detect a stack-overflowing program
+        if "stack" in ex.args[0]:  # NB: not so nice way to detect a stack-overflowing program
             if debug:
                 print(f"STACK OVERFLOW for {example}!", file=stderr)
             return FAILURE, program
