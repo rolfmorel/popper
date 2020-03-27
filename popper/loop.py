@@ -17,10 +17,15 @@ from .test.util import program_to_prolog
 from . import constrain
 from .util import SUCCESS, FAILURE
 
+
 def DBG_output_program(program):
     print("PROGRAM:", file=stderr)
     for clause in program_to_prolog(program):
         print("  " + clause, file=stderr)
+
+
+def DBG_output_constraint(constraint_name, constraint):
+    print(f"CONSTRAINT: {constraint_name}\n  {constraint}", file=stderr)
 
 
 def set_program_size(clingo, size):
@@ -31,8 +36,9 @@ def set_program_size(clingo, size):
     clingo.assign_external(Function("num_literals", [size]), True)
 
 
-def impose_constraint(clingo, clingo_context, constraint_generator, program, constraint_name):
+def impose_constraint(clingo, clingo_context, debug, constraint_generator, program, constraint_name):
     constr = constraint_generator(program)
+    if debug: DBG_output_constraint(constraint_name, constr)
     with clingo_context.adding:
         clingo.add(constraint_name, [], constr)
     return [(constraint_name, [])]
@@ -65,7 +71,7 @@ def loop(main_context, examples,
         elim_constr = constrain.elimination_constraint
         spec_constr = lambda prog: constrain.specialization_constraint(prog, ground_constraints)
         gene_constr = constrain.generalization_constraint
-        impose_constraint_ = partial(impose_constraint, clingo, clingo_context)
+        impose_constraint_ = partial(impose_constraint, clingo, clingo_context, debug)
 
         main_context.programs_tested = 0
         for size in range(1, max_literals + 1):
@@ -75,6 +81,7 @@ def loop(main_context, examples,
             while True:
                 constraints = []
 
+                if debug: print("START SOLVING", file=stderr)
                 clingo_context.solving.enter()
                 with clingo.solve(yield_=True) as handle:
                     clingo_context.solving.exit()
@@ -97,17 +104,18 @@ def loop(main_context, examples,
                     if debug: DBG_output_program(program)
 
                     # evaluate the examples with the hypothesis loaded, using the meta-interpreter
+                    if debug: print("START TESTING", file=stderr)
                     with prolog_context.example_eval:
                         failing_body_gens = []
                         failing_clause_sets = []
 
                         for pos_example in pos_examples:
-                            result, subprogram = test.evaluate.meta_interpret(prolog, program, pos_example)
+                            result, subprogram = test.evaluate.meta_interpret(prolog, program, pos_example, debug)
                             if result == FAILURE:
                                 failing_body_gens += [subprogram]
 
                         for neg_example in neg_examples:
-                            result, subprogram = test.evaluate.meta_interpret(prolog, program, neg_example)
+                            result, subprogram = test.evaluate.meta_interpret(prolog, program, neg_example, debug)
                             if result == SUCCESS:
                                 failing_clause_sets += [subprogram]
 
@@ -123,12 +131,20 @@ def loop(main_context, examples,
                                 f"elimination_constraint{prog_id}")
                     else:
                         for fail_idx, failing_prog in enumerate(failing_body_gens):
+                            if debug: 
+                                print("FAILING BODYGEN ", end='', file=stderr)
+                                DBG_output_program(failing_prog)
                             constraints  += impose_constraint_(spec_constr, failing_prog,
                                     f"specialization_constraint{prog_id}_{fail_idx}")
                         for fail_idx, failing_prog in enumerate(failing_clause_sets):
+                            if debug: 
+                                print("FAILING CLAUSE SET ", end='', file=stderr)
+                                DBG_output_program(failing_prog)
                             constraints += impose_constraint_(gene_constr, failing_prog,
                                     f"generalization_constraint{prog_id}_{fail_idx}")
 
+                
+                if debug: print("START GROUNDING", file=stderr)
                 # with the solver handle released, ground the just derived constraints
                 with clingo_context.grounding.constraints:
                     clingo.ground(constraints)

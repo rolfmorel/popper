@@ -74,5 +74,5 @@ prove_aux(Atom,Result) :-
         Result = [success([])] ;
         Result = [failure(ClId,LitId,RecDepth,Pred,Args)]),
     %%write("prove_aux-call2: "),
-    %%writeln(Result)
+    %%writeln(Result),
     true.

@@ -1,5 +1,7 @@
 import copy
 
+from sys import stderr
+
 import pyswip
 
 from ..util import SUCCESS, FAILURE
