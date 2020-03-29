@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from popper.main import main
-from popper.test.util import program_to_prolog
+from popper import main
+from popper.representation import program_to_code
 
 program, context = main()
 if program:
-    for clause in program_to_prolog(program):
+    for clause in program_to_code(program):
         print(clause)
 else:
     print(program)

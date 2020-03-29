@@ -1,12 +1,15 @@
-from .common import atom_to_asp_literals
+from .common import var_gen, atom_to_asp_literals
 
 
-def elimination_constraint(program):
-    elim_constraint = []
-    for cl_id, clause in enumerate(program):
-        for atom in clause:
-            elim_constraint += atom_to_asp_literals(atom)
-        num_lits = len(clause)
-        elim_constraint.append(f"not literal({cl_id},{num_lits},_,_)")
-    elim_constraint.append(f"not clause({len(program)})")
-    return ":- " + ",".join(elim_constraint) + "."
+class EliminationMixin(object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        
+    def elimination_constraint(self, program):
+        elim_lits, cl_vars = self.specialization_literals(program)
+        clause_restr = ",".join("Clause != " + cl_var for cl_var in cl_vars)
+        elim_lits.append("not recursive")
+        #elim_lits.append(f"#count{{ Clause,Literal : \
+#body_literal(Clause,Literal,{self.modeh.predicate},_),{clause_restr} }} == 0")
+        return ":-" + ",".join(elim_lits) + "."

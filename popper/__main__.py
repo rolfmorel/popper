@@ -1,5 +1,5 @@
-from .main import main
-from .test.util import program_to_prolog
+from .entry_point import main
+from .representation import program_to_prolog
 
 program, context = main()
 if program:

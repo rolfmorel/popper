@@ -25,8 +25,10 @@ class TimeAccumulatingContext(object):
     def running(self):
         return self.currently_entered != 0
 
-    def add_child(self, name):
-        child = __class__(parent=self)
+    def add_child(self, name, instance=None):
+        child = instance if instance else __class__(parent=self)
+        if instance: instance.parent = self
+        # TODO: replace this with attribute lookup override, which would check .children
         setattr(self, name, child)
         self.children[name] = child
         return child

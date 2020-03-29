@@ -1,1 +1,1 @@
-from .util import model_to_program
+from .abstraction import Generate

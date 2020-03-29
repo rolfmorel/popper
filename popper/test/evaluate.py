@@ -1,51 +1,38 @@
-import copy
-
 from sys import stderr
 
-import pyswip
+from pyswip.prolog import PrologError
 
-from ..util import SUCCESS, FAILURE
-
-
-def query_prolog(prolog, example):
-    assignments = list(prolog.query(f"{example} =.. [Pred|Args],prove([(_,_,0,Pred,Args)],Result)."))
-    assert (len(assignments) == 1) # NB: invariant of a (properly functioning) meta-interpreter
-    return assignments[0]['Result']
+from ..util import Result
 
 
-def meta_interpret(prolog, program, example, debug):
-    try:
-        result = query_prolog(prolog, example)
-    except pyswip.prolog.PrologError as ex:
-        if "stack" in ex.args[0]:  # NB: not so nice way to detect a stack-overflowing program
-            if debug:
-                print(f"STACK OVERFLOW for {example}!", file=stderr)
-            return FAILURE, program
-        raise ex
+class EvaluateMixin(object):
+    def __init__(self, *args, **kwargs):
+        self.context.add_child('evaluate')
+        super().__init__(*args, **kwargs)
 
-    if len(result) == 1 and str(result[0].name) == 'success':
-        success = result[0]
-        clause_id_rec_depth_pairs = map(lambda functor: functor.args, success.args[0])
-        responsible_clause_ids = set(map(lambda pair: pair[0], clause_id_rec_depth_pairs))
-        responsible_clauses = list(map(lambda idx_cl : idx_cl[1], 
-                                  filter(lambda idx_cl: idx_cl[0] in responsible_clause_ids,
-                                  enumerate(program))))
+    def query(self, example):
+        try:
+            # TODO: query the program only on its input arguments, asserting the equality with output arguments as later atoms.
+            if self.eval_timeout:
+                goal = f"catch(call_with_time_limit({self.eval_timeout}, {example}),time_limit_exceeded,false)"
+            else:
+                goal = example
+            return list(self.prolog.query(goal))
+        except PrologError as ex:
+            if "stack" in ex.args[0]:  # NB: not so nice way to detect a stack-overflowing program
+                if self.debug:
+                    print(f"STACK OVERFLOW for {example}!", file=stderr)
+                return []
+            else:
+                raise ex
 
-        return SUCCESS, responsible_clauses
-    else:
-        assert (len(result) == len(program))
-        body_gen_clauses = []
-        for failure in result:
-            assert str(failure.name) == 'failure'
+    def evaluate(self, example):
+        with self.context.evaluate:
+            assignments = self.query(example)
 
-            clause_id, literal_id, _, _, args = failure.args
-            non_failing_part_clause = program[clause_id][:literal_id]
-            failing_literal = copy.deepcopy(program[clause_id][literal_id])
-            for arg_id, arg in enumerate(args):
-                if type(arg) == pyswip.Variable: 
-                    # this argument was not at fault in causing no groundings to exist
-                    # this fact can be used when generating constraints
-                    failing_literal[3][arg_id] = None
-            body_gen_clauses += [non_failing_part_clause + [failing_literal]]
-
-        return FAILURE, body_gen_clauses 
+            if assignments == [{}]:
+                return Result.Success
+            elif assignments == []:
+                return Result.Failure
+            else:
+                assert False # could only possibly happen when example was non-ground, which we don't deal with now

@@ -3,6 +3,10 @@
 #include "clauses.pl".
 #include "modes.pl".
 
+recursive:-
+    modeh(P,A),
+    body_literal(_,_,P,A).
+
 %% CLAUSE 0
 clause(0).
 
