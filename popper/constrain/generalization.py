@@ -9,7 +9,7 @@ class GeneralizationMixin(object):
     def generalization_constraint(self, program):
         # TODO: abstract over the clause ids (and literal ids?)
         # NB: depending on the ordering constraints, the above might not be necessary
-        clause_var_gen = var_gen('cl_id')
+        clause_var_gen = var_gen('ClId')
         gen_literals = []
         for cl_id, clause in enumerate(program):
             clause_var = next(clause_var_gen)
