@@ -7,7 +7,7 @@ except ImportError:
 
 from sys import stderr
 
-from .representation import program_to_code
+from .representation import program_to_code, is_recursive_clause
 from .util import Result, Outcome
 
 
@@ -72,7 +72,21 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 else:
                     negative_outcome = Outcome.Some
 
-                if debug: print("DONE TESTING", file=stderr)
+                # Special case for non-recursive clauses to determine whether they are useful or not
+                constraints = []
+                non_recursive_clauses = list(filter(lambda cl: not is_recursive_clause(cl), program))
+                for nr_clause in non_recursive_clauses:
+                    Test.retract_program_clauses()
+                    Test.assert_program([nr_clause])
+
+                    entailed_pos_exs = list(filter(lambda res: res == Result.Success,
+                        map(lambda ex: Test.evaluate(ex), Test.pos_examples)))
+
+                    if entailed_pos_exs == []:
+                        constraints += [Constrain.elimination_constraint([nr_clause])]
+                # END OF HACKS!!!
+
+                if debug: print(f"DONE TESTING {positive_outcome.value, negative_outcome.value}", file=stderr)
 
                 if positive_outcome == Outcome.All and negative_outcome == Outcome.None_:
                     # program both complete and consistent
@@ -80,7 +94,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 if debug: print("START IMPOSING CONSTRAINTS", file=stderr)
 
-                constraints = Constrain.derive_constraints(program,
+                constraints += Constrain.derive_constraints(program,
                                                            positive_outcome, negative_outcome)
                 if Constrain.no_pruning:
                     constraints = [Constrain.banish_constraint(program)]

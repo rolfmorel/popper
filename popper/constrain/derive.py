@@ -1,4 +1,4 @@
-from ..representation import is_program_recursive
+from ..representation import is_recursive_program
 from ..util import Outcome
 
 
@@ -16,7 +16,7 @@ class DeriveMixin(object):
         if neg_outcome == All:
             # we do not distinguish between entailing some or all of the negative examples
             neg_outcome = Some  
-        if is_program_recursive(program):
+        if is_recursive_program(program):
             return self.recursive_constraints(program, pos_outcome, neg_outcome)
         return self.non_recursive_constraints(program, pos_outcome, neg_outcome)
 

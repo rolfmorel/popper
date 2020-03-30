@@ -60,7 +60,7 @@ def program_to_code(program):
     return code_program
 
 
-def is_clause_recursive(clause):
+def is_recursive_clause(clause):
     head_pred = clause[0][2]
     for literal in clause[1:]:
         if literal[2] == head_pred:
@@ -68,5 +68,5 @@ def is_clause_recursive(clause):
     return False
 
 
-def is_program_recursive(program):
-    return reduce(lambda x, y: x or is_clause_recursive(y), program, False)
+def is_recursive_program(program):
+    return reduce(lambda x, y: x or is_recursive_clause(y), program, False)
