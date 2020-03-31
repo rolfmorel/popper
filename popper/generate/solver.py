@@ -3,7 +3,7 @@ from sys import stderr
 
 from clingo import Function
 
-from .representation import model_to_program
+#from .representation import model_to_program
 
 
 class SolverMixin(object):
@@ -19,7 +19,7 @@ class SolverMixin(object):
         with self.context.solver:
             if self.debug: print(f"START SETTING PROGRAM SIZE", file=stderr)
             for i in range(1, size):
-                self.clingo_ctl.release_external(Function("num_literals", [i]))
+                self.clingo_ctl.release_external(Function("size", [i]))
             # NB: might well attempt to reground the old parts of base as well
             # TODO: To be guaranteed to be efficient should carefully construct "shells" that depend on the program size
             # RESPONSE: This might actually already be done by the solver...
@@ -27,7 +27,7 @@ class SolverMixin(object):
             with self.context.solver.grounding:
                 self.clingo_ctl.ground([("program_size", [size])])
             if self.debug: print(f"DONE GROUNDING (set_program_size)", file=stderr)
-            self.clingo_ctl.assign_external(Function("num_literals", [size]), True)
+            self.clingo_ctl.assign_external(Function("size", [size]), True)
             if self.debug: print(f"DONE SETTING PROGRAM SIZE", file=stderr)
 
 
@@ -35,7 +35,7 @@ class SolverMixin(object):
         with self.context.solver:
             model = self.get_model()
             if model:
-                return model_to_program(model)
+                return self.model_to_program(model)
             return model
 
 

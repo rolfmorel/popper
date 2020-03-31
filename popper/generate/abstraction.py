@@ -4,7 +4,9 @@ import clingo
 
 from .setup import SetupMixin
 from .solver import SolverMixin
+from .representation import RepresentationMixin
 
+from ..representation import ModeDecleration
 from ..util import TimeAccumulatingContext
 
 
@@ -22,7 +24,7 @@ class GenerateInterface(ABC):
     def impose_constraints(self, *args, **kwargs): pass 
 
 
-class Generate(SetupMixin,SolverMixin,GenerateInterface):
+class Generate(SetupMixin,RepresentationMixin,SolverMixin,GenerateInterface):
     def __init__(self, mode_file=None, max_literals=20, no_pruning=False, ground=False,
                  context=TimeAccumulatingContext(), debug=False):
         self.context = context
@@ -37,4 +39,8 @@ class Generate(SetupMixin,SolverMixin,GenerateInterface):
             self.clingo_ctl = clingo.Control()
             self.setup(mode_file) # from SetupMixin
 
-            self.num_literals = 1
+            with open(mode_file) as f:
+                modes_code = f.read()
+                self.modeh = ModeDecleration.from_modeh(modes_code)
+                self.modebs = ModeDecleration.from_modebs(modes_code)
+                self.predicate_to_modeb = dict((m.predicate, m) for m in self.modebs)

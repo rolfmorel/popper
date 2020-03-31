@@ -1,192 +1,342 @@
-#include "duplicates.pl".
-#include "ordering.pl".
-#include "clauses.pl".
-#include "modes.pl".
+#show head_literal/4.
+#show body_literal/4.
 
-recursive:-
-    modeh(P,A),
-    body_literal(_,_,P,A).
-
-%% CLAUSE 0
+%% NEED AT LEAST ONE CLAUSE
 clause(0).
 
 %% GUESS OTHER CLAUSES
-{clause(0..N-1)}:-
+{clause(1..N-1)}:-
     max_clauses(N).
+
+%% NEED AT LEAST THE NUMBER OF VARS AS THE MODEH
+%% THIS IS A SENSIBLE ASSUMPTION
+var(0..A-1):-
+    modeh(_,A).
+
+%% %% %% GUESS EXTRA VARS
+{var(A..N-1)}:-
+    modeh(_,A),
+    max_vars(N).
+
+%% HARDCODE HEAD LITERALS
+%% TODO: GENERALISE IN FUTURE WHEN THERE MAY BE MULTIPLE MODEH DECLARATIONS
+head_literal(Clause,P,1,(0,)):-
+    clause(Clause),
+    modeh(P,1).
+
+head_literal(Clause,P,2,(0,1)):-
+    clause(Clause),
+    modeh(P,2).
+
+head_literal(Clause,P,3,(0,1,2)):-
+    clause(Clause),
+    modeh(P,3).
+
+%% GUESS BODY LITERALS
+{body_literal(Clause,P,A,Vars)}:-
+    clause(Clause),
+    modeb(P,A),
+    vars(A,Vars).
+
+literal(Clause,P,Vars):-
+    head_literal(Clause,P,_,Vars).
+literal(Clause,P,Vars):-
+    body_literal(Clause,P,_,Vars).
+
+num_body_literals(Clause,Size):-
+    %% max_body(N),
+    %% Size <= N,
+    clause(Clause),
+    #count{P,Vars : body_literal(Clause,P,_,Vars)} = Size.
+
+same_size(Clause1,Clause2):-
+    num_body_literals(Clause1,N),
+    num_body_literals(Clause2,N).
+
+%% PREVENTS UNEEDED GROUNDING
+need_arity(A):-
+    modeh(_,A).
+need_arity(A):-
+    modeb(_,A).
+
+%% POSSIBLE VARIABLE COMBINATIONS
+%% TODO: GENERALISE FOR ARITIES > 3
+vars(1,(Var1,)):-
+    need_arity(1),
+    var(Var1).
+vars(2,(Var1,Var2)):-
+    need_arity(2),
+    var(Var1),
+    var(Var2),
+    Var1 != Var2.
+vars(3,(Var1,Var2,Var3)):-
+    need_arity(3),
+    var(Var1),
+    var(Var2),
+    var(Var3).
+
+clause_var(Clause,Var):-
+    head_var(Clause,Var).
+clause_var(Clause,Var):-
+    body_var(Clause,Var).
+
+head_var(Clause,Var):-
+    head_literal(Clause,_P,_A,Vars),
+    var_member(Var,Vars).
+body_var(Clause,Var):-
+    body_literal(Clause,_P,_A,Vars),
+    var_member(Var,Vars).
+
+%% DENOTES WHETHER VAR IS IN VARS
+%% TODO: GENERALISE FOR ARITIES > 3
+var_member(Var1,(Var1,)):-
+    vars(1,(Var1,)).
+
+var_member(Var1,(Var1,Var2)):-
+    vars(2,(Var1,Var2)).
+var_member(Var2,(Var1,Var2)):-
+    vars(2,(Var1,Var2)).
+
+var_member(Var1,(Var1,Var2,Var3)):-
+    vars(3,(Var1,Var2,Var3)).
+var_member(Var2,(Var1,Var2,Var3)):-
+    vars(3,(Var1,Var2,Var3)).
+var_member(Var3,(Var1,Var2,Var3)):-
+    vars(3,(Var1,Var2,Var3)).
+
+var_in_literal(Clause,P,Vars,Var):-
+    literal(Clause,P,Vars),
+    var_member(Var,Vars).
+
+%% DENOTES POSITION OF VAR IN VARS
+%% TODO: GENERALISE FOR ARITIES > 3
+var_pos(Clause,P,0,Var):-
+    literal(Clause,P,(Var)).
+
+var_pos(Clause,P,0,Var):-
+    literal(Clause,P,(Var,_)).
+var_pos(Clause,P,1,Var):-
+    literal(Clause,P,(_,Var)).
+
+var_pos(Clause,P,0,Var):-
+    literal(Clause,P,(Var,_,_)).
+var_pos(Clause,P,1,Var):-
+    literal(Clause,P,(_,Var,_)).
+var_pos(Clause,P,2,Var):-
+    literal(Clause,P,(_,_,Var)).
+
+%% TWO VARS CO-APPEAR IN A BODY LITERAL
+share_literal(Clause,Var1,Var2):-
+    body_literal(Clause,_,_,Vars),
+    var_member(Var1,Vars),
+    var_member(Var2,Vars),
+    head_connected(Clause,Var2).
+
+%% A VAR IS CONNECTED TO THE HEAD
+head_connected(Clause,Var):-
+    head_var(Clause,Var).
+head_connected(Clause,Var1):-
+    body_var(Clause,Var1),
+    head_connected(Clause,Var2),
+    share_literal(Clause,Var1,Var2).
+
+%% USED TO ENFORCE SAFE ARGUMENTS
+%% I.E. MAKES SURE THAT CERTAN ARGUMENTS ARE GROUND
+%% HEAD INPUT VARS ARE SAFE
+safe_var(Clause,Var):-
+    head_literal(Clause,P,_A,Vars),
+    var_member(Var,Vars),
+    var_pos(Clause,P,Pos,Var),
+    direction(P,Pos,in).
+
+safe_var(Clause,Var):-
+    body_literal(Clause,P,A,Vars),
+    var_member(Var,Vars),
+    var_pos(Clause,P,Pos,Var),
+    direction(P,Pos,out),
+    safe_literal(Clause,P,Vars).
+
+safe_literal(Clause,P,(Var1,Var2)):-
+    var_pos(Clause,P,Pos1,Var1),
+    var_pos(Clause,P,Pos2,Var2),
+    direction(P,Pos1,in),
+    direction(P,Pos2,out),
+    safe_var(Clause,Var1).
+
+%% USED TO REMOVE DUPLCATE CLAUSES WHEN INDUCING MULTIPLE CLAUSE
+different(Clause1,Clause2):-
+    Clause1 != Clause2,
+    head_literal(Clause1,P,_,_),
+    head_literal(Clause2,Q,_,_),
+    P != Q.
+different(Clause1,Clause2):-
+    Clause1 != Clause2,
+    head_literal(Clause1,_,_,Vars1),
+    head_literal(Clause2,_,_,Vars2),
+    Vars1 != Vars2.
+different(Clause1,Clause2):-
+    Clause1 != Clause2,
+    body_literal(Clause1,P,_,Vars),
+    clause(Clause2),
+    not body_literal(Clause2,P,_,Vars).
+
+%% WEIRD: WHY IS THIS NEEDED?
+different(Clause1,Clause2):-
+    different(Clause2,Clause1).
+
+%% C1 SUBUMES C2 IF C1 IS A SUBSET OF C2
+subsumes(Clause1,Clause2):-
+    %% num_body_literals(Clause1,N1),
+    %% num_body_literals(Clause2,N2),
+    %% N1 <= N2,
+    head_literal(Clause1,HeadPred,_,HeadVars),
+    head_literal(Clause2,HeadPred,_,HeadVars),
+    Clause1 != Clause2,
+    #count{P, Vars : body_literal(Clause1,P,_,Vars), not body_literal(Clause2,P,_,Vars)} == 0.
+
+num_vars(Clause,N):-
+    %% max_vars(MaxN),
+    %% N <= MaxN,
+    clause(Clause),
+    #count{Var : body_literal(Clause,_,_,Vars), var_member(Var,Vars)} == N.
+
+same_num_vars(Clause1,Clause2):-
+    num_vars(Clause1,N),
+    num_vars(Clause2,N).
+
+%% CONSTRAINTS
 
 %% GUESS CLAUSES IN ORDER
 :-
-    clause(Clause1),
-    Clause1 > 1,
-    Clause2 = Clause1-1,
-    not clause(Clause2).
-
-%% HEAD LITERALS
-literal(Clause,0,P,A):-
     clause(Clause),
-    modeh(P,A).
+    Clause > 0,
+    not clause(Clause-1).
 
-%% %% GUESS BODY LITERAL
-{literal(Clause,Literal,P,A)}:-
-    clause(Clause),
-    Literal = 1..N,
-    max_body(N),
-    modeb(P,A).
-
-body_literal(Clause,Literal,P,A):-
-    literal(Clause,Literal,P,A),
-    Literal > 0.
-
-%% MUST HAVE A LITERAL AT POS 1
+%% VARS MUST BE USED
 :-
-    clause(Clause),
-    not literal(Clause,1,_,_).
+    var(Var),
+    not clause_var(_,Var).
 
-%% GUESS LITERALS IN ORDER
+%% GUESS VARS IN ORDER
 :-
-    body_literal(Clause,Literal1,_,_),
-    Literal2 = Literal1-1,
-    not literal(Clause,Literal2,_,_).
-
-%% PREVENT MULTIPLE LITERALS AT SAME INDEX
-:-
-    literal(Clause,Literal,P,_),
-    literal(Clause,Literal,Q,_),
-    P != Q.
-
-:-
-    %% this duplicates the above constraint
-    literal(Clause,Literal,_,A1),
-    literal(Clause,Literal,_,A2),
-    A1 != A2.
-
-%% HEAD VARS
-var(Clause,0,V,V):-
-    literal(Clause,0,P,A),
-    V = 0..A,
-    V < A.
-
-%% GUESS BODY VARS
-{var(Clause,Literal,Pos,Var)}:-
-    body_literal(Clause,Literal,_,A),
-    Pos = 0..A-1,
-    Var = 0..N-1,
-    max_vars(N).
+    var(Var),
+    Var > 0,
+    not var(Var-1).
 
 %% MUST USE VARS IN ORDER
 :-
-    var(Clause,_,_,V1),
-    V1 > 0,
-    V2 = V1-1,
-    not var(Clause,_,_,V2).
+    clause(Clause),
+    var_in_literal(Clause,_,_,Var),
+    Var > 0,
+    not var_in_literal(Clause,_,_,Var-1).
 
-%% PREVENT MULTIPLE VARS IN THE SAME INDEX AND POSITION
+%% MUST HAVE HEAD LITERAL
 :-
-    var(Clause,Literal,Pos,V1),
-    var(Clause,Literal,Pos,V2),
-    V1 != V2.
+    clause(Clause),
+    not head_literal(Clause,_,_,_).
 
-%% PREVENT SAME VAR IN THE SAME LITERAL
+%% CLAUSE MUST HAVE A BODY LITERAL
 :-
-    var(Clause,Literal,Pos1,V),
-    var(Clause,Literal,Pos2,V),
-    Pos1 != Pos2.
+    clause(Clause),
+    not body_literal(Clause,_,_,_).
 
-%% ENSURE CORRECT NUMBER OF VARS
-%% CONTROL
-%% a:-
-%%     literal(Clause,Literal,_,A),
-%%     #count{Pos,Var :
-%%         var(Clause,Literal,Pos,Var)
-%%     } != A.
-%% TREATMENT SEEMS TO REDUCE SOLVING TIME BY 1/2
+%% MAX BODY LITERALS
 :-
-    literal(Clause,Literal,_,A),
-    Pos = 0..A-1,
-    not var(Clause,Literal,Pos,_).
-
+    num_body_literals(_,N),
+    max_body(Max),
+    N > Max.
 
 %% MUST BE DATALOG
-%% CONTROL
-%% a:-
-%%     var(Clause,0,_,V),
-%%     #count{Literal :
-%%         var(Clause,Literal,_,V),
-%%         Literal > 0
-%%     } == 0.
-%% TREATMENT
-var_in_body(Clause,Var):-
-    var(Clause,Literal,_Pos,Var),
-    Literal > 0.
 :-
-    var(Clause,0,_Pos,Var),
-    not var_in_body(Clause,Var).
+    head_var(Clause,Var),
+    not body_var(Clause,Var).
+
+%% MUST BE CONNECTED
+:-
+    body_var(Clause,Var),
+    not head_connected(Clause,Var).
+
+%% ELIMINATE SINGLETONS
+:-
+    clause_var(Clause,Var),
+    #count{P,Vars : var_in_literal(Clause,P,Vars,Var)} == 1.
 
 %% TYPE MATCHING
 :-
-    var(Clause,Literal1,Pos1,V),
-    var(Clause,Literal2,Pos2,V),
-    literal(Clause,Literal1,P,_),
-    literal(Clause,Literal2,Q,_),
+    var_pos(Clause,P,Pos1,Var),
+    var_pos(Clause,Q,Pos2,Var),
     type(P,Pos1,Type1),
     type(Q,Pos2,Type2),
     Type1 != Type2.
 
-%% PREVENT SINGLETONS
-%% CONTROL
+%% VAR ARGUMENT DIRECTIONS
 :-
-    var(Clause,_,_,Var),
-    #count{Literal,Pos : var(Clause,Literal,Pos,Var)} == 1.
+    var_in_literal(Clause,_,_,Var),
+    not safe_var(Clause,Var).
 
-%% %% TREATMENT
-%% not_singleton(Clause,Var):-
-%%     var(Clause,Literal1,Pos,Var),
-%%     var(Clause,Literal2,Pos,Var),
-%%     Literal1 != Literal2.
-%% not_singleton(Clause,Var):-
-%%     var(Clause,Literal,Pos1,Var),
-%%     var(Clause,Literal,Pos2,Var),
-%%     Pos1 != Pos2.
-%% a:-
-%%     var(Clause,_,_,Var),
-%%     not not_singleton(Clause,Var).
+%% program_size(Size):-
+%%     #count{Clause,P,Vars : literal(Clause,P,Vars)} == Size.
+%% :-
+%%     size(N),
+%%     not program_size(N).
 
-%% %% IF WE ADD A LITERAL THEN IT MUST USE AN EXISTING VARIABLE
+% NB: constraint gets added by popper
+%:-
+%    size(N),
+%    #count{Clause,P,Vars : literal(Clause,P,Vars)} != N.
+
+%% REMOVE REFLEXIVE
+%% prevents: p(A):-q(A,B),q(B,A)
 :-
-    body_literal(Clause,Literal1,_,_),
-    #count{V :
-        var(Clause,Literal1,_,V),
-        var(Clause,Literal2,_,V),
-        literal(Clause,Literal2,_,_),
-        Literal2 < Literal1
-    } == 0.
+    irreflexive(P,A),
+    body_literal(Clause,P,2,(Var1,Var2)),
+    body_literal(Clause,P,2,(Var2,Var1)).
 
-
-
-%% TODO: REMOVE REFLEXIVE
-
-%% %% REMOVE IRREFLEXIVE - TODO GENERALISE
-%% happy(A):-add1(A,B),rich(B),add1(B,A) <- prevent the second add1/2 literal
-
+%% FUNCTIONAL
+%% prevents: p(A):-q(A,B),q(A,C)
 :-
-    irreflexive(P),
-    literal(Clause,Literal1,P,2),
-    literal(Clause,Literal2,P,2),
-    Literal1 != Literal2,
-    var(Clause,Literal1,Pos1,V1),
-    var(Clause,Literal1,Pos2,V2),
-    var(Clause,Literal2,Pos1,V2),
-    var(Clause,Literal2,Pos2,V1).
+    functional(P,2),
+    body_literal(Clause,P,2,(Var1,Var2)),
+    body_literal(Clause,P,2,(Var1,Var3)),
+    Var2 != Var3.
 
-%% %% FUNCTIONAL - TODO GENERALISE
-%% happy(A):-add1(A,B),add1(A,C),equal(B,C) <- must have that consta
+%% MAKE SURE CLAUSES ARE DIFFERENT
+%% THIS DUPLICATES THE SUBSUMPTION PART
 :-
-    functional(P),
-    literal(Clause,Index1,P,2),
-    var(Clause,Index1,0,V1),
-    var(Clause,Index1,1,V2),
-    literal(Clause,Index2,P,2),
-    Index2 != Index1,
-    var(Clause,Index2,0,V1),
-    var(Clause,Index2,1,V3),
-    V2 != V3.
+    clause(Clause1),
+    clause(Clause2),
+    Clause1 != Clause2,
+    not different(Clause1,Clause2).
+
+%% #show subsumes/2.
+%% PREVENT SUBSUMPTION REDUNDANT CLAUSES
+:-
+    clause(Clause1),
+    clause(Clause2),
+    subsumes(Clause1,Clause2).
+
+%% ORDER CLAUSES BY SIZE
+:-
+    clause(Clause1),
+    clause(Clause2),
+    Clause2 > Clause1,
+    num_body_literals(Clause1,N1),
+    num_body_literals(Clause2,N2),
+    N1 > N2.
+
+%% ORDER CLAUSES BY NUMBER OF VARS
+:-
+    same_size(Clause1,Clause2),
+    Clause2 > Clause1,
+    num_vars(Clause1,NumVars1),
+    num_vars(Clause2,NumVars2),
+    NumVars1 > NumVars2.
+
+%% :-
+%%     same_size(Clause1,Clause2),
+%%     same_num_vars(Clause1,Clause2),
+%%     Clause2 > Clause1,
+%%     num_body_literals(Clause1,1),
+%%     body_literal(Clause1,P,_,_),
+%%     body_literal(Clause2,Q,_,_),
+%%     P > Q.

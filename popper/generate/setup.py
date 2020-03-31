@@ -25,9 +25,10 @@ class SetupMixin(object):
 
             self.clingo_ctl.add("program_size", ['n'], """
 %%%%% External atom for number of literals in the program %%%%%
-#external num_literals(n).
-:- num_literals(n),
-   n != #count { Clause,Lit : literal(Clause,Lit,_,_) }.
+#external size(n).
+:-
+    size(n),
+    #count{Clause,P,Vars : literal(Clause,P,Vars)} != n.
 """)
 
             asp_programs = [("alan", [])] + ([('mode_file',[])] if mode_file else [])
