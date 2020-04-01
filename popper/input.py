@@ -23,6 +23,6 @@ def parse_args():
 
 def parse_examples(filename):
     code = open(filename).read()
-    pos_exs = re.findall("pos\((.*)\).", code)
-    neg_exs = re.findall("neg\((.*)\).", code)
+    pos_exs = re.findall("pos\((.*)\)\.", code)
+    neg_exs = re.findall("neg\((.*)\)\.", code)
     return pos_exs, neg_exs
