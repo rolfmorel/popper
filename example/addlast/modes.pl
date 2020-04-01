@@ -1,9 +1,11 @@
 max_vars(5).
-max_body(10).
+max_body(6).
 max_clauses(1).
 
 %% add the last element to the head
-%% f(A,B):-last(A,C),append(C,A,B)
+%% f(A,B):-
+%%     last(A,C),
+%%     cons(C,A,B).
 
 modeh(f,2).
 type(f,0,list).
@@ -19,13 +21,13 @@ direction(tail,1,out).
 
 modeb(head,2).
 type(head,0,list).
-type(head,1,int).
+type(head,1,element).
 direction(head,0,in).
 direction(head,1,out).
 
 modeb(last,2).
 type(last,0,list).
-type(last,1,int).
+type(last,1,element).
 direction(last,0,in).
 direction(last,1,out).
 
@@ -43,13 +45,13 @@ direction(sum,0,in).
 direction(sum,1,in).
 direction(sum,2,out).
 
-modeb(append,3).
-type(append,0,int).
-type(append,1,list).
-type(append,2,list).
-direction(append,0,in).
-direction(append,1,in).
-direction(append,2,out).
+modeb(cons,3).
+type(cons,0,element).
+type(cons,1,list).
+type(cons,2,list).
+direction(cons,0,in).
+direction(cons,1,in).
+direction(cons,2,out).
 
 modeb(empty,1).
 type(empty,0,list).
