@@ -51,6 +51,10 @@ class Atom(namedtuple('Atom', ['predicate', 'mode', 'arguments'])):
     def outputs(self):
         return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[1]))
 
+    @property
+    def unknowns(self):
+        return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[2]))
+
 
 class ArgumentMode(Enum):
     Input = '+'
@@ -61,7 +65,7 @@ class ArgumentMode(Enum):
 class ModeDecleration(namedtuple('ModeDecleration', ['predicate', 'arguments'])):
     @property
     def arity(self):
-        return len(self.argument_modes)
+        return len(self.arguments)
 
     def __str__(self):
         Out = ArgumentMode.Output
@@ -96,8 +100,9 @@ class ModeDecleration(namedtuple('ModeDecleration', ['predicate', 'arguments']))
 
 
 def is_recursive_clause(clause):
-    for literal in clause[1:]:
-        if literal.predicate == clause[0].predicate:
+    _, head, body = clause
+    for literal in body:
+        if literal.predicate == head.predicate:
             return True
     return False
 
@@ -121,13 +126,13 @@ def program_to_ordered_program(program):
     for clause in program:
         cl_id, head, body = clause
         ordered_clauses.append((cl_id,
-                [head] + selection_closure(head.inputs, body.copy())))
+                head, selection_closure(head.inputs, body.copy())))
     return ordered_clauses
 
 
 def ordered_clause_to_code(clause):
     _, head, body = clause
-    head, body = literal_to_code(head), map(str, body)
+    head, body = str(head), map(str, body)
     return f"{head} :- {','.join(body)}"
 
 
@@ -136,6 +141,7 @@ def ordered_program_to_code(program):
     for clause in program:
         code_program.append(ordered_clause_to_code(clause) + '.')
     return code_program
+
 
 def program_to_code(program):
     return ordered_program_to_code(program_to_ordered_program(program))
