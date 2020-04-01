@@ -1,4 +1,4 @@
-from .common import atom_to_asp_literals
+from .common import clause_to_asp_literals
 
 
 class BanishMixin(object):
@@ -8,10 +8,9 @@ class BanishMixin(object):
     @staticmethod
     def banish_constraint(program):
         banish_lits = []
-        for cl_id, clause in enumerate(program):
-            for atom in clause:
-                banish_lits += atom_to_asp_literals(atom)
-            num_lits = len(clause)
-            banish_lits.append(f"not literal({cl_id},{num_lits},_,_)")
-        banish_lits.append(f"not clause({len(program)})")
-        return ":- " + ",".join(banish_lits) + "."
+        for clause in program:
+            banish_lits += clause_to_asp_literals(clause, ground=True)
+            cl_id, _, body = clause
+            banish_lits += [f"clause_size({cl_id},{len(body)})"]
+        banish_lits += [f"not clause({len(program)})"]
+        return ":-" + ",".join(banish_lits) + "."

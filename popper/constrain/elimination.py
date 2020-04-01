@@ -1,4 +1,4 @@
-from .common import var_gen, atom_to_asp_literals
+from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses
 
 
 class EliminationMixin(object):
@@ -7,9 +7,11 @@ class EliminationMixin(object):
 
         
     def elimination_constraint(self, program):
-        elim_lits, cl_vars = self.specialization_literals(program)
-        clause_restr = ",".join("Clause != " + cl_var for cl_var in cl_vars)
+        elim_lits = []
+        for clause in program:
+            elim_lits += clause_to_asp_literals(clause, self.ground)
+        if not self.ground:
+            elim_lits += asp_literals_for_distinct_clauses(program)
+
         elim_lits.append("not recursive")
-        #elim_lits.append(f"#count{{ Clause,Literal : \
-#body_literal(Clause,Literal,{self.modeh.predicate},_),{clause_restr} }} == 0")
-        return ":-" + ",".join(elim_lits) + "."
+        return ":- " + ",".join(elim_lits) + "."
