@@ -14,7 +14,7 @@ class TestInterface(ABC):
     def setup(self, *args, **kwargs): pass
 
     @abstractmethod
-    def assert_program(self, *args, **kwargs): pass
+    def assert_ordered_program(self, *args, **kwargs): pass
 
     @abstractmethod
     def evaluate(self, *args, **kwargs): pass
