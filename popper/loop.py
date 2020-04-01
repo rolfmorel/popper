@@ -7,7 +7,7 @@ except ImportError:
 
 from sys import stderr
 
-from .representation import program_to_code, is_recursive_clause
+from .representation import program_to_ordered_program, program_to_code, is_recursive_clause
 from .util import Result, Outcome
 
 
@@ -54,7 +54,8 @@ def loop(context, Generate, Test, Constrain, debug=False):
                     print("START TESTING", file=stderr)
 
                 Test.retract_program_clauses()
-                Test.assert_program(program)
+                ordered_program = program_to_ordered_program(program)
+                Test.assert_ordered_program(ordered_program)
 
                 entailed_pos_exs = list(filter(lambda res: res == Result.Success,
                         map(lambda ex: Test.evaluate(ex), Test.pos_examples)))
@@ -74,10 +75,10 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 # Special case for non-recursive clauses to determine whether they are useful or not
                 constraints = []
-                non_recursive_clauses = list(filter(lambda cl: not is_recursive_clause(cl), program))
+                non_recursive_clauses = list(filter(lambda cl: not is_recursive_clause(cl), ordered_program))
                 for nr_clause in non_recursive_clauses:
                     Test.retract_program_clauses()
-                    Test.assert_program([nr_clause])
+                    Test.assert_ordered_program([nr_clause])
 
                     entailed_pos_exs = list(filter(lambda res: res == Result.Success,
                         map(lambda ex: Test.evaluate(ex), Test.pos_examples)))
@@ -95,7 +96,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 if debug: print("START IMPOSING CONSTRAINTS", file=stderr)
 
                 constraints += Constrain.derive_constraints(program,
-                                                           positive_outcome, negative_outcome)
+                                                            positive_outcome, negative_outcome)
                 if Constrain.no_pruning:
                     constraints = [Constrain.banish_constraint(program)]
 
