@@ -11,7 +11,7 @@ def main():
     args = parse_args()
 
     program, context = run(args.MODES_FILE, args.BK_FILE, args.EXAMPLES_FILE,
-                           args.max_literals, args.eval_timeout, args.ground_spec_constraints,
+                           args.max_literals, args.eval_timeout, args.ground_constraints,
                            args.no_pruning, timeout=args.timeout, debug=args.debug)
 
     if args.stats:
