@@ -37,4 +37,4 @@ class RepresentationMixin(object):
         return list(map(lambda clause_key: (clause_key,
                      clause_id_to_head[clause_key],
                      clause_id_to_body[clause_key]),
-                   sorted(clause_id_to_head.keys())))
+                        sorted(clause_id_to_head.keys())))
