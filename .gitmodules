@@ -1,0 +1,4 @@
+[submodule "popper/generate/alan"]
+	path = popper/generate/alan
+	url = git@github.com:andrewcropper/alan.git
+	branch = indexless

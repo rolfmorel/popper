@@ -20,7 +20,7 @@ class SetupMixin(object):
                                         f"%%%%% MODE FILE: {mode_file} %%%%%\n" +
                                         handle.read())
 
-            with working_directory(file_dir + "/asp"), open("alan.pl") as handle:
+            with working_directory(file_dir + "/alan"), open("alan.pl") as handle:
                 self.clingo_ctl.add("alan", [], handle.read())
 
             self.clingo_ctl.add("program_size", ['n'], """
