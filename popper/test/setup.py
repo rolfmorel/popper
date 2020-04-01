@@ -1,5 +1,3 @@
-from ..representation import clause_to_code
-
 class SetupMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('setup')
@@ -12,6 +10,6 @@ class SetupMixin(object):
             if bk_file:
                 self.prolog.consult(bk_file)
 
-            self.prolog.assertz(":- dynamic failing_literal/4")
-            self.prolog.assertz(":- dynamic successful_clause/1")
+            #self.prolog.assertz(":- dynamic failing_literal/4")
+            #self.prolog.assertz(":- dynamic successful_clause/1")
 
