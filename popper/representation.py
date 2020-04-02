@@ -21,14 +21,14 @@ class Atom(namedtuple('Atom', ['predicate', 'mode', 'arguments'])):
         args = map(lambda arg: f"V{arg}", self.arguments)
         return f"{self.predicate}({','.join(args)})"
 
-    def __repr__(self): # strictly speaking wrong, but more useful for debugging
-        mode_args = (f"{m.value}V{arg}" for arg, m in zip(self.arguments, self.mode.arguments))
-        return f"{self.predicate}({','.join(mode_args)})"
-
     def to_code(self):
         args = map(lambda arg: chr(ord('A') + arg) if type(arg) == int else arg,
                    self.arguments)
         return f"{self.predicate}({','.join(args)})"
+
+    def __repr__(self): # strictly speaking wrong, but more useful for debugging
+        mode_args = (f"{m.value}V{arg}" for arg, m in zip(self.arguments, self.mode.arguments))
+        return f"{self.predicate}({','.join(mode_args)})"
 
     def split_arguments(self):
         ins, outs, unks = set(), set(), set()
@@ -130,18 +130,14 @@ def program_to_ordered_program(program):
     return ordered_clauses
 
 
-def ordered_clause_to_code(clause):
+def clause_to_code(clause):
     _, head, body = clause
-    head, body = str(head), map(str, body)
+    head, body = str(head.to_code()), map(lambda a: a.to_code(), body)
     return f"{head} :- {','.join(body)}"
 
 
-def ordered_program_to_code(program):
+def program_to_code(program):
     code_program = []
     for clause in program:
-        code_program.append(ordered_clause_to_code(clause) + '.')
+        code_program.append(clause_to_code(clause) + '.')
     return code_program
-
-
-def program_to_code(program):
-    return ordered_program_to_code(program_to_ordered_program(program))

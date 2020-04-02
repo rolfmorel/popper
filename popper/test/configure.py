@@ -1,4 +1,4 @@
-from ..representation import ordered_clause_to_code
+from ..representation import clause_to_code
 
 
 class ConfigureMixin(object):
@@ -10,7 +10,7 @@ class ConfigureMixin(object):
     def assert_ordered_program(self, program):
         with self.context.configure:
             for clause in program:
-                self.prolog.assertz(ordered_clause_to_code(clause))
+                self.prolog.assertz(clause_to_code(clause))
 
 
     def retract_program_clauses(self):
