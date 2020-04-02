@@ -6,9 +6,11 @@ except ImportError:
     import _thread as thread
 
 from sys import stderr
+from functools import partial
 
 from .representation import program_to_ordered_program, program_to_code, is_recursive_clause
 from .util import Result, Outcome
+from .util.debug import debug_print
 
 
 def DBG_output_program(program):
@@ -33,6 +35,7 @@ def timed_loop(*args, timeout=None, **kwargs):
 
 def loop(context, Generate, Test, Constrain, debug=False):
     context.enter()
+    DBG_PRINT = partial(debug_print, prefix='LOOP', debug=debug)
     program = None
     context.num_programs_generated = 0
     try:
@@ -40,7 +43,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
             Generate.set_program_size(size)
 
             while True:
-                if debug: print(f"START GENERATING ({context.num_programs_generated})", file=stderr)
+                DBG_PRINT(f"START GENERATING (program {context.num_programs_generated + 1})")
 
                 program = Generate.get_program()
                 if program == None:
@@ -48,10 +51,9 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 context.num_programs_generated += 1
 
-                if debug:
-                    print("DONE GENERATING", file=stderr)
-                    DBG_output_program(program)
-                    print("START TESTING", file=stderr)
+                DBG_PRINT(f"DONE GENERATING (program {context.num_programs_generated})")
+                if debug: DBG_output_program(program)
+                DBG_PRINT("START TESTING")
 
                 Test.retract_program_clauses()
                 ordered_program = program_to_ordered_program(program)
@@ -87,13 +89,13 @@ def loop(context, Generate, Test, Constrain, debug=False):
                         constraints += [Constrain.elimination_constraint([nr_clause])]
                 # END OF HACKS!!!
 
-                if debug: print(f"DONE TESTING {positive_outcome.value, negative_outcome.value}", file=stderr)
+                DBG_PRINT(f"DONE TESTING {positive_outcome.value, negative_outcome.value}")
 
                 if positive_outcome == Outcome.All and negative_outcome == Outcome.None_:
                     # program both complete and consistent
                     return program, context
 
-                if debug: print("START IMPOSING CONSTRAINTS", file=stderr)
+                DBG_PRINT("START IMPOSING CONSTRAINTS")
 
                 constraints += Constrain.derive_constraints(program,
                                                             positive_outcome, negative_outcome)
@@ -104,12 +106,11 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 for idx, constraint in enumerate(constraints):
                     name = f"program{context.num_programs_generated}_constraint{idx}"
                     name_constraint_pairs.append((name, constraint))
-                    if debug:
-                        print("CONSTRAINT:\n  " + constraint, file=stderr)
+                    DBG_PRINT("CONSTRAINT:\n  " + constraint)
 
                 Generate.impose_constraints(name_constraint_pairs)
 
-                if debug: print("DONE IMPOSING CONSTRAINTS", file=stderr)
+                DBG_PRINT("DONE IMPOSING CONSTRAINTS")
         return None, context
     except KeyboardInterrupt: # Also happens when timer interrupt happens
         return False, context

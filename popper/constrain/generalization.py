@@ -5,7 +5,6 @@ class GeneralizationMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-
     def generalization_constraint(self, program):
         gen_lits = []
         for clause in program:

@@ -20,8 +20,7 @@ class EvaluateMixin(object):
             return list(self.prolog.query(goal))
         except PrologError as ex:
             if "stack" in ex.args[0]:  # NB: not so nice way to detect a stack-overflowing program
-                if self.debug:
-                    print(f"STACK OVERFLOW for {example}!", file=stderr)
+                self.DBG_PRINT(f"STACK OVERFLOW for {example}!")
                 return []
             else:
                 raise ex

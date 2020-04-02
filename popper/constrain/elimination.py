@@ -4,7 +4,6 @@ from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses
 class EliminationMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         
     def elimination_constraint(self, program):
         elim_lits = []

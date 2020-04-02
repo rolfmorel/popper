@@ -5,7 +5,6 @@ class SpecializationMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-
     def specialization_constraint(self, program):
         spec_lits = []
         for clause in program:

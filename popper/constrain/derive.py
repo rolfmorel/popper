@@ -11,7 +11,6 @@ class DeriveMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-
     def derive_constraints(self, program, pos_outcome, neg_outcome):
         if neg_outcome == All:
             # we do not distinguish between entailing some or all of the negative examples
@@ -19,7 +18,6 @@ class DeriveMixin(object):
         if is_recursive_program(program):
             return self.recursive_constraints(program, pos_outcome, neg_outcome)
         return self.non_recursive_constraints(program, pos_outcome, neg_outcome)
-
 
     def non_recursive_constraints(self, program, pos_outcome, neg_outcome):
         if (pos_outcome, neg_outcome) == (All, None_):
@@ -36,7 +34,6 @@ class DeriveMixin(object):
         if (pos_outcome, neg_outcome) == (None_, Some):
             return [self.elimination_constraint(program),
                     self.generalization_constraint(program)]
-
 
     def recursive_constraints(self, program, pos_outcome, neg_outcome):
         if (pos_outcome, neg_outcome) == (All, None_):
