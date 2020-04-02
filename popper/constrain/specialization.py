@@ -1,4 +1,5 @@
-from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses
+from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses, \
+                    asp_literals_for_distinct_variables
 
 
 class SpecializationMixin(object):
@@ -11,6 +12,7 @@ class SpecializationMixin(object):
             spec_lits += clause_to_asp_literals(clause, self.ground)
         if not self.ground:
             spec_lits += asp_literals_for_distinct_clauses(program)
+            spec_lits += asp_literals_for_distinct_variables(program)
 
         spec_lits.append(f"not clause({len(program)})")
-        return ":- " + ",".join(spec_lits) + "."
+        return ":-" + ",".join(spec_lits) + "."

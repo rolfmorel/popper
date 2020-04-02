@@ -13,6 +13,7 @@ def _atom_to_asp_literal(cl_id, atom, ground):
     pred, arity, args = atom.predicate, atom.arity, atom.arguments
 
     if not ground:
+        #TODO: generating variable for the head's inputs only increaes grounding. Get rid of vars for these
         args = tuple(map(lambda arg: "_" if arg == VAR_ANY else f"{cl_id}V{arg}",
                          args))
     else:
@@ -40,4 +41,18 @@ def asp_literals_for_distinct_clauses(program):
             cl1_id, cl2_id = f"ClId{clause1[0]}", f"ClId{clause2[0]}"
             # ensure clauses do not overlap (smaller grounding as well)
             lits += [cl1_id + "!=" + cl2_id] 
+    return lits
+
+
+def asp_literals_for_distinct_variables(program):
+    lits = []
+    for clause in program:
+        cl_id, head, body = clause
+        clause_vars = set(var for atom in ([head] + list(body)) for var in atom.arguments)
+        for var1 in clause_vars:
+            for var2 in clause_vars:
+                # (in)equality constraints are symmetric, hence no need to consider both orderings
+                if var1 == var2: break
+                # ensure clauses do not overlap (smaller grounding as well)
+                lits += [f"ClId{cl_id}V{var1}" + "!=" + f"ClId{cl_id}V{var2}"]
     return lits

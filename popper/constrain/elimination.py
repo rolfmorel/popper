@@ -1,4 +1,5 @@
-from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses
+from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses, \
+                    asp_literals_for_distinct_variables
 
 
 class EliminationMixin(object):
@@ -11,6 +12,7 @@ class EliminationMixin(object):
             elim_lits += clause_to_asp_literals(clause, self.ground)
         if not self.ground:
             elim_lits += asp_literals_for_distinct_clauses(program)
+            elim_lits += asp_literals_for_distinct_variables(program)
 
         elim_lits.append("not recursive")
-        return ":- " + ",".join(elim_lits) + "."
+        return ":-" + ",".join(elim_lits) + "."

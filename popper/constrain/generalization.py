@@ -1,4 +1,5 @@
-from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses
+from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses, \
+                    asp_literals_for_distinct_variables
 
 
 class GeneralizationMixin(object):
@@ -14,4 +15,5 @@ class GeneralizationMixin(object):
             gen_lits += [f"clause_size({cl_id},{len(body)})"]
         if not self.ground:
             gen_lits += asp_literals_for_distinct_clauses(program)
+            gen_lits += asp_literals_for_distinct_variables(program)
         return ":-" +  ",".join(gen_lits) + "."
