@@ -132,8 +132,10 @@ def program_to_ordered_program(program):
 
 def clause_to_code(clause):
     _, head, body = clause
-    head, body = str(head.to_code()), map(lambda a: a.to_code(), body)
-    return f"{head} :- {','.join(body)}"
+    head_, body_ = str(head.to_code()), map(lambda a: a.to_code(), body)
+    if type(body) == set:
+        return f"{head_} :- {{ {','.join(body_)} }}"
+    return f"{head_} :- {','.join(body_)}"
 
 
 def program_to_code(program):
