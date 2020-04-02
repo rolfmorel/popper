@@ -16,7 +16,7 @@ class SolverMixin(object):
 
     def set_program_size(self, size):
         with self.context.solver:
-            self.DBG_PRINT(f"START SETTING PROGRAM SIZE")
+            self.DBG_PRINT(f"START SETTING PROGRAM SIZE ({size})")
             for i in range(1, size):
                 self.clingo_ctl.release_external(Function("size", [i]))
             # NB: might well attempt to reground the old parts of base as well

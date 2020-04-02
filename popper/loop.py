@@ -47,16 +47,17 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 program = Generate.get_program()
                 if program == None:
+                    DBG_PRINT(f"NO MORE PROGRAMS (with {size} literals)")
                     break  # No model could be found. Can try with more allowed literals
 
                 context.num_programs_generated += 1
 
                 DBG_PRINT(f"DONE GENERATING (program {context.num_programs_generated})")
-                if debug: DBG_output_program(program)
+                ordered_program = program_to_ordered_program(program)
+                if debug: DBG_output_program(ordered_program)
                 DBG_PRINT("START TESTING")
 
                 Test.retract_program_clauses()
-                ordered_program = program_to_ordered_program(program)
                 Test.assert_ordered_program(ordered_program)
 
                 entailed_pos_exs = list(filter(lambda res: res == Result.Success,
