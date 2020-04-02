@@ -79,6 +79,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 # Special case for non-recursive clauses to determine whether they are useful or not
                 constraints = []
                 non_recursive_clauses = list(filter(lambda cl: not is_recursive_clause(cl), ordered_program))
+                if len(ordered_program) == 1: non_recursive_clauses = [] # No point checking a single clause program again
                 for nr_clause in non_recursive_clauses:
                     Test.retract_program_clauses()
                     Test.assert_ordered_program([nr_clause])
