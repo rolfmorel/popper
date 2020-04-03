@@ -1,19 +1,20 @@
 from . import generate, test, constrain
 
 from .input import parse_examples
-from .util import TimeAccumulatingContext
+from .util import TimeAccumulatingContext, DummyTimeAccumulatingContext
 
 
 def setup(mode_file, bk_file, examples_file,
-          max_literals, eval_timeout, ground_constraints, no_pruning, debug):
-    context = TimeAccumulatingContext()
+          max_literals, eval_timeout, ground_constraints, no_pruning, debug, stats):
+    ContextClass = TimeAccumulatingContext if stats else DummyTimeAccumulatingContext 
+    context = ContextClass()
     with context:
         pos_exs, neg_exs = parse_examples(examples_file)
 
-        Generate = generate.Generate(mode_file, max_literals=max_literals, debug=debug)
+        Generate = generate.Generate(mode_file, max_literals=max_literals, debug=debug, context=ContextClass())
         context.add_child('generate', Generate.context)
 
-        Test = test.Test(Generate.modeh, bk_file, pos_exs, neg_exs, eval_timeout, debug=debug)
+        Test = test.Test(Generate.modeh, bk_file, pos_exs, neg_exs, eval_timeout, debug=debug, context=ContextClass())
         context.add_child('test', Test.context)
 
         Constrain = constrain.Constrain(Generate.modeh, ground=ground_constraints,

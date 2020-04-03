@@ -10,15 +10,16 @@ from timeit import default_timer as timer
 #        return decorated_func(self, *args, **kwargs)
 #    return wrapped
 
-
-class TimeAccumulatingContext(object):
+class DummyTimeAccumulatingContext(object):
     def __init__(self, parent=None):
         self.parent = parent
         self.children = {}
+
         self.times_entered = 0
         self._times = []
 
         self.currently_entered = 0
+        self.entered = self.exited = 0
         self.paused = False
 
     @property
@@ -33,37 +34,13 @@ class TimeAccumulatingContext(object):
         self.children[name] = child
         return child
 
-    def pause(self):
-        if self.running and not self.paused:
-            self.exit()
-            if self.parent: self.parent.pause()
-            self.paused = True
+    def pause(self): pass
+    def unpause(self): pass
 
-    def unpause(self):
-        any_running_children = reduce(lambda acc, child: child.running or acc,
-                                      self.children.values(), False)
-        if self.paused and not any_running_children:
-            self.paused = False
-            self.enter()
-            self.times_entered -= 1
-
-    def __enter__(self):
-        self.currently_entered += 1
-        assert self.currently_entered == 1
-        self.times_entered += 1
-        if self.parent: self.parent.pause()
-        self.entered = timer()
-        return self
+    def __enter__(self): return self
     enter = __enter__
 
-    def __exit__(self, type, value, traceback):
-        self.currently_entered -= 1
-        assert self.currently_entered == 0
-        self.exited = timer()
-        if self.parent: self.parent.unpause()
-
-        diff = self.exited - self.entered
-        self._times.append(diff)
+    def __exit__(self, type, value, traceback): pass
     def exit(self):
         self.__exit__(None, None, None)
         return self.exited - self.entered
@@ -95,3 +72,38 @@ class TimeAccumulatingContext(object):
                 yield lst[i:i + n]
         return list(map(lambda x: sum(x) / len(x), chunks(self._times, len(self._times) // n + 1)))
 
+
+class TimeAccumulatingContext(DummyTimeAccumulatingContext):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def pause(self):
+        if self.running and not self.paused:
+            self.exit()
+            if self.parent: self.parent.pause()
+            self.paused = True
+
+    def unpause(self):
+        any_running_children = reduce(lambda acc, child: child.running or acc,
+                                      self.children.values(), False)
+        if self.paused and not any_running_children:
+            self.paused = False
+            self.enter()
+            self.times_entered -= 1
+
+    def __enter__(self):
+        self.currently_entered += 1
+        assert self.currently_entered == 1
+        self.times_entered += 1
+        if self.parent: self.parent.pause()
+        self.entered = timer()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.currently_entered -= 1
+        assert self.currently_entered == 0
+        self.exited = timer()
+        if self.parent: self.parent.unpause()
+
+        diff = self.exited - self.entered
+        self._times.append(diff)

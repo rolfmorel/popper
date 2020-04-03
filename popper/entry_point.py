@@ -12,7 +12,7 @@ def main():
 
     program, context = run(args.MODES_FILE, args.BK_FILE, args.EXAMPLES_FILE,
                            args.max_literals, args.eval_timeout, args.ground_constraints,
-                           args.no_pruning, timeout=args.timeout, debug=args.debug)
+                           args.no_pruning, timeout=args.timeout, debug=args.debug, stats=args.stats)
 
     if args.stats:
         info = context.as_dict()
@@ -23,10 +23,10 @@ def main():
 
 
 def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
-        ground_constraints, no_pruning, timeout, debug=False):
+        ground_constraints, no_pruning, timeout, debug=False, stats=False):
     context, (Generate, Test, Constrain) = \
             setup(mode_file, bk_file, examples_file, max_literals, eval_timeout,
-                  ground_constraints, no_pruning, debug=debug)
+                  ground_constraints, no_pruning, debug=debug, stats=stats)
 
     program, context = timed_loop(context, Generate, Test, Constrain,
                                   timeout=timeout, debug=debug)
