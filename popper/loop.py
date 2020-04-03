@@ -95,7 +95,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 if positive_outcome == Outcome.All and negative_outcome == Outcome.None_:
                     # program both complete and consistent
-                    return program, context
+                    return ordered_program, context
 
                 DBG_PRINT("START IMPOSING CONSTRAINTS")
 
