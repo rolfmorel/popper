@@ -24,9 +24,9 @@ def _atom_to_asp_literal(cl_id, atom, ground):
 
 
 def clause_to_asp_literals(clause, ground=False, cl_id=None):
-    cl_id, head, body = clause
+    cl_id_, head, body = clause
     if cl_id == None:
-        cl_id = f"ClId{cl_id}" if not ground else str(cl_id)
+        cl_id = f"ClId{cl_id_}" if not ground else str(cl_id_)
     lits = [head_atom_to_asp_literal(cl_id, head, ground)]
     lits += map(lambda atom: body_atom_to_asp_literal(cl_id, atom, ground),
                 body)
