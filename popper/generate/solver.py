@@ -44,10 +44,10 @@ class SolverMixin(object):
         self.context.solver.solving.enter()
         with self.clingo_ctl.solve(yield_=True) as handle:
             self.context.solver.solving.exit()
-            self.DBG_PRINT("DONE SOLVING")
 
             # None indicates no model could be found (could try with more allowed literals)
             model = next(handle, None)
+            self.DBG_PRINT("DONE SOLVING")
             if model:
                 return model.symbols(atoms=True)
             return model
