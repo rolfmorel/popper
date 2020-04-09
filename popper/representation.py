@@ -115,10 +115,11 @@ def program_to_ordered_program(program):
     def selection_closure(grounded_vars, literals):
         if len(literals) == 0: return []
         avail_lits = filter(
-                lambda lit: lit.inputs.union(lit.unknowns).issubset(grounded_vars),
+                lambda lit: lit.inputs.issubset(grounded_vars),
                 literals)
         selected_lit = next(avail_lits, None) # NB: selection is completely arbitrary
-        if selected_lit == None: raise ValueError(f"literals {literals} could not be grounded")
+        if selected_lit == None:
+            raise ValueError(f"literals {literals} could not be grounded")
         return [selected_lit] + \
                selection_closure(grounded_vars.union(selected_lit.outputs),
                                  literals.difference({selected_lit}))
