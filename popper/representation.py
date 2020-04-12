@@ -68,32 +68,31 @@ class ModeDecleration(namedtuple('ModeDecleration', ['predicate', 'arguments']))
         return len(self.arguments)
 
     def __str__(self):
-        Out = ArgumentMode.Output
-        return self.predicate + "(" + ",".join("-" if mode == Out else "+" for mode in self.arguments) + ")"
+        return self.predicate + "(" + ",".join(mode.value for mode in self.arguments) + ")"
 
     @staticmethod
     def parse_direction_modes(str_, predicate, arity):
         arguments = []
         for argument_idx in range(int(arity)):
-            result = re.search(f"direction\({predicate}, *{argument_idx}, *([^\n ]*)\).", str_)
+            result = re.search(f"[^%]direction\({predicate}, *{argument_idx}, *([^\n ]*)\).", str_)
             if result and result.group(1) == 'out':
                 arguments.append(ArgumentMode.Output)
             elif result and result.group(1) == 'in':
                 arguments.append(ArgumentMode.Input)
-            else: # NB, this case is used as a default as well
+            else:
                 arguments.append(ArgumentMode.Unknown)
         return __class__(predicate, tuple(arguments))
 
     @staticmethod
     def from_modeh(str_):
-        result = re.search("modeh\(([^,]*?), *(\d+)\).", str_)
+        result = re.search("[^%]modeh\(([^,]*?), *(\d+)\).", str_)
         predicate, arity = result.group(1), result.group(2)
         return __class__.parse_direction_modes(str_, predicate, arity)
 
     @staticmethod
     def from_modebs(str_):
         modebs = []
-        for result in re.findall("modeb\(([^,\n]*?), *(\d+)\).", str_):
+        for result in re.findall("[^%]modeb\(([^,\n]*?), *(\d+)\).", str_):
             predicate, arity = result
             modebs.append(__class__.parse_direction_modes(str_, predicate, arity))
         return modebs
@@ -112,22 +111,28 @@ def is_recursive_program(program):
 
 
 def program_to_ordered_program(program):
-    def selection_closure(grounded_vars, literals):
+    def selection_closure(head_pred, grounded_vars, literals):
         if len(literals) == 0: return []
-        avail_lits = filter(
-                lambda lit: lit.inputs.issubset(grounded_vars),
-                literals)
-        selected_lit = next(avail_lits, None) # NB: selection is completely arbitrary
+
+        rec_lits, nonrec_lits = [], []
+        for lit in literals:
+            if lit.inputs.issubset(grounded_vars):
+                if lit.predicate == head_pred:
+                    rec_lits.append(lit)
+                else:
+                    nonrec_lits.append(lit)
+
+        selected_lit = next(iter(nonrec_lits + rec_lits), None)
         if selected_lit == None:
             raise ValueError(f"literals {literals} could not be grounded")
         return [selected_lit] + \
-               selection_closure(grounded_vars.union(selected_lit.outputs),
+               selection_closure(head_pred, grounded_vars.union(selected_lit.outputs),
                                  literals.difference({selected_lit}))
     ordered_clauses = []
     for clause in program:
         cl_id, head, body = clause
         ordered_clauses.append((cl_id,
-                head, selection_closure(head.inputs, body.copy())))
+                head, selection_closure(head.predicate, head.inputs, body.copy())))
     return ordered_clauses
 
 
