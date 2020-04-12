@@ -1,4 +1,4 @@
-from ..representation import clause_to_code
+from popper.representation import clause_to_code
 
 
 class ConfigureMixin(object):

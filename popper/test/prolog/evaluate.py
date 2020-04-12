@@ -2,7 +2,7 @@ from sys import stderr
 
 from pyswip.prolog import PrologError
 
-from ..util import Result
+from popper.util import Result
 
 
 class EvaluateMixin(object):

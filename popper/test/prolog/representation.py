@@ -1,4 +1,4 @@
-from ..representation import literal_to_code
+from popper.representation import literal_to_code
 
 
 def literal_to_asserting_prolog(lit):
