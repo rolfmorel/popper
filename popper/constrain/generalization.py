@@ -14,6 +14,7 @@ class GeneralizationMixin(object):
             cl_id = f"ClId{cl_id}" if not self.ground else str(cl_id)
             gen_lits += [f"clause_size({cl_id},{len(body)})"]
         if not self.ground:
+            # TODO: asserting distinct clauses should not be necessary. Including these atoms increases grounging
             gen_lits += asp_literals_for_distinct_clauses(program)
             gen_lits += asp_literals_for_distinct_variables(program)
         return ":-" +  ",".join(gen_lits) + "."
