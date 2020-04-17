@@ -52,6 +52,7 @@ def asp_literals_for_distinct_variables(program):
         clause_vars = set(var for atom in ([head] + list(body)) for var in atom.arguments)
         for var1 in clause_vars:
             for var2 in clause_vars:
+                # TODO: if we assert inequality by <, that should (soundly) shrink the grounding a bit
                 # (in)equality constraints are symmetric, hence no need to consider both orderings
                 if var1 == var2: break
                 # ensure clauses do not overlap (smaller grounding as well)
