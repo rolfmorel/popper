@@ -8,9 +8,9 @@ See the paper 'Learning programs by learning from failures', on [Arvix](https://
 Currently the system relies on being run from the repository folder.
 
 The python interface to `clingo`, an Answer Set Programming environment, is required.
-Test if the python library was installed with clingo by trying to run `import Clingo` in your `python' interpreter.
+Test if the python library was installed with clingo by trying to run `import clingo` in your `python` interpreter.
 
-The 'pyswip' python library is used as an interface to swi-prolog.
+The `pyswip` python library is used as an interface to swi-prolog.
 
 Check the `requirements.txt` file for version numbers of these libraries that are confirmed to work.
 
