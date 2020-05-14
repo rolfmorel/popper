@@ -8,7 +8,7 @@ import popper.generate
 
 from popper.representation import program_to_code, program_to_ordered_program
 
-modes_file = "example/droplast/modes.pl" if len(sys.argv) < 2 else sys.argv[1]
+modes_file = "examples/droplast/modes.pl" if len(sys.argv) < 2 else sys.argv[1]
 
 Generate = popper.generate.Generate(modes_file)
 Constrain = popper.constrain.Constrain(Generate.modeh)
