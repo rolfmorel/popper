@@ -7,7 +7,7 @@ from .solver import SolverMixin
 from .representation import RepresentationMixin
 from ..util.debug import DebugMixin
 
-from ..representation import ModeDecleration
+from ..representation import ModeDeclaration
 from ..util import TimeAccumulatingContext
 
 
@@ -41,6 +41,6 @@ class Generate(SetupMixin,RepresentationMixin,SolverMixin,DebugMixin,GenerateInt
 
             with open(mode_file) as f:
                 modes_code = f.read()
-                self.modeh = ModeDecleration.from_modeh(modes_code)
-                self.modebs = ModeDecleration.from_modebs(modes_code)
+                self.modeh = ModeDeclaration.from_modeh(modes_code)
+                self.modebs = ModeDeclaration.from_modebs(modes_code)
                 self.predicate_to_modeb = dict((m.predicate, m) for m in self.modebs)

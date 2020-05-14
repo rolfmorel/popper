@@ -6,7 +6,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Popper, a generate-test-and-constrain ILP system", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("EXAMPLES_FILE", help="Ground examples for the testing stage")
-    parser.add_argument("MODES_FILE", help="ASP mode declerations and constraints for the generate stage")
+    parser.add_argument("MODES_FILE", help="ASP mode declarations and constraints for the generate stage")
     parser.add_argument("BK_FILE", help="Prolog definitions for background knowledge predicates")
 
     parser.add_argument("--no-pruning", default=False, action='store_true', help="Only generate elimination constraints (i.e. no pruning of specializations/generalizations)")

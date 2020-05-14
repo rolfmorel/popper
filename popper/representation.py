@@ -62,7 +62,7 @@ class ArgumentMode(Enum):
     Unknown = '?'
 
 
-class ModeDecleration(namedtuple('ModeDecleration', ['predicate', 'arguments'])):
+class ModeDeclaration(namedtuple('ModeDeclaration', ['predicate', 'arguments'])):
     @property
     def arity(self):
         return len(self.arguments)
