@@ -43,4 +43,4 @@ import popper.entry_point
 program, context = popper.entry_point.run_experiment('modes.pl', 'bk.pl', 'exampes.pl', MAX_LITERALS, EVAL_TIMEOUT, GROUND_CONSTRAINTS, NO_PRUNING, TIMEOUT, DEBUG)
 ```
 
-Take a look at the `popper/entry_point.py` and `popper/input.py' files to understand the different parameters.
+Take a look at the `popper/entry_point.py` and `popper/input.py` files to understand the different parameters.
