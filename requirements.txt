@@ -1,0 +1,2 @@
+clingo==0.5.4  # python lib should be included with normal clingo install
+pyswip==0.2.9  # installable with pip. Requires libswipl being available as a shared library
