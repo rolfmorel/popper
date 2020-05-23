@@ -1,7 +1,7 @@
 # Popper
 
 An Inductive Logic Programming system that learns Prolog/Datalog programs from examples by learning constraints.
-See the paper 'Learning programs by learning from failures', on [Arvix](https://arxiv.org/abs/2005.02259).
+See the paper 'Learning programs by learning from failures', on [arXiv](https://arxiv.org/abs/2005.02259).
 
 ## Installation
 
