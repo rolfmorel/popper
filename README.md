@@ -1,16 +1,16 @@
 # Popper
 
 An Inductive Logic Programming system that learns Prolog/Datalog programs from examples by learning constraints.
-See the paper 'Learning programs by learning from failures', on [Arvix](https://arxiv.org/abs/2005.02259).
+See the paper 'Learning programs by learning from failures', on [arXiv](https://arxiv.org/abs/2005.02259).
 
 ## Installation
 
 Currently the system relies on being run from the repository folder.
 
 The python interface to `clingo`, an Answer Set Programming environment, is required.
-Test if the python library was installed with clingo by trying to run `import Clingo` in your `python' interpreter.
+Test if the python library was installed with clingo by trying to run `import clingo` in your `python` interpreter.
 
-The 'pyswip' python library is used as an interface to swi-prolog.
+The `pyswip` python library is used as an interface to swi-prolog.
 
 Check the `requirements.txt` file for version numbers of these libraries that are confirmed to work.
 
@@ -43,4 +43,4 @@ import popper.entry_point
 program, context = popper.entry_point.run_experiment('modes.pl', 'bk.pl', 'exampes.pl', MAX_LITERALS, EVAL_TIMEOUT, GROUND_CONSTRAINTS, NO_PRUNING, TIMEOUT, DEBUG)
 ```
 
-Take a look at the `popper/entry_point.py` and `popper/input.py' files to understand the different parameters.
+Take a look at the `popper/entry_point.py` and `popper/input.py` files to understand the different parameters.
