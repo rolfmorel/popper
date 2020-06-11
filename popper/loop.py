@@ -64,7 +64,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                         map(lambda ex: Test.evaluate(ex), Test.pos_examples)))
                 if len(entailed_pos_exs) == len(Test.pos_examples):
                     positive_outcome = Outcome.All
-                elif entailed_pos_exs  == []:
+                elif entailed_pos_exs == []:
                     positive_outcome = Outcome.None_
                 else:
                     positive_outcome = Outcome.Some

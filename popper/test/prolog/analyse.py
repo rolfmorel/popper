@@ -2,7 +2,7 @@ import copy
 from collections import defaultdict
 
 from popper.util import Result
-from popper.representation import program_to_ordered_program
+from popper.representation import program_to_ordered_program, EvalAtom, Atom
 
 def arguments_to_prolog(arguments):
     args = []
@@ -28,7 +28,9 @@ class AnalyseMixin(object):
 
 
     def _assert_prog(self, prog):
-        program = self.program_to_asserting_prolog(program_to_ordered_program(prog))
+        if not isinstance(prog[0][2], list):
+            prog = program_to_ordered_program(prog)
+        program = self.program_to_asserting_prolog(prog)
         for clause in program:
             self.prolog.assertz(clause)
 
@@ -43,13 +45,13 @@ class AnalyseMixin(object):
             pred = atom.predicate
             args = ','.join(arguments_to_prolog(atom.arguments))
 
-            atom_ = f"{pred}({args},[{cl_id}|Path])"
+            atom_ = f"{pred}({args},[[{cl_id},{lit_id}]|Path])"
         else:
             atom_ = atom_to_prolog(atom)
         pred = atom.predicate
         args = ','.join(arguments_to_prolog(atom.arguments))
-        return f"({atom_} *-> assertz(et({cl_id},{lit_id},{pred},({args}),[{cl_id}|Path],true)) ; \
-(assertz(et({cl_id},{lit_id},{pred},({args}),[{cl_id}|Path],false)),false))"
+        return f"({atom_} *-> assertz(trace({cl_id},{lit_id},{pred},[{args}],Path,true)) ; \
+(assertz(trace({cl_id},{lit_id},{pred},[{args}],Path,false)),false))"
 
 
     def program_to_asserting_prolog(self, program):
@@ -62,21 +64,56 @@ class AnalyseMixin(object):
             body_lits = []
             for idx, atom in enumerate(body):
                 body_lits += [self.literal_to_asserting_prolog(cl_id, idx + 1, atom)]
-            body_lits += [f"assertz(et({cl_id},0,{head.predicate},({head_args}),[{cl_id}|Path],true))",
-                          "(Path = [] -> !,fail ; true)"]
-            prolog_program.append(f"{head_lit} :- {','.join(body_lits)}")
+
+            assert_prefix = f"assertz(trace({cl_id},0,{head.predicate},[{head_args}],Path"
+            success_assert = assert_prefix + ",true))"
+            failure_assert = assert_prefix + ",false))"
+
+            body = f"({','.join(body_lits)}) *-> {success_assert} ; {failure_assert},false" 
+            prolog_program.append(f"{head_lit} :- {body},(Path = [] -> !,false)") # NB: cut on empty path causes non-standard execution
         return prolog_program
 
 
     def instrumented_evaluate(self, example):
-        self.prolog.retractall("et(_,_,_,_,_,_)")
+        self.prolog.retractall("trace(_,_,_,_,_,_)")
 
         # HACK!!!
         example = example[:-1] + ",[])"
 
         self.query(example)
 
-        return list(self.prolog.query("et(ClId,LitId,Pred,Args,Path,Success)"))
+        trace = list(self.prolog.query("trace(ClId,LitId,Pred,Args,Path,Success)"))
+
+        result = Result.Failure
+
+        path_to_eval_atom = dict()
+        path_edges = defaultdict(set)
+
+        for traced_atom in trace:
+            cl_id, lit_id = traced_atom['ClId'], traced_atom['LitId']
+            pred, grounding = traced_atom['Pred'], traced_atom['Args']
+            path, success = traced_atom['Path'], (traced_atom['Success'] == 'true')
+            mode = None
+
+            full_path = tuple(map(tuple,[[cl_id, lit_id]] + path))
+            path_to_eval_atom[full_path] = EvalAtom(pred, grounding, success)
+
+            if lit_id == 0 and path == [] and success:
+                result = Result.Success
+
+            if lit_id >= 1:
+                if lit_id == 1 and path != []:
+                    parent_full_path = tuple(map(tuple,path))
+                else:
+                    parent_full_path = tuple(map(tuple,[[cl_id, lit_id - 1]] + path))
+                path_edges[parent_full_path].add(full_path)
+
+        inverted_path_edges = defaultdict(set)
+        for origin, dests in path_edges.items():
+            for dest in dests:
+                inverted_path_edges[dest].add(origin)
+
+        return result, (path_to_eval_atom, path_edges, inverted_path_edges)
 
 
     @staticmethod
@@ -110,5 +147,3 @@ class AnalyseMixin(object):
                     subprog.pop(cl_id)
             subprogs.append(subprog)
         return subprogs
-
-
