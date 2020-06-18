@@ -1,11 +1,12 @@
 # coding: utf-8
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
-import popper.generate; Generate = popper.generate.Generate("/home/rolf/popper/examples/evs/modes.pl", debug=True) # not really necessary, just convenient for obtaining modeh
-import popper.test; Test = popper.test.TestProlog(Generate.modeh, bk_file="/home/rolf/popper/examples/evs/bk.pl", debug=True)
+import popper.generate
+Generate = popper.generate.Generate("/home/rolf/popper/examples/evs/modes.pl", debug=True) # not really necessary, just convenient for obtaining modeh
+import popper.test
+Test = popper.test.AnalyseProlog(Generate.modeh, bk_file="/home/rolf/popper/examples/evs/bk.pl", debug=True)
 from popper.representation import from_code
-from popper.representation import render 
-from popper.representation import dependencies
+from popper.representation.analyse import render, dependencies, execution_forest
 EVS_MODES = """\
 modeh(evs,1). 
 direction(evs,0,in). 
@@ -29,17 +30,19 @@ evs(A) :- empty(A).
 evs(A) :- head(A,B),even(B),tail(A,C),head(C,D),odd(D),tail(C,E),evs(E).
 """
 prog = from_code.from_strs(EVS_MODES, EVS_CODE)
-Test._assert_prog(prog)
-res, ef = Test.instrumented_evaluate('evs([0,1,2,3,4,5])')
-assert res.value
-df = dependencies.program_to_dependency_forest(prog)
-def_ = dependencies.to_dep_exe_forest(df, ef)
-render.dependency_forest_to_dot(df, filename='dependency_forest')
-render.execution_forest_to_dot(ef, filename='execution_forest_success')
-render.dependency_execution_forest_to_dot(def_, filename='dependency_execution_forest_success')
+Test.assert_ordered_program(prog)
+res, subprogs = Test.evaluate(prog, 'evs([0,1,2,3,4,5])')
+assert res
+if False:
+    df = dependencies.program_to_dependency_forest(prog)
+    def_ = dependencies.to_dep_exe_forest(df, ef)
+    render.dependency_forest_to_dot(df, filename='dependency_forest')
+    render.execution_forest_to_dot(ef, filename='execution_forest_success')
+    render.dependency_execution_forest_to_dot(def_, filename='dependency_execution_forest_success')
 
-res, ef = Test.instrumented_evaluate('evs([0,1,2,3,4,6])')
-assert res.value == False
-def_ = dependencies.to_dep_exe_forest(df, ef)
-render.execution_forest_to_dot(ef, filename='execution_forest_failure')
-render.dependency_execution_forest_to_dot(def_, filename='dependency_execution_forest_failure')
+res2, subprogs2 = Test.evaluate(prog, 'evs([0,1,2,3,4,6])')
+assert not res2
+if False:
+    def_ = dependencies.to_dep_exe_forest(df, ef)
+    render.execution_forest_to_dot(ef, filename='execution_forest_failure')
+    render.dependency_execution_forest_to_dot(def_, filename='dependency_execution_forest_failure')

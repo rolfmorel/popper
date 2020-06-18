@@ -10,6 +10,7 @@ class EvaluateMixin(object):
         self.context.add_child('evaluate')
         super().__init__(*args, **kwargs)
 
+
     def query(self, example):
         try:
             # TODO: query the program only on its input arguments, asserting the equality with output arguments as later atoms.
@@ -25,13 +26,14 @@ class EvaluateMixin(object):
             else:
                 raise ex
 
-    def evaluate(self, example):
+
+    def evaluate(self, _program, example):
         with self.context.evaluate:
             assignments = self.query(example)
 
             if assignments == [{}]:
-                return Result.Success
+                return Result.Success, [program]
             elif assignments == []:
-                return Result.Failure
+                return Result.Failure, [program]
             else:
                 assert False # could only possibly happen when example was non-ground, which we don't deal with now

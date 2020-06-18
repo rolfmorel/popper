@@ -17,3 +17,5 @@ class ConfigureMixin(object):
         with self.context.configure:
             args = ','.join(['_'] * self.modeh.arity)
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
+            # for asserting programs
+            self.prolog.retractall(f"{self.modeh.predicate}({args},_)")
