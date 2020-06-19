@@ -32,8 +32,8 @@ class EvaluateMixin(object):
             assignments = self.query(example)
 
             if assignments == [{}]:
-                return Result.Success, [program]
+                return Result.Success, set((program,))
             elif assignments == []:
-                return Result.Failure, [program]
+                return Result.Failure, set((program,))
             else:
                 assert False # could only possibly happen when example was non-ground, which we don't deal with now

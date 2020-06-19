@@ -27,7 +27,7 @@ def trace_to_sub_program(program, trace):
             else:
                 break
         if body_atoms != []:
-           sub_program.append((cl_id, head, body_atoms))
+           sub_program.append((cl_id, head, tuple(body_atoms)))
     return sub_program
 
 

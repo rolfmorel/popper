@@ -33,9 +33,9 @@ class EvaluateMixin(PrologEvaluateMixin):
             subprogs = extract_succeeding_sub_programs(program, exe_forest)
         else:
             subprogs = extract_failing_sub_programs(program, exe_forest)
-            subprogs = chain([program], filter(lambda subprog: subprog != program, subprogs)) # FIXME: does not clear duplicates
+            #subprogs = chain([program], filter(lambda subprog: subprog != program, subprogs))
 
-        return result, subprogs
+        return result, set(subprogs)
 
 
 def convert_instrumentation_to_execution_forest(trace):

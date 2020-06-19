@@ -43,8 +43,8 @@ def program_to_ordered_program(program):
     ordered_clauses = []
     for clause in program:
         cl_id, head, body = clause
-        ordered_clauses.append((cl_id,
-                head, selection_closure(head.predicate, head.inputs, body.copy())))
+        ordered_clauses.append((cl_id, head,
+                tuple(selection_closure(head.predicate, head.inputs, body.copy()))))
     return ordered_clauses
 
 

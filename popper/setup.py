@@ -17,6 +17,7 @@ def setup(mode_file, bk_file, examples_file,
         Tester = None
         if tester == 'prolog': Tester = test.TestProlog
         if tester == 'datalog': Tester = test.TestDatalog
+        if tester == 'prolog.analyse': Tester = test.AnalyseProlog
 
         Test = Tester(Generate.modeh, bk_file, pos_exs, neg_exs, eval_timeout, debug=debug, context=ContextClass())
         context.add_child('test', Test.context)

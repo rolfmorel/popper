@@ -57,50 +57,73 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 if debug: DBG_output_program(ordered_program)
                 DBG_PRINT("START TESTING")
 
+                # FIXME: nicer to do a contextmanager here for Test's evaluation
                 Test.retract_program_clauses()
                 Test.assert_ordered_program(ordered_program)
 
-                entailed_pos_exs = list(filter(lambda res: res == Result.Success,
-                        map(lambda ex: Test.evaluate(ex), Test.pos_examples)))
-                if len(entailed_pos_exs) == len(Test.pos_examples):
-                    positive_outcome = Outcome.All
-                elif entailed_pos_exs == []:
-                    positive_outcome = Outcome.None_
-                else:
-                    positive_outcome = Outcome.Some
+                subprog_missing_answers = defaultdict(int)
+                subprog_incorrect_answers = defaultdict(int)
 
-                entailed_neg_exs = list(filter(lambda res: res == Result.Success,
-                        map(lambda ex: Test.evaluate(ex), Test.neg_examples)))
-                if entailed_neg_exs == []:
-                    negative_outcome = Outcome.None_
-                else:
-                    negative_outcome = Outcome.Some
+                for pos_ex in Test.pos_examples:
+                    result, subprogs = Test.evaluate(ex)
+                    if not result: # failed to prove example
+                        for subprog in filter(lambda sp: sp != program, subprogs):
+                            subprog_missing_answers[subprog] += 1
+                        subprog_missing_answers[program] += 1
+
+                for neg_ex in Test.neg_examples:
+                    result, subprogs = Test.evaluate(ex)
+                    if result: # managed to prove example
+                        incorrect_answers += 1
+                        for subprog in filter(lambda sp: sp != program, subprogs):
+                            subprog_incorrect_answers[subprog] += 1
+                        subprog_incorrect_answers[program] += 1
 
                 # Special case for non-recursive clauses to determine whether they are useful or not
-                constraints = []
-                non_recursive_clauses = list(filter(lambda cl: not is_recursive_clause(cl), ordered_program))
-                if len(ordered_program) == 1: non_recursive_clauses = [] # No point checking a single clause program again
-                for nr_clause in non_recursive_clauses:
-                    Test.retract_program_clauses()
-                    Test.assert_ordered_program([nr_clause])
+                if not Test.analyses and len(ordered_program) > 1:  # No point checking a single clause program again
+                    # BEGIN HACKS!!!
+                    for nr_clause in filter(lambda cl: not is_recursive_clause(cl),
+                                            ordered_program):
+                        Test.retract_program_clauses()
+                        Test.assert_ordered_program((nr_clause,))
 
-                    entailed_pos_exs = list(filter(lambda res: res == Result.Success,
-                        map(lambda ex: Test.evaluate(ex), Test.pos_examples)))
+                        for pos_ex in Test.pos_examples:
+                            result, subprogs = Test.evaluate(ex)
+                            if not result: # failed to prove example
+                                subprog_missing_answers[(nr_clause,)] += 1
+                                break
+                    # END OF HACKS!!!
 
-                    if entailed_pos_exs == []:
-                        constraints += [Constrain.elimination_constraint([nr_clause])]
-                # END OF HACKS!!!
+                DBG_PRINT(f"DONE TESTING {subprog_missing_answers[program]}, {subprog_incorrect_answers[program]}")
 
-                DBG_PRINT(f"DONE TESTING {positive_outcome.value, negative_outcome.value}")
-
-                if positive_outcome == Outcome.All and negative_outcome == Outcome.None_:
+                if subprog_missing_answers[program] == 0 and subprog_incorrect_answers[program] == 0:
                     # program both complete and consistent
                     return ordered_program, context
 
                 DBG_PRINT("START IMPOSING CONSTRAINTS")
+                constraints = []
 
-                constraints += Constrain.derive_constraints(program,
-                                                            positive_outcome, negative_outcome)
+                for subprog in subprog_missing_answers.keys().union(subprog_incorrect_answers.keys()):
+                    missing_answers = subprog_missing_answers[subprog]
+                    incorrect_answers = subprog_incorrect_answers[subprog]
+
+                    if missing_answers == 0:
+                        positive_outcome = Outcome.All
+                    elif missing_answers == len(Test.pos_examples):
+                        positive_outcome = Outcome.None_
+                    else:
+                        positive_outcome = Outcome.Some
+
+                    if incorrect_answers == 0:
+                        negative_outcome = Outcome.None_
+                    elif incorrect_answers == len(Test.neg_examples):
+                        negative_outcome = Outcome.All
+                    else:
+                        negative_outcome = Outcome.Some
+
+                    constraints += Constrain.derive_constraints(subprog,
+                                                                positive_outcome, negative_outcome)
+
                 if Constrain.no_pruning:
                     constraints = [Constrain.banish_constraint(program)]
 

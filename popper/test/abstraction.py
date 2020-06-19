@@ -2,6 +2,11 @@ from abc import ABC, abstractmethod
 
 
 class TestInterface(ABC):
+    @property
+    @classmethod
+    @abstractmethod
+    def analyses(): pass
+
     @abstractmethod
     def setup(self, *args, **kwargs): pass
 

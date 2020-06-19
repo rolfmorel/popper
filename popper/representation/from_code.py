@@ -56,7 +56,7 @@ def from_code(modes, program_str):
                 lambda m: m.predicate == body_pred and m.arity == len(body_args),
                 body_modes))
             body_atoms.append(Atom(body_pred, body_mode, body_args))
-        clauses.append((clause_id, head_atom, body_atoms))
+        clauses.append((clause_id, head_atom, tuple(body_atoms)))
 
     return clauses
 
