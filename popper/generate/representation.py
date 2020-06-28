@@ -34,7 +34,7 @@ class RepresentationMixin(object):
                 modeb = self.predicate_to_modeb[predicate]
                 body_atom = Atom(predicate, modeb, arguments)
                 clause_id_to_body[clause_id].add(body_atom)
-        return list(map(lambda clause_key: (clause_key,
+        return tuple(map(lambda clause_key: (clause_key,
                      clause_id_to_head[clause_key],
                      clause_id_to_body[clause_key]),
                         sorted(clause_id_to_head.keys())))

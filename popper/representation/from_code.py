@@ -58,5 +58,5 @@ def from_code(modes, program_str):
             body_atoms.append(Atom(body_pred, body_mode, body_args))
         clauses.append((clause_id, head_atom, tuple(body_atoms)))
 
-    return clauses
+    return tuple(clauses)
 

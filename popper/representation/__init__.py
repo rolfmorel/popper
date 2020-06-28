@@ -40,12 +40,13 @@ def program_to_ordered_program(program):
         return [selected_lit] + \
                selection_closure(head_pred, grounded_vars.union(selected_lit.outputs),
                                  literals.difference({selected_lit}))
-    ordered_clauses = []
-    for clause in program:
+
+    def transform_clause(clause):
         cl_id, head, body = clause
-        ordered_clauses.append((cl_id, head,
-                tuple(selection_closure(head.predicate, head.inputs, body.copy()))))
-    return ordered_clauses
+        return (cl_id, head,
+                tuple(selection_closure(head.predicate, head.inputs, body.copy())))
+
+    return tuple(map(transform_clause, program))
 
 
 def clause_to_code(clause):

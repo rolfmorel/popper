@@ -27,7 +27,7 @@ class EvaluateMixin(object):
                 raise ex
 
 
-    def evaluate(self, _program, example):
+    def evaluate(self, program, example):
         with self.context.evaluate:
             assignments = self.query(example)
 

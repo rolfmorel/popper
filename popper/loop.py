@@ -7,6 +7,8 @@ except ImportError:
 
 from sys import stderr
 from functools import partial
+from itertools import chain
+from collections import defaultdict
 
 from .representation import program_to_ordered_program, program_to_code, is_recursive_clause
 from .util import Result, Outcome
@@ -45,50 +47,48 @@ def loop(context, Generate, Test, Constrain, debug=False):
             while True:
                 DBG_PRINT(f"START GENERATING (program {context.num_programs_generated + 1})")
 
-                program = Generate.get_program()
-                if program == None:
+                unordered_program = Generate.get_program()
+                if unordered_program  == None:
                     DBG_PRINT(f"NO MORE PROGRAMS (with {size} literals)")
                     break  # No model could be found. Can try with more allowed literals
 
                 context.num_programs_generated += 1
 
                 DBG_PRINT(f"DONE GENERATING (program {context.num_programs_generated})")
-                ordered_program = program_to_ordered_program(program)
-                if debug: DBG_output_program(ordered_program)
+                program = program_to_ordered_program(unordered_program)
+                if debug: DBG_output_program(program)
                 DBG_PRINT("START TESTING")
 
                 # FIXME: nicer to do a contextmanager here for Test's evaluation
                 Test.retract_program_clauses()
-                Test.assert_ordered_program(ordered_program)
+                Test.assert_ordered_program(program)
 
                 subprog_missing_answers = defaultdict(int)
                 subprog_incorrect_answers = defaultdict(int)
 
                 for pos_ex in Test.pos_examples:
-                    result, subprogs = Test.evaluate(ex)
+                    result, subprogs = Test.evaluate(program, pos_ex)
                     if not result: # failed to prove example
                         for subprog in filter(lambda sp: sp != program, subprogs):
                             subprog_missing_answers[subprog] += 1
                         subprog_missing_answers[program] += 1
 
                 for neg_ex in Test.neg_examples:
-                    result, subprogs = Test.evaluate(ex)
+                    result, subprogs = Test.evaluate(program, neg_ex)
                     if result: # managed to prove example
-                        incorrect_answers += 1
                         for subprog in filter(lambda sp: sp != program, subprogs):
                             subprog_incorrect_answers[subprog] += 1
                         subprog_incorrect_answers[program] += 1
 
                 # Special case for non-recursive clauses to determine whether they are useful or not
-                if not Test.analyses and len(ordered_program) > 1:  # No point checking a single clause program again
+                if not Test.analyses and len(program) > 1:  # No point checking a single clause program again
                     # BEGIN HACKS!!!
-                    for nr_clause in filter(lambda cl: not is_recursive_clause(cl),
-                                            ordered_program):
+                    for nr_clause in filter(lambda cl: not is_recursive_clause(cl), program):
                         Test.retract_program_clauses()
                         Test.assert_ordered_program((nr_clause,))
 
                         for pos_ex in Test.pos_examples:
-                            result, subprogs = Test.evaluate(ex)
+                            result, subprogs = Test.evaluate(program, pos_ex)
                             if not result: # failed to prove example
                                 subprog_missing_answers[(nr_clause,)] += 1
                                 break
@@ -98,12 +98,12 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 if subprog_missing_answers[program] == 0 and subprog_incorrect_answers[program] == 0:
                     # program both complete and consistent
-                    return ordered_program, context
+                    return program, context
 
                 DBG_PRINT("START IMPOSING CONSTRAINTS")
                 constraints = []
 
-                for subprog in subprog_missing_answers.keys().union(subprog_incorrect_answers.keys()):
+                for subprog in chain(subprog_missing_answers.keys(), subprog_incorrect_answers.keys()):
                     missing_answers = subprog_missing_answers[subprog]
                     incorrect_answers = subprog_incorrect_answers[subprog]
 

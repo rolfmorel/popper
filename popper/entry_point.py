@@ -32,8 +32,7 @@ def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
         ground_constraints, no_pruning, timeout, debug=False, stats=False, tester='prolog'):
     context, (Generate, Test, Constrain) = \
             setup(mode_file, bk_file, examples_file, max_literals, eval_timeout,
-                  ground_constraints, no_pruning, debug=debug, stats=stats, tester=tester,
-                  analyse=analyse)
+                  ground_constraints, no_pruning, debug=debug, stats=stats, tester=tester)
 
     program, context = timed_loop(context, Generate, Test, Constrain,
                                   timeout=timeout, debug=debug)
