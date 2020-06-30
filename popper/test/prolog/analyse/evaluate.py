@@ -1,6 +1,5 @@
 from collections import defaultdict
 from functools import partial
-from itertools import chain
 
 from popper.util import Result
 from popper.representation import EvalAtom 
@@ -20,7 +19,7 @@ class EvaluateMixin(PrologEvaluateMixin):
 
         self.query(example)
 
-        trace = list(self.query("trace(ClId,LitId,Pred,Args,Path,Success)"))
+        trace = list(self.prolog.query("trace(ClId,LitId,Pred,Args,Path,Success)"))
         self.prolog.retractall("trace(_,_,_,_,_,_)")
 
         return convert_instrumentation_to_execution_forest(trace)
@@ -33,7 +32,6 @@ class EvaluateMixin(PrologEvaluateMixin):
             subprogs = extract_succeeding_sub_programs(program, exe_forest)
         else:
             subprogs = extract_failing_sub_programs(program, exe_forest)
-            #subprogs = chain([program], filter(lambda subprog: subprog != program, subprogs))
 
         return result, set(subprogs)
 

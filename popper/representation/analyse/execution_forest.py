@@ -18,8 +18,8 @@ def extract_failing_sub_programs(program, ef):
 
 
 def trace_to_sub_program(program, trace):
-    sub_program = []
-    for cl_id, head, body in program:
+    def determine_sub_clause(clause):
+        cl_id, head, body = clause
         body_atoms = []
         for body_atom_idx, body_atom in enumerate(body, 1):
             if (cl_id, body_atom_idx) in trace:
@@ -27,8 +27,10 @@ def trace_to_sub_program(program, trace):
             else:
                 break
         if body_atoms != []:
-           sub_program.append((cl_id, head, tuple(body_atoms)))
-    return sub_program
+           return (cl_id, head, tuple(body_atoms))
+
+    return tuple(filter(lambda sub_cl: sub_cl is not None,
+                        (determine_sub_clause(clause) for clause in program)))
 
 
 def leafs_in_trace_restricted_exe_forest(ef, trace):

@@ -44,7 +44,7 @@ def from_code(modes, program_str):
 
         def parse_atom_str(atom):
             pred, _, args = atom.partition('(')
-            return pred, [ord(arg_str) - ord('A') for arg_str in args.split(',')]
+            return pred, tuple(ord(arg_str) - ord('A') for arg_str in args.split(','))
 
         head_pred, head_args = parse_atom_str(head[:-1])
         head_atom = Atom(head_pred, head_mode, head_args)

@@ -16,7 +16,6 @@ from .util.debug import debug_print
 
 
 def DBG_output_program(program):
-    print("PROGRAM:", file=stderr)
     for clause in program_to_code(program):
          print("  " + clause, file=stderr)
 
@@ -56,7 +55,9 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 DBG_PRINT(f"DONE GENERATING (program {context.num_programs_generated})")
                 program = program_to_ordered_program(unordered_program)
-                if debug: DBG_output_program(program)
+                if debug:
+                    print("PROGRAM:", file=stderr)
+                    DBG_output_program(program)
                 DBG_PRINT("START TESTING")
 
                 # FIXME: nicer to do a contextmanager here for Test's evaluation
@@ -66,6 +67,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 subprog_missing_answers = defaultdict(int)
                 subprog_incorrect_answers = defaultdict(int)
 
+                # test the positive examples and collect subprograms with missing answers and how many are missing
                 for pos_ex in Test.pos_examples:
                     result, subprogs = Test.evaluate(program, pos_ex)
                     if not result: # failed to prove example
@@ -73,12 +75,48 @@ def loop(context, Generate, Test, Constrain, debug=False):
                             subprog_missing_answers[subprog] += 1
                         subprog_missing_answers[program] += 1
 
+                # test the negative examples and collect subprograms with incorrect answers and how many are incorrect
                 for neg_ex in Test.neg_examples:
                     result, subprogs = Test.evaluate(program, neg_ex)
+                    #DBG_PRINT(f"tested negative example: {neg_ex}")
                     if result: # managed to prove example
+                        #DBG_PRINT(f"incorrect answer: {neg_ex}")
                         for subprog in filter(lambda sp: sp != program, subprogs):
                             subprog_incorrect_answers[subprog] += 1
                         subprog_incorrect_answers[program] += 1
+
+                incorrect_subprogs = list(subprog_incorrect_answers.keys())
+                # test the subprograms with missing answers whether they also have incorrect answers
+                for subprog in filter(lambda p: p is not program, subprog_missing_answers.keys()):
+                    Test.retract_program_clauses()
+                    DBG_PRINT("SUBPROG")
+                    DBG_output_program(subprog)
+                    Test.assert_ordered_program(subprog)
+                    for neg_ex in Test.neg_examples:
+                        result, _ = Test.evaluate(subprog, neg_ex)  # FIXME: should not be analysing here. Is just wasteful
+                        #DBG_PRINT(f"tested negative example: {neg_ex} for {subprog}")
+                        if result: # managed to prove example
+                            DBG_PRINT(f"incorrect answer: {neg_ex} for {subprog}")
+                            subprog_incorrect_answers[subprog] += 1
+                # test the subprograms with incorrect answers whether they also have missing answers
+                for subprog in filter(lambda p: p is not program, incorrect_subprogs):
+                    Test.retract_program_clauses()
+                    DBG_PRINT("SUBPROG")
+                    DBG_output_program(subprog)
+                    Test.assert_ordered_program(subprog)
+                    for pos_ex in Test.pos_examples:
+                        #DBG_PRINT(f"tested positive example: {pos_ex} for {subprog}")
+                        result, _ = Test.evaluate(subprog, pos_ex) # FIXME: should not be analysing here. Is just wasteful
+                        if not result: # failed to prove example
+                            DBG_PRINT(f"missing answer: {pos_ex} for {subprog}")
+                            subprog_missing_answers[subprog] += 1
+
+                if debug:
+                    for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
+                        missing_answers = subprog_missing_answers[subprog]
+                        incorrect_answers = subprog_incorrect_answers[subprog]
+                        DBG_PRINT(f"SUBPROG WITH {missing_answers} missing answers AND {incorrect_answers} incorrect answers:")
+                        DBG_output_program(subprog)
 
                 # Special case for non-recursive clauses to determine whether they are useful or not
                 if not Test.analyses and len(program) > 1:  # No point checking a single clause program again
@@ -103,7 +141,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 DBG_PRINT("START IMPOSING CONSTRAINTS")
                 constraints = []
 
-                for subprog in chain(subprog_missing_answers.keys(), subprog_incorrect_answers.keys()):
+                for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
                     missing_answers = subprog_missing_answers[subprog]
                     incorrect_answers = subprog_incorrect_answers[subprog]
 
@@ -140,6 +178,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
     except KeyboardInterrupt: # Also happens when timer interrupt happens
         return False, context
     except Exception as ex:
+        print("PROGRAM:", file=stderr)
         DBG_output_program(program)
         raise ex
     finally:

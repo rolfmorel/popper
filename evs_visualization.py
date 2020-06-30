@@ -32,8 +32,9 @@ evs(A) :- head(A,B),even(B),tail(A,C),head(C,D),odd(D),tail(C,E),evs(E).
 prog = from_code.from_strs(EVS_MODES, EVS_CODE)
 Test.assert_ordered_program(prog)
 res, subprogs = Test.evaluate(prog, 'evs([0,1,2,3,4,5])')
+ef = Test.instrumented_evaluate(prog, 'evs([0,1,2,3,4,5])')
 assert res
-if False:
+if True:
     df = dependencies.program_to_dependency_forest(prog)
     def_ = dependencies.to_dep_exe_forest(df, ef)
     render.dependency_forest_to_dot(df, filename='dependency_forest')
