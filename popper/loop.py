@@ -115,7 +115,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                     for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
                         missing_answers = subprog_missing_answers[subprog]
                         incorrect_answers = subprog_incorrect_answers[subprog]
-                        DBG_PRINT(f"SUBPROG WITH {missing_answers} missing answers AND {incorrect_answers} incorrect answers:")
+                        DBG_PRINT(f"(SUB)PROG WITH {missing_answers} missing answers AND {incorrect_answers} incorrect answers:")
                         DBG_output_program(subprog)
 
                 # Special case for non-recursive clauses to determine whether they are useful or not
@@ -132,7 +132,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                                 break
                     # END OF HACKS!!!
 
-                DBG_PRINT(f"DONE TESTING {subprog_missing_answers[program]}, {subprog_incorrect_answers[program]}")
+                DBG_PRINT("DONE TESTING")
 
                 if subprog_missing_answers[program] == 0 and subprog_incorrect_answers[program] == 0:
                     # program both complete and consistent
