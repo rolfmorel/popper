@@ -22,8 +22,9 @@ def setup(mode_file, bk_file, examples_file,
         Test = Tester(Generate.modeh, bk_file, pos_exs, neg_exs, eval_timeout, debug=debug, context=ContextClass())
         context.add_child('test', Test.context)
 
-        Constrain = constrain.Constrain(Generate.modeh, ground=ground_constraints,
-                                        no_pruning=no_pruning, debug=debug)
+        Constrain = constrain.Constrain(Generate.modeh, len(pos_exs), len(neg_exs),
+                                        ground=ground_constraints, no_pruning=no_pruning, debug=debug)
+        context.add_child('constrain', Constrain.context)
         # NB: Constrain does not have a (time keeping) context
 
         return context, (Generate, Test, Constrain)

@@ -22,8 +22,9 @@ def main():
 
     if args.stats:
         info = context.as_dict()
-        info["programs_tested"] = context.num_programs_generated
-        print(json.dumps(info, indent=2), file=sys.stderr)
+        info["num_programs_generated"] = context.num_programs_generated
+        info["num_programs_tested"] = context.num_programs_tested
+        print(json.dumps(info, indent=2), file=sys.stderr, flush=True)
 
     return program, context
 

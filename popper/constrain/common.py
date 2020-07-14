@@ -26,7 +26,7 @@ def _atom_to_asp_literal(cl_id, atom, ground):
 def clause_to_asp_literals(clause, ground=False, cl_id=None):
     cl_id_, head, body = clause
     if cl_id == None:
-        cl_id = f"ClId{cl_id_}" if not ground else str(cl_id_)
+        cl_id = f"C{cl_id_}" if not ground else str(cl_id_)
     lits = [head_atom_to_asp_literal(cl_id, head, ground)]
     lits += map(lambda atom: body_atom_to_asp_literal(cl_id, atom, ground),
                 body)
@@ -39,7 +39,7 @@ def asp_literals_for_distinct_clauses(program):
         for clause2 in program:
             # (in)equality constraints are symmetric, hence no need to consider both orderings
             if clause2 == clause1: break 
-            cl1_id, cl2_id = f"ClId{clause1[0]}", f"ClId{clause2[0]}"
+            cl1_id, cl2_id = f"C{clause1[0]}", f"C{clause2[0]}"
             # ensure clauses do not overlap (smaller grounding as well)
             lits += [cl1_id + "!=" + cl2_id] 
     return lits
@@ -56,5 +56,5 @@ def asp_literals_for_distinct_variables(program):
                 # (in)equality constraints are symmetric, hence no need to consider both orderings
                 if var1 == var2: break
                 # ensure clauses do not overlap (smaller grounding as well)
-                lits += [f"ClId{cl_id}V{var1}" + "!=" + f"ClId{cl_id}V{var2}"]
+                lits += [f"C{cl_id}V{var1}" + "!=" + f"C{cl_id}V{var2}"]
     return lits

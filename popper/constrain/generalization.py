@@ -11,7 +11,7 @@ class GeneralizationMixin(object):
         for clause in program:
             gen_lits += clause_to_asp_literals(clause, self.ground)
             cl_id, _, body = clause
-            cl_id = f"ClId{cl_id}" if not self.ground else str(cl_id)
+            cl_id = f"C{cl_id}" if not self.ground else str(cl_id)
             gen_lits += [f"clause_size({cl_id},{len(body)})"]
         if not self.ground:
             # TODO: asserting distinct clauses should not be necessary. Including these atoms increases grounging
