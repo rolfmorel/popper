@@ -9,14 +9,14 @@ class ConfigureMixin(object):
         super().__init__(*args, **kwargs)
 
 
-    def assert_ordered_program(self, program):
+    def assert_program(self, program, basic=None):
+        assert basic in (True, None)
         with self.context.configure.assert_:
             for clause in program:
                 self.prolog.assertz(clause_to_code(clause))
-    assert_program = assert_ordered_program
 
 
-    def retract_program_clauses(self):
+    def retract(self):
         with self.context.configure.retract:
             args = ','.join(['_'] * self.modeh.arity)
             self.prolog.retractall(f"{self.modeh.predicate}({args})")

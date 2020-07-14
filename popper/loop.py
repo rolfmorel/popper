@@ -36,87 +36,63 @@ def timed_loop(*args, timeout=None, **kwargs):
 def test(context, Test, debug, program):
     DBG_PRINT = partial(debug_print, prefix='LOOP-test', debug=debug)
 
-    # FIXME: nicer to do a contextmanager here for Test's evaluation
-    Test.retract_program_clauses()
-    Test.assert_program(program)
-
     subprog_missing_answers = defaultdict(int)
     subprog_incorrect_answers = defaultdict(int)
 
-    # test the positive examples and collect subprograms with missing answers and how many are missing
-    for pos_ex in Test.pos_examples:
-        #DBG_PRINT("before eval 1")
-        result, subprogs = Test.evaluate(program, pos_ex)
-        #DBG_PRINT("after eval 1")
-        if not result: # failed to prove example
-            for subprog in filter(lambda sp: sp != program, subprogs):
-                subprog_missing_answers[subprog] += 1
-            subprog_missing_answers[program] += 1
+    with Test.using(program):
+        # test the positive examples and collect subprograms with missing answers and how many are missing
+        for pos_ex in Test.pos_examples:
+            result, subprogs = Test.evaluate(program, pos_ex)
+            if not result: # failed to prove example
+                for subprog in filter(lambda sp: sp != program, subprogs):
+                    subprog_missing_answers[subprog] += 1
+                subprog_missing_answers[program] += 1
 
-    # test the negative examples and collect subprograms with incorrect answers and how many are incorrect
-    for neg_ex in Test.neg_examples:
-        #DBG_PRINT("before eval 2")
-        result, subprogs = Test.evaluate(program, neg_ex)
-        #DBG_PRINT("after eval 2")
-        #DBG_PRINT(f"tested negative example: {neg_ex}")
-        if result: # managed to prove example
-            #DBG_PRINT(f"incorrect answer: {neg_ex}")
-            for subprog in filter(lambda sp: sp != program, subprogs):
-                subprog_incorrect_answers[subprog] += 1
-            subprog_incorrect_answers[program] += 1
-    context.num_programs_tested += 1
+        # test the negative examples and collect subprograms with incorrect answers and how many are incorrect
+        for neg_ex in Test.neg_examples:
+            result, subprogs = Test.evaluate(program, neg_ex)
+            if result: # managed to prove example
+                for subprog in filter(lambda sp: sp != program, subprogs):
+                    subprog_incorrect_answers[subprog] += 1
+                subprog_incorrect_answers[program] += 1
+        context.num_programs_tested += 1
 
     incorrect_subprogs = list(subprog_incorrect_answers.keys())
     # test the subprograms with missing answers whether they also have incorrect answers
     for subprog in filter(lambda p: p is not program, subprog_missing_answers.keys()):
         context.num_programs_tested += 1
-        Test.retract_program_clauses()
-        #DBG_PRINT("SUBPROG")
-        #DBG_output_program(subprog)
-        Test.assert_ordered_program(subprog)
-        for neg_ex in Test.neg_examples:
-            #DBG_PRINT("before eval 3")
-            result, _ = Test.query(neg_ex)
-            #DBG_PRINT("after eval 3")
-            #DBG_PRINT(f"tested negative example: {neg_ex} for {subprog}")
-            if result: # managed to prove example
-                #DBG_PRINT(f"incorrect answer: {neg_ex} for {subprog}")
-                subprog_incorrect_answers[subprog] += 1
+        with Test.using(subprog, basic=True):
+            for neg_ex in Test.neg_examples:
+                result, _ = Test.query(neg_ex)
+                if result: # managed to prove example
+                    subprog_incorrect_answers[subprog] += 1
     # test the subprograms with incorrect answers whether they also have missing answers
     for subprog in filter(lambda p: p is not program, incorrect_subprogs):
         context.num_programs_tested += 1
-        Test.retract_program_clauses()
-        #DBG_PRINT("SUBPROG")
-        #DBG_output_program(subprog)
-        Test.assert_ordered_program(subprog)
-        for pos_ex in Test.pos_examples:
-            #DBG_PRINT(f"tested positive example: {pos_ex} for {subprog}")
-            #DBG_PRINT("before eval 4")
-            result, _ = Test.query(pos_ex)
-            #DBG_PRINT("after eval 4")
-            if not result: # failed to prove example
-                #DBG_PRINT(f"missing answer: {pos_ex} for {subprog}")
-                subprog_missing_answers[subprog] += 1
+        with Test.using(subprog, basic=True):
+            for pos_ex in Test.pos_examples:
+                result, _ = Test.query(pos_ex)
+                if not result: # failed to prove example
+                    subprog_missing_answers[subprog] += 1
 
     if debug:
         for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
             missing_answers = subprog_missing_answers[subprog]
             incorrect_answers = subprog_incorrect_answers[subprog]
-            DBG_PRINT(f"(SUB)PROG WITH {missing_answers} missing answers AND {incorrect_answers} incorrect answers:")
+            prefix = "PROG" if subprog == program else "(SUB)PROG"
+            DBG_PRINT(f"{prefix} WITH {missing_answers} missing answers AND {incorrect_answers} incorrect answers:")
             DBG_output_program(subprog)
 
     # Special case for non-recursive clauses to determine whether they are useful or not
     if not Test.analyses and len(program) > 1:  # No point checking a single clause program again
         # BEGIN HACKS!!!
         for nr_clause in filter(lambda cl: not is_recursive_clause(cl), program):
-            Test.retract_program_clauses()
-            Test.assert_ordered_program((nr_clause,))
-
-            for pos_ex in Test.pos_examples:
-                result, subprogs = Test.evaluate(program, pos_ex)
-                if not result: # failed to prove example
-                    subprog_missing_answers[(nr_clause,)] += 1
-                    break
+            with Test.using((nr_clause,), basic=True):
+                for pos_ex in Test.pos_examples:
+                    result, _ = Test.evaluate(program, pos_ex)
+                    if not result: # failed to prove example
+                        subprog_missing_answers[(nr_clause,)] += 1
+                        break
         # END OF HACKS!!!
 
     DBG_PRINT("DONE TESTING")
@@ -164,7 +140,7 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
 def loop(context, Generate, Test, Constrain, debug=False):
     DBG_PRINT = partial(debug_print, prefix='LOOP', debug=debug)
 
-    context.enter()
+    context.enter() # start to keep time
 
     program = None
 

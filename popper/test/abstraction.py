@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
 
 
 class TestInterface(ABC):
@@ -11,13 +12,21 @@ class TestInterface(ABC):
     def setup(self, *args, **kwargs): pass
 
     @abstractmethod
-    def assert_program(self, *args, **kwargs): pass
-
-    @abstractmethod
-    def assert_ordered_program(self, *args, **kwargs): pass
+    def query(self, *args, **kwargs): pass
 
     @abstractmethod
     def evaluate(self, *args, **kwargs): pass
 
+    @contextmanager
+    def using(self, program, *args, **kwargs):
+        try:
+            self.assert_program(program, *args, **kwargs)
+            yield
+        finally:
+            self.retract()
+
     @abstractmethod
-    def retract_program_clauses(self, *args, **kwargs): pass
+    def assert_program(self, *args, **kwargs): pass
+
+    @abstractmethod
+    def retract(self, *args, **kwargs): pass

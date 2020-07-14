@@ -7,7 +7,8 @@ class ConfigureMixin(object):
         self.__prog_count = 0
         super().__init__(*args, **kwargs)
 
-    def assert_ordered_program(self, program, code=False):
+    def assert_program(self, program, basic=None, code=False):
+        assert basic in (True, None)
         with self.context.configure:
             code_program = program
             if not code:
@@ -25,7 +26,7 @@ class ConfigureMixin(object):
                 self.atoms = model.symbols(atoms=True)
                 self.atom_strs = set(map(str, self.atoms))
 
-    def retract_program_clauses(self):
+    def retract(self):
         with self.context.configure:
             self.reset()
             self.setup()
