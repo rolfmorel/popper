@@ -1,4 +1,5 @@
 from functools import reduce
+from collections import OrderedDict
 from timeit import default_timer as timer
 
 
@@ -19,7 +20,7 @@ class DummyTimeAccumulatingContext(object):
         self._times = []
 
         self.currently_entered = 0
-        self.entered = self.exited = None
+        self.entered = self.exited = 0
 
     @property
     def running(self):
@@ -45,15 +46,16 @@ class DummyTimeAccumulatingContext(object):
 
     @property
     def accumulated(self):
-        return sum(self._times) + sum(child.accumulated for child in self.children.values())
+        return sum(self._times)
 
     def as_dict(self):
-        d = { k: v.as_dict() for k, v in self.children.items() }
+        d = OrderedDict()
         d['_total'] = self.accumulated
         if not self.children:
             d['_mean'] = self.mean
             d['_means'] = self.means 
         d['_times_entered'] = self.times_entered
+        d.update({ k: v.as_dict() for k, v in self.children.items()})
         return d
 
     @property

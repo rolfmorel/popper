@@ -15,6 +15,7 @@ class EvaluateMixin(PrologEvaluateMixin):
         self.context.evaluate.add_child('instrumented')
         self.context.evaluate.instrumented.add_child('query')
         self.context.evaluate.instrumented.add_child('obtain')
+        self.context.evaluate.instrumented.add_child('retract')
         self.context.evaluate.instrumented.add_child('conversion')
 
 
@@ -35,6 +36,7 @@ class EvaluateMixin(PrologEvaluateMixin):
             with self.context.evaluate.instrumented.obtain:
                 trace = list(self.prolog.query("trace(ClId,LitId,Pred,Args,Path,Success)"))
                 #self.DBG_PRINT(f"after obtaining trace {len(trace)} & before retractall")
+            with self.context.evaluate.instrumented.retract:
                 self.prolog.retractall("trace(_,_,_,_,_,_)")
             #self.DBG_PRINT("after retractall & before exe forest")
 

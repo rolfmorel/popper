@@ -84,9 +84,10 @@ def test(context, Test, debug, program):
             DBG_output_program(subprog)
 
     # Special case for non-recursive clauses to determine whether they are useful or not
-    if not Test.analyses and len(program) > 1:  # No point checking a single clause program again
+    if False and not Test.analyses and len(program) > 1:  # No point checking a single clause program again
         # BEGIN HACKS!!!
         for nr_clause in filter(lambda cl: not is_recursive_clause(cl), program):
+            context.num_programs_tested += 1
             with Test.using((nr_clause,), basic=True):
                 for pos_ex in Test.pos_examples:
                     result, _ = Test.evaluate(program, pos_ex)
@@ -140,15 +141,15 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
 def loop(context, Generate, Test, Constrain, debug=False):
     DBG_PRINT = partial(debug_print, prefix='LOOP', debug=debug)
 
+    context.num_programs_generated = 0
+    context.num_programs_tested = 0
     context.enter() # start to keep time
 
     program = None
-
-    context.num_programs_generated = 0
-    context.num_programs_tested = 0
     try:
         for size in range(1, Generate.max_literals + 1):
             Generate.set_program_size(size)
+            context.largest_size = size
 
             while True:
                 with Generate.context:
@@ -186,7 +187,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                     name_constraint_pairs = constrain(context, Constrain, debug,
                                                       subprog_missing_answers, subprog_incorrect_answers)
 
-                # deindent to get out of Constrain's context, otherwise time will counted double, towards both Constrain and Generate
+                # deindent to get out of Constrain's context, otherwise time will be counted double, by both Constrain and Generate
                 Generate.impose_constraints(name_constraint_pairs)
 
                 DBG_PRINT("DONE IMPOSING CONSTRAINTS")
