@@ -76,7 +76,7 @@ def test(context, Test, debug, program):
                     subprog_missing_answers[subprog] += 1
 
     if debug:
-        for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
+        for subprog in set((program,)) | subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
             missing_answers = subprog_missing_answers[subprog]
             incorrect_answers = subprog_incorrect_answers[subprog]
             prefix = "PROG" if subprog == program else "(SUB)PROG"
@@ -96,7 +96,6 @@ def test(context, Test, debug, program):
                         break
         # END OF HACKS!!!
 
-    DBG_PRINT("DONE TESTING")
     return subprog_missing_answers, subprog_incorrect_answers
 
 

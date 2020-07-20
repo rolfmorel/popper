@@ -9,13 +9,15 @@ from clingo import Function
 class SolverMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('solver')
+        self.context.solver.add_child('setting_size')
         self.context.solver.add_child('adding')
         self.context.solver.add_child('grounding')
         self.context.solver.add_child('solving')
+        self.context.solver.add_child('conversion')
         super().__init__(*args, **kwargs)
 
     def set_program_size(self, size):
-        with self.context.solver:
+        with self.context.solver.setting_size:
             self.DBG_PRINT(f"START SETTING PROGRAM SIZE ({size})")
             for i in range(1, size):
                 self.clingo_ctl.release_external(Function("size", [i]))
@@ -34,7 +36,8 @@ class SolverMixin(object):
         with self.context.solver:
             model = self.get_model()
             if model:
-                return self.model_to_program(model)
+                with self.context.solver.conversion:
+                    return self.model_to_program(model)
             return model
 
     # not an abstraction API method
@@ -43,14 +46,15 @@ class SolverMixin(object):
         self.DBG_PRINT("START SOLVING")
         self.context.solver.solving.enter()
         with self.clingo_ctl.solve(yield_=True) as handle:
-            self.context.solver.solving.exit()
-
-            # None indicates no model could be found (could try with more allowed literals)
-            model = next(handle, None)
-            self.DBG_PRINT("DONE SOLVING")
-            if model:
-                return model.symbols(atoms=True)
-            return model
+            try:
+                # None indicates no model could be found (could try with more allowed literals)
+                model = next(handle, None)
+                self.DBG_PRINT("DONE SOLVING")
+                if model:
+                    return model.symbols(atoms=True)
+                return model
+            finally:
+                self.context.solver.solving.exit()
 
     def impose_constraints(self, constraints):
         with self.context.solver:
