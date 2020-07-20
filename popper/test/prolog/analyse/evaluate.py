@@ -1,3 +1,4 @@
+import ast
 from collections import defaultdict
 from functools import partial
 
@@ -19,6 +20,17 @@ class EvaluateMixin(PrologEvaluateMixin):
         self.context.evaluate.instrumented.add_child('conversion')
 
 
+    def obtain_trace(self):
+        for line in self.ipc_file:
+            cl_id, lit_id, pred, grounding, path, success = line.split("|")
+            cl_id, lit_id = int(cl_id), int(lit_id)
+            path = ast.literal_eval(path) #NB: this could be expensive...
+            success = success == 'true\n'
+            yield (cl_id, lit_id, pred, grounding, path, success)
+        self.ipc_file.truncate(0)
+        self.ipc_file.seek(0)
+
+
     def instrumented_evaluate(self, program, example):
         with self.context.evaluate.instrumented:
             # FIXME: HACK!!!
@@ -26,7 +38,9 @@ class EvaluateMixin(PrologEvaluateMixin):
 
             #self.DBG_PRINT("before query")
             with self.context.evaluate.instrumented.query:
+                self.query("seek(ipc,0,bof,_)") # start writing at the beginning of the truncated file
                 res, _ = self.query(example)
+                self.query("flush_output(ipc)")
             #self.DBG_PRINT(f"result: {res}")
             if res is None:
                 #self.DBG_PRINT("after query (& giving up)")
@@ -34,10 +48,12 @@ class EvaluateMixin(PrologEvaluateMixin):
             #self.DBG_PRINT("after query & before obtaining trace")
 
             with self.context.evaluate.instrumented.obtain:
-                trace = list(self.prolog.query("trace(ClId,LitId,Pred,Args,Path,Success)"))
+                #trace = list(self.prolog.query("trace(ClId,LitId,Pred,Args,Path,Success)"))
+                trace = list(self.obtain_trace())
+                #self.DBG_PRINT("trace", trace)
                 #self.DBG_PRINT(f"after obtaining trace {len(trace)} & before retractall")
-            with self.context.evaluate.instrumented.retract:
-                self.prolog.retractall("trace(_,_,_,_,_,_)")
+            #with self.context.evaluate.instrumented.retract:
+            #    self.prolog.retractall("trace(_,_,_,_,_,_)")
             #self.DBG_PRINT("after retractall & before exe forest")
 
             with self.context.evaluate.instrumented.conversion:
@@ -68,10 +84,9 @@ def convert_instrumentation_to_execution_forest(trace):
     path_edges = defaultdict(set)
 
     for traced_atom in trace:
-        cl_id, lit_id = traced_atom['ClId'], traced_atom['LitId']
-        pred, grounding = traced_atom['Pred'], traced_atom['Args']
-        path, success = traced_atom['Path'], (traced_atom['Success'] == 'true')
-        mode = None
+        cl_id, lit_id = traced_atom[0], traced_atom[1]
+        pred, grounding = traced_atom[2], traced_atom[3]
+        path, success = traced_atom[4], traced_atom[5]
 
         full_path = tuple(map(tuple,[[cl_id, lit_id]] + path))
         path_to_eval_atom[full_path] = EvalAtom(pred, grounding, success)

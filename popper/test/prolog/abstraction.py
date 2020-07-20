@@ -19,7 +19,10 @@ class Test(SetupMixin,ConfigureMixin,EvaluateMixin,DebugMixin,TestInterface):
     def __init__(self, modeh, bk_file=None,
                  pos_exs=None, neg_exs=None, eval_timeout=None,
                  context=TimeAccumulatingContext(), debug=False):
-        self.context = context
+        with context:
+            self.context = context
+            self.prolog = Prolog()
+
         super(self.__class__, self).__init__(debug=debug)
 
         with context:
@@ -29,6 +32,5 @@ class Test(SetupMixin,ConfigureMixin,EvaluateMixin,DebugMixin,TestInterface):
             self.neg_examples = neg_exs
             self.eval_timeout = eval_timeout
 
-            self.prolog = Prolog()
 
             self.setup(bk_file) # from SetupMixin
