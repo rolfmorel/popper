@@ -22,9 +22,16 @@ class EvaluateMixin(PrologEvaluateMixin):
 
     def obtain_trace(self):
         for line in self.ipc_file:
-            cl_id, lit_id, pred, grounding, path, success = line.split("|")
+            try:
+                cl_id, lit_id, pred, grounding, path, success = line.split("|")
+            except ValueError:
+                break # timeouts might cause imcomplete lines to be written
             cl_id, lit_id = int(cl_id), int(lit_id)
-            path = ast.literal_eval(path) #NB: this could be expensive...
+            path = path[2:-2].split("],[")
+            if path == ['']:
+                path = []
+            else:
+                path = list(map(lambda y: [int(y[0]),int(y[1])], map(lambda x: x.split(','), path)))
             success = success == 'true\n'
             yield (cl_id, lit_id, pred, grounding, path, success)
         self.ipc_file.truncate(0)
@@ -49,7 +56,7 @@ class EvaluateMixin(PrologEvaluateMixin):
 
             with self.context.evaluate.instrumented.obtain:
                 #trace = list(self.prolog.query("trace(ClId,LitId,Pred,Args,Path,Success)"))
-                trace = list(self.obtain_trace())
+                trace = self.obtain_trace()
                 #self.DBG_PRINT("trace", trace)
                 #self.DBG_PRINT(f"after obtaining trace {len(trace)} & before retractall")
             #with self.context.evaluate.instrumented.retract:
