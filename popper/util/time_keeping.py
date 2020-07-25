@@ -15,6 +15,7 @@ class DummyTimeAccumulatingContext(object):
     def __init__(self, parent=None):
         self.parent = parent
         self.children = {}
+        self.items = {}
 
         self.times_entered = 0
         self._times = []
@@ -31,6 +32,12 @@ class DummyTimeAccumulatingContext(object):
         child.parent = self
         self.children[name] = child
         return child
+
+    def __setitem__(self, key, value):
+        self.items[key] = value
+
+    def __getitem__(self, key):
+        return self.items[key]
 
     def __getattr__(self, name):
         return self.children[name]
@@ -55,6 +62,7 @@ class DummyTimeAccumulatingContext(object):
             d['_mean'] = self.mean
             d['_means'] = self.means 
         d['_times_entered'] = self.times_entered
+        d.update(self.items)
         d.update({ k: v.as_dict() for k, v in self.children.items()})
         return d
 

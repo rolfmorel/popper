@@ -1,4 +1,4 @@
-import traceback
+import time
 import threading
 try:
     import thread
@@ -7,7 +7,6 @@ except ImportError:
 
 from sys import stderr
 from functools import partial
-from itertools import chain
 from collections import defaultdict
 
 from .representation import program_to_ordered_program, program_to_code, is_recursive_clause
@@ -55,12 +54,12 @@ def test(context, Test, debug, program):
                 for subprog in filter(lambda sp: sp != program, subprogs):
                     subprog_incorrect_answers[subprog] += 1
                 subprog_incorrect_answers[program] += 1
-        context.num_programs_tested += 1
+        context['num_programs_tested'] += 1
 
     incorrect_subprogs = list(subprog_incorrect_answers.keys())
     # test the subprograms with missing answers whether they also have incorrect answers
     for subprog in filter(lambda p: p is not program, subprog_missing_answers.keys()):
-        context.num_programs_tested += 1
+        context['num_programs_tested'] += 1
         with Test.using(subprog, basic=True):
             for neg_ex in Test.neg_examples:
                 result, _ = Test.query(neg_ex)
@@ -68,7 +67,7 @@ def test(context, Test, debug, program):
                     subprog_incorrect_answers[subprog] += 1
     # test the subprograms with incorrect answers whether they also have missing answers
     for subprog in filter(lambda p: p is not program, incorrect_subprogs):
-        context.num_programs_tested += 1
+        context['num_programs_tested'] += 1
         with Test.using(subprog, basic=True):
             for pos_ex in Test.pos_examples:
                 result, _ = Test.query(pos_ex)
@@ -87,7 +86,7 @@ def test(context, Test, debug, program):
     if False and not Test.analyses and len(program) > 1:  # No point checking a single clause program again
         # BEGIN HACKS!!!
         for nr_clause in filter(lambda cl: not is_recursive_clause(cl), program):
-            context.num_programs_tested += 1
+            context['num_programs_tested'] += 1
             with Test.using((nr_clause,), basic=True):
                 for pos_ex in Test.pos_examples:
                     result, _ = Test.evaluate(program, pos_ex)
@@ -130,7 +129,7 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
 
     name_constraint_pairs = []
     for idx, constraint in enumerate(constraints):
-        name = f"program{context.num_programs_generated}_constraint{idx}"
+        name = f"program{context['num_programs_generated']}_constraint{idx}"
         name_constraint_pairs.append((name, constraint))
         DBG_PRINT("CONSTRAINT:\n  " + constraint)
 
@@ -140,28 +139,28 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
 def loop(context, Generate, Test, Constrain, debug=False):
     DBG_PRINT = partial(debug_print, prefix='LOOP', debug=debug)
 
-    context.num_programs_generated = 0
-    context.num_programs_tested = 0
+    context['num_programs_generated'] = 0
+    context['num_programs_tested'] = 0
     context.enter() # start to keep time
 
     program = None
     try:
         for size in range(1, Generate.max_literals + 1):
             Generate.set_program_size(size)
-            context.largest_size = size
+            context['largest_size'] = size
 
             while True:
                 with Generate.context:
-                    DBG_PRINT(f"START GENERATING (program {context.num_programs_generated + 1})")
+                    DBG_PRINT(f"START GENERATING (program {context['num_programs_generated'] + 1})")
 
                     unordered_program = Generate.get_program()
                     if unordered_program  == None:
                         DBG_PRINT(f"NO MORE PROGRAMS (with {size} literals)")
                         break  # No model could be found. Can try with more allowed literals
 
-                    context.num_programs_generated += 1
+                    context['num_programs_generated'] += 1
 
-                    DBG_PRINT(f"DONE GENERATING (program {context.num_programs_generated})")
+                    DBG_PRINT(f"DONE GENERATING (program {context['num_programs_generated']})")
 
                 program = program_to_ordered_program(unordered_program)
                 if debug:
@@ -192,6 +191,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 DBG_PRINT("DONE IMPOSING CONSTRAINTS")
         return None, context
     except KeyboardInterrupt: # Also happens on timer interrupt
+        context['interrupted'] = True
         return False, context
     except Exception as ex:
         print("PROGRAM:", file=stderr)

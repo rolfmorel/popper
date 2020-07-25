@@ -25,7 +25,9 @@ class EvaluateMixin(PrologEvaluateMixin):
             try:
                 cl_id, lit_id, pred, grounding, path, success = line.split("|")
             except ValueError:
-                break # timeouts might cause imcomplete lines to be written
+                break # timeouts might cause imcomplete lines to be written/read
+            if cl_id == '' or lit_id == '':
+                break
             cl_id, lit_id = int(cl_id), int(lit_id)
             path = path[2:-2].split("],[")
             if path == ['']:
