@@ -35,49 +35,49 @@ def timed_loop(*args, timeout=None, **kwargs):
 def test(context, Test, debug, program):
     DBG_PRINT = partial(debug_print, prefix='LOOP-test', debug=debug)
 
-    subprog_missing_answers = defaultdict(int)
-    subprog_incorrect_answers = defaultdict(int)
+    missing_answer_progs = set()
+    incorrect_answer_progs = set()
+
+    prog_missing_answers = defaultdict(int)
+    prog_incorrect_answers = defaultdict(int)
 
     with Test.using(program):
         # test the positive examples and collect subprograms with missing answers and how many are missing
         for pos_ex in Test.pos_examples:
-            result, subprogs = Test.evaluate(program, pos_ex)
-            if not result: # failed to prove example
-                for subprog in filter(lambda sp: sp != program, subprogs):
-                    subprog_missing_answers[subprog] += 1
-                subprog_missing_answers[program] += 1
+            result, _, failure_progs = Test.evaluate(program, pos_ex)
+            DBG_PRINT(f"pos example: {pos_ex}, result: {result}")
+            if not result:
+                prog_missing_answers[program] += 1
+            # any subprogram that had a failed trace will be retested
+            missing_answer_progs = missing_answer_progs.union(failure_progs)
 
         # test the negative examples and collect subprograms with incorrect answers and how many are incorrect
         for neg_ex in Test.neg_examples:
-            result, subprogs = Test.evaluate(program, neg_ex)
-            if result: # managed to prove example
-                for subprog in filter(lambda sp: sp != program, subprogs):
-                    subprog_incorrect_answers[subprog] += 1
-                subprog_incorrect_answers[program] += 1
+            result, success_progs, _ = Test.evaluate(program, neg_ex)
+            if result:
+                prog_incorrect_answers[program] += 1
+            # any subprogram that had a successful trace will be retested
+            incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
+
         context['num_programs_tested'] += 1
 
-    incorrect_subprogs = list(subprog_incorrect_answers.keys())
     # test the subprograms with missing answers whether they also have incorrect answers
-    for subprog in filter(lambda p: p is not program, subprog_missing_answers.keys()):
+    for subprog in filter(lambda p: p != program, missing_answer_progs | incorrect_answer_progs):
         context['num_programs_tested'] += 1
-        with Test.using(subprog, basic=True):
-            for neg_ex in Test.neg_examples:
-                result, _ = Test.query(neg_ex)
-                if result: # managed to prove example
-                    subprog_incorrect_answers[subprog] += 1
-    # test the subprograms with incorrect answers whether they also have missing answers
-    for subprog in filter(lambda p: p is not program, incorrect_subprogs):
-        context['num_programs_tested'] += 1
-        with Test.using(subprog, basic=True):
+        with Test.using(subprog, basic=True): # guaranteed to *not* make use of an instrumented program
             for pos_ex in Test.pos_examples:
                 result, _ = Test.query(pos_ex)
                 if not result: # failed to prove example
-                    subprog_missing_answers[subprog] += 1
+                    prog_missing_answers[subprog] += 1
+            for neg_ex in Test.neg_examples:
+                result, _ = Test.query(neg_ex)
+                if result: # managed to prove example
+                    prog_incorrect_answers[subprog] += 1
 
     if debug:
-        for subprog in set((program,)) | subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
-            missing_answers = subprog_missing_answers[subprog]
-            incorrect_answers = subprog_incorrect_answers[subprog]
+        for subprog in set((program,)) | prog_missing_answers.keys() | prog_incorrect_answers.keys():
+            missing_answers = prog_missing_answers[subprog]
+            incorrect_answers = prog_incorrect_answers[subprog]
             prefix = "PROG" if subprog == program else "(SUB)PROG"
             DBG_PRINT(f"{prefix} WITH {missing_answers} missing answers AND {incorrect_answers} incorrect answers:")
             DBG_output_program(subprog)
@@ -91,11 +91,11 @@ def test(context, Test, debug, program):
                 for pos_ex in Test.pos_examples:
                     result, _ = Test.evaluate(program, pos_ex)
                     if not result: # failed to prove example
-                        subprog_missing_answers[(nr_clause,)] += 1
+                        prog_missing_answers[(nr_clause,)] += 1
                         break
         # END OF HACKS!!!
 
-    return subprog_missing_answers, subprog_incorrect_answers
+    return prog_missing_answers, prog_incorrect_answers
 
 
 def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorrect_answers):

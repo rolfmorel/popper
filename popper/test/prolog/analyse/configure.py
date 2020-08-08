@@ -49,7 +49,7 @@ class ConfigureMixin(object):
         with self.context.configure.retract:
             args = ','.join(['_'] * (self.modeh.arity))
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
-            args = ','.join(['_'] * (self.modeh.arity + 1))
+            args = ','.join(['_'] * (self.modeh.arity + 2))
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
 
     def program_to_asserting_prolog(self, program):
@@ -58,28 +58,39 @@ class ConfigureMixin(object):
             cl_id, head, body = clause
             head_args = ','.join(arguments_to_prolog(head.arguments))
 
-            head_lit = f"{head.predicate}({head_args},Path)"
+            path = 'InPath'
+            head_lit = f"{head.predicate}({head_args},{path},OutPath)"
+
             body_lits = []
             for idx, atom in enumerate(body):
-                body_lits += [self.literal_to_asserting_prolog(cl_id, idx + 1, atom)]
+                path, atom = self.literal_to_asserting_prolog(cl_id, idx + 1, atom, path)
+                body_lits.append(atom)
 
             # NB: cut on empty path causes execution of later clauses, even when earlier clause is successful
-            suffix = f"format(ipc, 'succ|~d|~w', [{cl_id},Path]),(Path = [] -> !,false)"
+#            suffix = (f"OutPath = [({cl_id},{len(body)})|{path}]" + "," +  f"format(ipc, 'blah|~w|~w~n', [InPath,OutPath])," +
+#                      f"(InPath = [] -> !,format(ipc, 'succ|~w~n', [OutPath]),false)")
+#            prolog_program.append(f"{head_lit} :- {','.join(body_lits)},{suffix}") 
+            suffix = (f"OutPath = [({cl_id},{len(body)})|{path}]" + "," +
+                      f"(InPath = [] -> !,format(ipc, 'succ|~w~n', [OutPath]),false ; true)")
             prolog_program.append(f"{head_lit} :- {','.join(body_lits)},{suffix}") 
         return prolog_program
 
-    def literal_to_asserting_prolog(self, cl_id, lit_id, atom):
+    def literal_to_asserting_prolog(self, cl_id, lit_id, atom, in_path):
+        cur_path = f"[({cl_id},{lit_id})|{in_path}]"
         if atom.predicate == self.modeh.predicate:
             pred = atom.predicate
             args = ','.join(arguments_to_prolog(atom.arguments))
 
-            atom_ = f"{pred}({args},[[{cl_id},{lit_id}]|Path])"
+            out_path = f"Path{lit_id}"
+            atom_ = f"{pred}({args},{cur_path},{out_path})"
         else:
             atom_ = atom_to_prolog(atom)
+            out_path = in_path
         pred = atom.predicate
         args = ','.join(arguments_to_prolog(atom.arguments))
-        return f"({atom_} *-> true ; \
-(format(ipc, 'fail|~d|~d|~w|~w|~w|~w~n', [{cl_id},{lit_id},{pred},[{args}],Path]),false))"
+        return out_path, \
+               (f"({atom_} *-> true ;" + 
+                f"(format(ipc, 'fail|~w|~w|~w~n', [{pred},[{args}],{cur_path}]),false))")
 
 #    def literal_to_asserting_prolog_old(self, cl_id, lit_id, atom):
 #        if atom.predicate == self.modeh.predicate:
