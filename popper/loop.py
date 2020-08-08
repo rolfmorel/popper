@@ -89,7 +89,7 @@ def test(context, Test, debug, program):
             context['num_programs_tested'] += 1
             with Test.using((nr_clause,), basic=True):
                 for pos_ex in Test.pos_examples:
-                    result, _ = Test.evaluate(program, pos_ex)
+                    result, _, _ = Test.evaluate(program, pos_ex)
                     if not result: # failed to prove example
                         prog_missing_answers[(nr_clause,)] += 1
                         break
