@@ -83,7 +83,7 @@ def test(context, Test, debug, program):
             DBG_output_program(subprog)
 
     # Special case for non-recursive clauses to determine whether they are useful or not
-    if False and not Test.analyses and len(program) > 1:  # No point checking a single clause program again
+    if Test.analyses == 'mlj' and len(program) > 1:  # No point checking a single clause program again
         # BEGIN HACKS!!!
         for nr_clause in filter(lambda cl: not is_recursive_clause(cl), program):
             context['num_programs_tested'] += 1

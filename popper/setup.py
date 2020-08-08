@@ -16,6 +16,9 @@ def setup(mode_file, bk_file, examples_file,
 
         Tester = None
         if tester == 'prolog': Tester = test.TestProlog
+        if tester == 'prolog.mlj':
+            Tester = test.TestProlog
+            Tester.analyses = 'mlj'
         if tester == 'datalog': Tester = test.TestDatalog
         if tester == 'prolog.analyse': Tester = test.AnalyseProlog
 
