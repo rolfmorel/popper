@@ -42,25 +42,29 @@ def test(context, Test, debug, program):
     prog_incorrect_answers = defaultdict(int)
 
     with Test.using(program):
-        # test the positive examples and collect subprograms with missing answers and how many are missing
+        # test the positive examples and collect subprograms with missing answers 
         for pos_ex in Test.pos_examples:
             result, _, failure_progs = Test.evaluate(program, pos_ex)
-            DBG_PRINT(f"pos example: {pos_ex}, result: {result}")
+            #DBG_PRINT(f"pos example: {pos_ex}, result: {result}")
             if not result:
                 prog_missing_answers[program] += 1
-            # any subprogram that had a failed trace will be retested
-            missing_answer_progs = missing_answer_progs.union(failure_progs)
+                if result is not None: # if example evaluation did not time out
+                    # any subprogram that had a failed trace will be retested, except those that timed out
+                    missing_answer_progs = missing_answer_progs.union(failure_progs)
 
-        # test the negative examples and collect subprograms with incorrect answers and how many are incorrect
+        # test the negative examples and collect subprograms with incorrect answers 
         for neg_ex in Test.neg_examples:
             result, success_progs, _ = Test.evaluate(program, neg_ex)
             if result:
                 prog_incorrect_answers[program] += 1
-            # any subprogram that had a successful trace will be retested
-            incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
+                # any subprogram that had a successful trace will be retested
+                incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
+            #if result is not None: # if example evaluation timed out
+                #incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
 
         context['num_programs_tested'] += 1
 
+    #TODO: use subsumption lattice to reduce number of tests needed
     # test the subprograms with missing answers whether they also have incorrect answers
     for subprog in filter(lambda p: p != program, missing_answer_progs | incorrect_answer_progs):
         context['num_programs_tested'] += 1
