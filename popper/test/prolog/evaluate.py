@@ -10,7 +10,7 @@ class EvaluateMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('query')
         self.context.add_child('evaluate')
-        self.context.evaluate['timeouts'] - 0
+        self.context.evaluate['timeouts'] = 0
         super().__init__(*args, **kwargs)
 
 
