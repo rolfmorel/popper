@@ -26,7 +26,11 @@ class ConfigureMixin(object):
         self.context.configure.add_child('retract')
         super().__init__(*args, **kwargs)
 
-        self.ipc_filename = f"/dev/shm/popper_x-{os.getpid()}"
+        prefix = '/dev/shm'
+        if not os.path.exists(prefix):
+            prefix = '/tmp'
+
+        self.ipc_filename = f"{prefix}/popper_x-{os.getpid()}"
         self.ipc_file = open(self.ipc_filename, 'w+')
         self.ipc_file.truncate() # make sure is empty, even if name was stale
         success = list(self.prolog.query(f'open("{self.ipc_filename}", write, _, [alias(ipc)])'))
