@@ -10,7 +10,7 @@ class EvaluateMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('query')
         self.context.add_child('evaluate')
-        self.context.evaluate['timeouts'] = 0
+        self.context.query['timeouts'] = 0
         super().__init__(*args, **kwargs)
 
 
@@ -31,8 +31,10 @@ class EvaluateMixin(object):
             except PrologError as ex:
                 self.DBG_PRINT(f"Prolog threw exception '{ex}'")
                 if "time_limit_exceeded" in ex.args[0]:
+                    self.context.query['timeouts'] += 1
                     return None, []
                 if "stack" in ex.args[0]:  # NB: not so nice way to detect a stack-overflowing program
+                    self.context.query['timeouts'] += 1
                     self.DBG_PRINT(f"STACK OVERFLOW for {example}!")
                     return None, []
                 else:
@@ -46,8 +48,6 @@ class EvaluateMixin(object):
                 assert False # could only possibly happen when example was non-ground, which we don't deal with now
 
             success_progs = failure_progs = set()
-            if result is None:
-                self.context.evaluate['timeouts'] += 1
             if result:
                 success_progs = { program }
             if not result:
