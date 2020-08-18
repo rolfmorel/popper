@@ -22,6 +22,7 @@ class EvaluateMixin(PrologEvaluateMixin):
         self.context.add_child('evaluate')
         self.context.evaluate.add_child('instrumented')
         self.context.evaluate.instrumented.add_child('query')
+        self.context.evaluate.instrumented.query['timeouts'] = 0
         self.context.evaluate.instrumented.add_child('obtain')
         self.context.evaluate.instrumented.add_child('retract')
         self.context.evaluate.instrumented.add_child('conversion')
@@ -83,6 +84,7 @@ class EvaluateMixin(PrologEvaluateMixin):
             #self.DBG_PRINT(f"result: {res}")
             if res is None:
                 #self.DBG_PRINT("query result is None")
+                self.context.evaluate.instrumented.query['timeouts'] += 1
                 return None, set(), { tuple(program) }
             #self.DBG_PRINT("after query & before obtaining trace")
 
