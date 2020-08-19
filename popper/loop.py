@@ -183,6 +183,9 @@ def loop(context, Generate, Test, Constrain, debug=False):
                     # program both complete and consistent
                     return program, context
 
+                # TODO: keep track of already pruned programs so not to reimpose these constraints
+                # TODO: further improvement: use subsumption lattice to determine effectiveness of adding a constrain
+
                 with Constrain.context:
                     DBG_PRINT("START IMPOSING CONSTRAINTS")
 
