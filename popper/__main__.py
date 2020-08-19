@@ -1,9 +1,9 @@
 from .entry_point import main
-from . import representation
+from .representation import program_to_code
 
 program, context = main()
 if program:
-    for clause in representation.program_to_prolog(program):
+    for clause in program_to_code(program):
         print(clause, flush=True)
 else:
     print(None)
