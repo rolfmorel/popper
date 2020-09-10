@@ -11,15 +11,15 @@ max_clauses(2).
 
 %% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
 %% PREVENT RECURSION IN THE FIRST CLAUSE
-:-
-    modeh(P,A),
-    body_literal(0,_,P,A).
+%:-
+%    modeh(P,A),
+%    body_literal(0,_,P,A).
 
 %% IF YOU UNCOMMENT THESE LINES THERE THERE ARE ONLY THREE MODELS INCLUDING THE TARGET ONE
-%% :-
-%%     #count{Clause,Literal : body_literal(Clause,Literal,P,A)} != 5.
 %%:-
-%%    not body_literal(0,1,empty,1).
+%%    #count{Clause,P,Args : body_literal(Clause,P,A,Args)} != 5.
+%%:-
+%%    not body_literal(0,empty,1,(0,)).
 %%:-
 %%    not body_literal(1,_,f,1).
 %%:-
@@ -28,12 +28,12 @@ max_clauses(2).
 %%    not body_literal(1,_,head,2).
 %%:-
 %%    not body_literal(1,_,tail,2).
-:-
-    body_literal(_,1,last,2).
-:-
-    body_literal(_,2,last,2).
-:-
-    body_literal(_,3,last,2).
+%:-
+%    body_literal(_,1,last,2).
+%:-
+%    body_literal(_,2,last,2).
+%:-
+%    body_literal(_,3,last,2).
 %%:-
 %%    body_literal(_,4,last,2).
 
@@ -67,21 +67,21 @@ type(length,1,int).
 direction(length,0,in).
 direction(length,1,out).
 
-%% modeb(sum,3).
-%% type(sum,0,int).
-%% type(sum,1,int).
-%% type(sum,2,int).
-%% direction(sum,0,in).
-%% direction(sum,1,in).
-%% direction(sum,2,out).
+modeb(sum,3).
+type(sum,0,int).
+type(sum,1,int).
+type(sum,2,int).
+direction(sum,0,in).
+direction(sum,1,in).
+direction(sum,2,out).
 
-%% modeb(cons,3).
-%% type(cons,0,element).
-%% type(cons,1,list).
-%% type(cons,2,list).
-%% direction(cons,0,in).
-%% direction(cons,1,in).
-%% direction(cons,2,out).
+%modeb(cons,3).
+%type(cons,0,element).
+%type(cons,1,list).
+%type(cons,2,list).
+%direction(cons,0,in).
+%direction(cons,1,in).
+%direction(cons,2,out).
 
 modeb(empty,1).
 type(empty,0,list).
@@ -94,6 +94,3 @@ direction(zero,0,in).
 modeb(even,1).
 type(even,0,element).
 direction(even,0,in).
-
-#show var/4.
-#show literal/4.
