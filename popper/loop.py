@@ -125,13 +125,13 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
                                                     positive_outcome, negative_outcome)
 
     if Constrain.no_pruning:
-        constraints = [Constrain.banish_constraint(program)]
+        constraints = Constrain.banish_constraint(program)
 
     name_constraint_pairs = []
     for idx, constraint in enumerate(constraints):
         name = f"program{context['num_programs_generated']}_constraint{idx}"
         name_constraint_pairs.append((name, constraint))
-        DBG_PRINT("CONSTRAINT:\n  " + constraint)
+        DBG_PRINT(constraint)
 
     return name_constraint_pairs
 

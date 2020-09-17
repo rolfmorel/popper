@@ -66,6 +66,7 @@ class SolverMixin(object):
                 with self.context.solver.adding:
                     self.clingo_ctl.add(code_name, [], code)
                 self.DBG_PRINT(f"START GROUNDING (impose_constraints)")
+                self.DBG_PRINT(code)
                 with self.context.solver.grounding:
                     self.clingo_ctl.ground([(code_name, [])])
                 self.DBG_PRINT(f"DONE GROUNDING (impose_constraints)")

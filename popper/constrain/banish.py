@@ -13,4 +13,4 @@ class BanishMixin(object):
             banish_lits += clause_to_asp_literals(clause, ground=True, cl_id=f"Cl{cl_id}")
             banish_lits += [f"clause_size({cl_id},{len(body)})"]
         banish_lits += [f"not clause({len(program)})"]
-        return ":-" + ",".join(banish_lits) + "."
+        return [":-" + ",".join(banish_lits) + "."]

@@ -23,30 +23,30 @@ class DeriveMixin(object):
         if (pos_outcome, neg_outcome) == (All, None_):
             return [] # program was unfalsifiable
         if (pos_outcome, neg_outcome) == (All, Some):
-            return [self.generalization_constraint(program)]
+            return self.generalization_constraint(program)
         if (pos_outcome, neg_outcome) == (Some, None_):
-            return [self.specialization_constraint(program)]
+            return self.specialization_constraint(program)
         if (pos_outcome, neg_outcome) == (Some, Some):
-            return [self.specialization_constraint(program),
-                    self.generalization_constraint(program)]
+            return self.specialization_constraint(program) + \
+                    self.generalization_constraint(program)
         if (pos_outcome, neg_outcome) == (None_, None_):
-            return [self.elimination_constraint(program)]
+            return self.elimination_constraint(program)
         if (pos_outcome, neg_outcome) == (None_, Some):
-            return [self.elimination_constraint(program),
-                    self.generalization_constraint(program)]
+            return self.elimination_constraint(program) + \
+                    self.generalization_constraint(program)
 
     def recursive_constraints(self, program, pos_outcome, neg_outcome):
         if (pos_outcome, neg_outcome) == (All, None_):
             return [] # program was unfalsifiable
         if (pos_outcome, neg_outcome) == (All, Some):
-            return [self.generalization_constraint(program)]
+            return self.generalization_constraint(program)
         if (pos_outcome, neg_outcome) == (Some, None_):
-            return [self.specialization_constraint(program)]
+            return self.specialization_constraint(program)
         if (pos_outcome, neg_outcome) == (Some, Some):
-            return [self.specialization_constraint(program),
-                    self.generalization_constraint(program)]
+            return self.specialization_constraint(program) + \
+                    self.generalization_constraint(program)
         if (pos_outcome, neg_outcome) == (None_, None_):
-            return [self.specialization_constraint(program)]
+            return self.specialization_constraint(program)
         if (pos_outcome, neg_outcome) == (None_, Some):
-            return [self.specialization_constraint(program),
-                    self.generalization_constraint(program)]
+            return self.specialization_constraint(program) + \
+                    self.generalization_constraint(program)
