@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from .derive import DeriveMixin
+from .common import CommonMixin
 from .banish import BanishMixin
 #from .elimination import EliminationMixin
 from .specialization import SpecializationMixin
@@ -28,7 +29,7 @@ class ConstrainInterface(ABC):
 
 
 class Constrain(DeriveMixin,GeneralizationMixin,SpecializationMixin,
-                BanishMixin,DebugMixin,ConstrainInterface):
+                BanishMixin,CommonMixin,DebugMixin,ConstrainInterface):
     def __init__(self, modeh, num_pos_examples, num_neg_examples, 
                  ground=False, no_pruning=False, context=TimeAccumulatingContext(), debug=False):
         self.context = context
@@ -41,5 +42,5 @@ class Constrain(DeriveMixin,GeneralizationMixin,SpecializationMixin,
         self.ground = ground
         self.no_pruning = no_pruning
 
-        self.exact_clause_handles = set() # string identifiers of constraints for clauses who occur exactly
+#        self.exact_clause_handles = set() # string identifiers of constraints for clauses who occur exactly
         self.included_clause_handles = set() # string identifiers of constraints for clauses who are a subset of a clause

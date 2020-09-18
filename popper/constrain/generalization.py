@@ -7,21 +7,21 @@ class GeneralizationMixin(object):
         super().__init__(*args, **kwargs)
 
 
-    def exact_clause_constraint(self, clause):
-        constraint = None
-        cl_handle = clause_identifier(clause)
-        if cl_handle not in self.exact_clause_handles:
-            cl_id = str(clause[0]) if self.ground else "C"
-            body = clause[2]
-
-            asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
-            asp_lits.append(f"clause_size({cl_id},{len(body)})")
-            if not self.ground:
-                asp_lits += asp_literals_for_distinct_clause_variables(clause, cl_id=cl_id)
-            # TODO: assert equality with known variables of the head
-
-            constraint = f"exact_clause_{cl_handle}:-" + ",".join(asp_lits) + "."
-        return cl_handle, constraint
+#    def exact_clause_constraint(self, clause):
+#        constraint = None
+#        cl_handle = clause_identifier(clause)
+#        if cl_handle not in self.exact_clause_handles:
+#            cl_id = str(clause[0]) if self.ground else "C"
+#            body = clause[2]
+#
+#            asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
+#            asp_lits.append(f"clause_size({cl_id},{len(body)})")
+#            if not self.ground:
+#                asp_lits += asp_literals_for_distinct_clause_variables(clause, cl_id=cl_id)
+#            # TODO: assert equality with known variables of the head
+#
+#            constraint = f"exact_clause_{cl_handle}:-" + ",".join(asp_lits) + "."
+#        return cl_handle, constraint
 
 
     def generalization_constraint(self, program):
@@ -29,12 +29,16 @@ class GeneralizationMixin(object):
         gen_lits = []
 
         for clause in program:
-            cl_handle, constraint = self.exact_clause_constraint(clause)
+            cl_id = str(clause[0]) if self.ground else f"C{clause[0]}"
+            body = clause[2]
+
+            cl_handle, constraint = self.included_clause_constraint(clause)
             if constraint: 
-                # clause was not encountered before in a generalization constraint
+                # clause was not encountered before
                 constraints.append(constraint)
-                self.exact_clause_handles.add(cl_handle)
-            gen_lits += f"exact_clause_{cl_handle}"
+                self.included_clause_handles.add(cl_handle)
+            gen_lits += [f"included_clause_{cl_handle}({cl_id})",
+                         f"clause_size({cl_id},{len(body)})"]
 
         return constraints + [":-" +  ",".join(gen_lits) + "."]
 
