@@ -121,11 +121,11 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
         else:
             negative_outcome = Outcome.Some
 
-        constraints += Constrain.derive_constraints(subprog,
-                                                    positive_outcome, negative_outcome)
-
-    if Constrain.no_pruning:
-        constraints = Constrain.banish_constraint(program)
+        if Constrain.no_pruning:
+            constraints.append(Constrain.banish_constraint(subprog))
+        else:
+            constraints += Constrain.derive_constraints(subprog,
+                                                        positive_outcome, negative_outcome)
 
     name_constraint_pairs = []
     for idx, constraint in enumerate(constraints):
