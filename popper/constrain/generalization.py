@@ -11,7 +11,7 @@ class GeneralizationMixin(object):
         constraint = None
         cl_handle = clause_identifier(clause)
         if cl_handle not in self.exact_clause_handles:
-            cl_id = str(clause[0]) if self.ground else ""
+            cl_id = str(clause[0]) if self.ground else "C"
             body = clause[2]
 
             asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)

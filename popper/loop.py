@@ -131,7 +131,6 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
     for idx, constraint in enumerate(constraints):
         name = f"program{context['num_programs_generated']}_constraint{idx}"
         name_constraint_pairs.append((name, constraint))
-        DBG_PRINT(constraint)
 
     return name_constraint_pairs
 
