@@ -5,12 +5,19 @@ class BanishMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @staticmethod
-    def banish_constraint(program):
+    def banish_constraint(self, program):
+        constraints = []
         banish_lits = []
+
         for clause in program:
             cl_id, _, body = clause
-            banish_lits += clause_to_asp_literals(clause, ground=True, cl_id=f"Cl{cl_id}")
+            cl_handle, constraint = self.included_clause_constraint(clause) # from CommonMixin
+            if constraint: 
+                # clause was not encountered before
+                constraints.append(constraint)
+                self.included_clause_handles.add(cl_handle)
+
+            banish_lits.append(f"included_clause_{cl_handle}({cl_id})")
             banish_lits += [f"clause_size({cl_id},{len(body)})"]
         banish_lits += [f"not clause({len(program)})"]
-        return [":-" + ",".join(banish_lits) + "."]
+        return constraints + [":-" + ",".join(banish_lits) + "."]

@@ -22,7 +22,6 @@ class SpecializationMixin(object):
         for clause in program:
             cl_id = str(clause[0]) if self.ground else f"C{clause[0]}"
             cl_handle, constraint = self.included_clause_constraint(clause) # from CommonMixin
-            self.DBG_PRINT(cl_handle, constraint)
             if constraint: 
                 # clause was not encountered before
                 constraints.append(constraint)

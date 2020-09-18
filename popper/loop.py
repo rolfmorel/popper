@@ -122,7 +122,7 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
             negative_outcome = Outcome.Some
 
         if Constrain.no_pruning:
-            constraints.append(Constrain.banish_constraint(subprog))
+            constraints += Constrain.banish_constraint(subprog)
         else:
             constraints += Constrain.derive_constraints(subprog,
                                                         positive_outcome, negative_outcome)
