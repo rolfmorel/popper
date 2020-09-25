@@ -1,10 +1,15 @@
 import sys
 import time
 import json
+import threading
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 
 from .input import parse_args
 from .setup import setup
-from .loop import timed_loop
+from .loop import loop
 from .representation import program_to_code
 
 
@@ -32,14 +37,20 @@ def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
         ground_constraints, no_pruning, timeout, debug=False, stats=False, tester='prolog'):
     time_entered = time.time()
 
-    context, (Generate, Test, Constrain) = \
-            setup(mode_file, bk_file, examples_file, max_literals, eval_timeout,
-                  ground_constraints, no_pruning, debug=debug, stats=stats, tester=tester)
+    if timeout:
+        timer = threading.Timer(timeout, lambda: thread.interrupt_main())
+        timer.start()
 
-    program, context = timed_loop(context, Generate, Test, Constrain,
-                                  timeout=timeout, debug=debug)
+    try:
+        context, (Generate, Test, Constrain) = \
+                setup(mode_file, bk_file, examples_file, max_literals, eval_timeout,
+                      ground_constraints, no_pruning, debug=debug, stats=stats, tester=tester)
 
-    context['duration'] = time.time() - time_entered
+        program, context = loop(context, Generate, Test, Constrain, debug=debug)
+    finally:
+        if timeout:
+            timer.cancel()
+
     return program, context
 
 
