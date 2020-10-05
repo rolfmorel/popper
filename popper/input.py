@@ -23,7 +23,12 @@ def parse_args():
 
 
 def parse_examples(filename):
-    code = open(filename).read()
-    pos_exs = re.findall("pos\((.*)\)\.", code)
-    neg_exs = re.findall("neg\((.*)\)\.", code)
-    return pos_exs, neg_exs
+    pos = []
+    neg = []
+    with open(filename) as f:
+        for line in f:
+            if line.startswith('%'):
+                continue
+            pos.extend(re.findall("pos\((.*)\)\.",line))
+            neg.extend(re.findall("neg\((.*)\)\.",line))
+    return pos, neg
