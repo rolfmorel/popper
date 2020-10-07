@@ -1,4 +1,4 @@
-from .common import clause_to_asp_literals
+from .common import clause_to_asp_literals, clause_identifier
 
 
 class BanishMixin(object):
@@ -6,18 +6,12 @@ class BanishMixin(object):
         super().__init__(*args, **kwargs)
 
     def banish_constraint(self, program):
-        constraints = []
         banish_lits = []
 
         for clause in program:
             cl_id, _, body = clause
-            cl_handle, constraint = self.included_clause_constraint(clause) # from CommonMixin
-            if constraint: 
-                # clause was not encountered before
-                constraints.append(constraint)
-                self.included_clause_handles.add(cl_handle)
-
+            cl_handle = clause_identifier(clause)
             banish_lits.append(f"included_clause_{cl_handle}({cl_id})")
             banish_lits += [f"clause_size({cl_id},{len(body)})"]
         banish_lits += [f"not clause({len(program)})"]
-        return constraints + [":-" + ",".join(banish_lits) + "."]
+        return ":-" + ",".join(banish_lits) + "."

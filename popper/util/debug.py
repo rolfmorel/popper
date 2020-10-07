@@ -8,8 +8,9 @@ _start_time = time()
 
 def debug_print(*args, prefix="", debug=False, **kwargs):
     if debug:
-        time_ = f"({time()-_start_time:8.3f}) " 
-        print(f"{time_}{prefix}:", *args, file=stderr, **kwargs)
+        time_ = f"({time()-_start_time:.1f})" 
+        prefix = "" if prefix is None else ' ' + prefix + ':'
+        print(f"{time_}{prefix}", *args, file=stderr, **kwargs)
 
 
 class DebugMixin(object):

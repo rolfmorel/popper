@@ -11,6 +11,7 @@ def setup(mode_file, bk_file, examples_file,
     with context:
         pos_exs, neg_exs = parse_examples(examples_file)
 
+        debug = False # hack to disable debug messages from stages
         Generate = generate.Generate(mode_file, max_literals=max_literals, debug=debug, context=ContextClass())
         context.add_child('generate', Generate.context)
 

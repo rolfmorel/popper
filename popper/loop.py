@@ -7,15 +7,16 @@ from collections import defaultdict
 from .representation import program_to_ordered_program, program_to_code, is_recursive_clause
 from .util import Result, Outcome
 from .util.debug import debug_print
+from .constrain.data_types import ConstraintType
 
 
-def DBG_output_program(program):
+def output_program(program):
     for clause in program_to_code(program):
          print("  " + clause, file=stderr)
 
 
 def test(context, Test, debug, program):
-    DBG_PRINT = partial(debug_print, prefix='LOOP-test', debug=debug)
+    DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
     subprog_missing_answers = defaultdict(int)
     subprog_incorrect_answers = defaultdict(int)
@@ -57,33 +58,25 @@ def test(context, Test, debug, program):
                     subprog_missing_answers[subprog] += 1
 
     if debug:
+        num_pos = len(Test.pos_examples)
+        num_neg = len(Test.neg_examples)
         for subprog in set((program,)) | subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
             missing_answers = subprog_missing_answers[subprog]
             incorrect_answers = subprog_incorrect_answers[subprog]
-            prefix = "PROG" if subprog == program else "(SUB)PROG"
-            DBG_PRINT(f"{prefix} WITH {missing_answers} missing answers AND {incorrect_answers} incorrect answers:")
-            DBG_output_program(subprog)
-
-    # Special case for non-recursive clauses to determine whether they are useful or not
-    if False and not Test.analyses and len(program) > 1:  # No point checking a single clause program again
-        # BEGIN HACKS!!!
-        for nr_clause in filter(lambda cl: not is_recursive_clause(cl), program):
-            context['num_programs_tested'] += 1
-            with Test.using((nr_clause,), basic=True):
-                for pos_ex in Test.pos_examples:
-                    result, _ = Test.evaluate(program, pos_ex)
-                    if not result: # failed to prove example
-                        subprog_missing_answers[(nr_clause,)] += 1
-                        break
-        # END OF HACKS!!!
+            if subprog != program:
+                DBG_PRINT("SUBPROGRAM:")
+                output_program(subprog)
+            DBG_PRINT("TP: {}, TN: {}, FP: {}, FN: {}".format(
+                      num_pos - missing_answers, num_neg - incorrect_answers,
+                      missing_answers, incorrect_answers))
 
     return subprog_missing_answers, subprog_incorrect_answers
 
 
 def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorrect_answers):
-    DBG_PRINT = partial(debug_print, prefix='LOOP-constrain', debug=debug)
+    DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
-    constraints = []
+    rules = []
 
     for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
         missing_answers = subprog_missing_answers[subprog]
@@ -103,23 +96,31 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
         else:
             negative_outcome = Outcome.Some
 
-        if Constrain.no_pruning:
-            constraints += Constrain.banish_constraint(subprog)
+        rules += Constrain.derive_constraints(subprog,
+                                              positive_outcome,
+                                              negative_outcome)
+
+    inclusion_rules = []
+    constraints = []
+    for type_, rule in rules:
+        if isinstance(type_, ConstraintType):
+            constraints.append((type_, rule))
         else:
-            constraints += Constrain.derive_constraints(subprog,
-                                                        positive_outcome, negative_outcome)
+            inclusion_rules.append(rule)
+    inclusion_rules = '\n'.join(inclusion_rules)
 
-    name_constraint_pairs = []
-    for idx, constraint in enumerate(constraints):
-        name = f"program{context['num_programs_generated']}_constraint{idx}"
-        name_constraint_pairs.append((name, constraint))
-        DBG_PRINT('\n' + constraint)
+    if debug:
+        if inclusion_rules != "":
+            DBG_PRINT("inclusion rules:\n" + inclusion_rules)
+        for type_, constraint in constraints:
+            DBG_PRINT(f"{type_.value} constraint:\n" + constraint)
 
-    return name_constraint_pairs
+    return [(f"program{context['num_programs_generated']}",
+             inclusion_rules + '\n'.join(map(lambda c: c[1], constraints)))]
 
 
 def loop(context, Generate, Test, Constrain, debug=False):
-    DBG_PRINT = partial(debug_print, prefix='LOOP', debug=debug)
+    DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
     context['num_programs_generated'] = 0
     context['num_programs_tested'] = 0
@@ -133,8 +134,6 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
             while True:
                 with Generate.context:
-                    DBG_PRINT(f"START GENERATING (program {context['num_programs_generated'] + 1})")
-
                     unordered_program = Generate.get_program()
                     if unordered_program  == None:
                         DBG_PRINT(f"NO MORE PROGRAMS (with {size} literals)")
@@ -142,42 +141,32 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                     context['num_programs_generated'] += 1
 
-                    DBG_PRINT(f"DONE GENERATING (program {context['num_programs_generated']})")
-
                 program = program_to_ordered_program(unordered_program)
                 if debug:
-                    print("PROGRAM:", file=stderr)
-                    DBG_output_program(program)
+                    DBG_PRINT(f"program {context['num_programs_generated']}:")
+                    output_program(program)
 
                 with Test.context:
-                    DBG_PRINT("START TESTING")
-
                     subprog_missing_answers, subprog_incorrect_answers = \
                             test(context, Test, debug, program)
-
-                    DBG_PRINT("DONE TESTING")
 
                 if subprog_missing_answers[program] == 0 and subprog_incorrect_answers[program] == 0:
                     # program both complete and consistent
                     return program, context
 
                 with Constrain.context:
-                    DBG_PRINT("START IMPOSING CONSTRAINTS")
-
                     name_constraint_pairs = constrain(context, Constrain, debug,
                                                       subprog_missing_answers, subprog_incorrect_answers)
 
                 # deindent to get out of Constrain's context, otherwise time will be counted double, by both Constrain and Generate
                 Generate.impose_constraints(name_constraint_pairs)
-
-                DBG_PRINT("DONE IMPOSING CONSTRAINTS")
         return None, context
     except KeyboardInterrupt: # Also happens on timer interrupt
         context['interrupted'] = True
         return False, context
     except Exception as ex:
         print("PROGRAM:", file=stderr)
-        DBG_output_program(program)
+        output_program(program)
         raise ex
     finally:
         context.exit()

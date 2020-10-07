@@ -51,6 +51,9 @@ def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
         if timeout:
             timer.cancel()
 
+    if debug:
+        sys.stderr.flush()
+
     return program, context
 
 

@@ -1,4 +1,4 @@
-from .common import asp_literals_for_distinct_clauses 
+from .common import asp_literals_for_distinct_clauses, clause_identifier
 
 
 class SpecializationMixin(object):
@@ -16,37 +16,21 @@ class SpecializationMixin(object):
 
 
     def specialization_constraint(self, program, elimination=False):
-        constraints = []
         spec_lits = []
 
         for clause in program:
             cl_id = str(clause[0]) if self.ground else f"C{clause[0]}"
-            cl_handle, constraint = self.included_clause_constraint(clause) # from CommonMixin
-            if constraint: 
-                # clause was not encountered before
-                constraints.append(constraint)
-                self.included_clause_handles.add(cl_handle)
+            cl_handle = clause_identifier(clause)
             spec_lits.append(f"included_clause_{cl_handle}({cl_id})")
-            spec_lits.append(f"{cl_id} < {len(program)}")
+            if not elimination:
+                spec_lits.append(f"{cl_id} < {len(program)}")
 
         spec_lits.append(f"not clause({len(program)})" if not elimination else "separable")
         if not self.ground:
             spec_lits += asp_literals_for_distinct_clauses(program)
 
-        return constraints + [":-" +  ",".join(spec_lits) + "."]
+        return ":-" +  ",".join(spec_lits) + "."
 
 
     def elimination_constraint(self, program):
         return self.specialization_constraint(program, elimination=True)
-
-
-#    def specialization_constraint(self, program):
-#        spec_lits = []
-#        for clause in program:
-#            spec_lits += clause_to_asp_literals(clause, self.ground)
-#        if not self.ground:
-#            spec_lits += asp_literals_for_distinct_clauses(program)
-#            spec_lits += asp_literals_for_distinct_variables(program)
-#
-#        spec_lits.append(f"not clause({len(program)})")
-#        return ":-" + ",".join(spec_lits) + "."

@@ -1,25 +1,6 @@
 from ..representation import VAR_ANY
 
 
-class CommonMixin(object):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def included_clause_constraint(self, clause):
-        constraint = None
-        cl_handle = clause_identifier(clause)
-        if cl_handle not in self.included_clause_handles:
-            cl_id = str(clause[0]) if self.ground else "C"
-
-            asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
-            if not self.ground:
-                asp_lits += asp_literals_for_distinct_clause_variables(clause, cl_id=cl_id)
-            # TODO: assert equality with known variables of the head
-
-            constraint = f"included_clause_{cl_handle}({cl_id}):-" + ",".join(asp_lits) + "."
-        return cl_handle, constraint
-
-
 def clause_identifier(clause):
     def atom_to_ident(atom):
         vars_ = (f"V{var}" for var in atom.arguments)
