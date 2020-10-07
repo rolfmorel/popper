@@ -16,8 +16,10 @@ from .representation import program_to_code
 def main():
     args = parse_args()
 
+    clingo_args = [] if not args.clingo_args else args.clingo_args.split(' ')
     kwargs = { 'timeout' : args.timeout,
                'debug' : args.debug,
+               'clingo_args' : clingo_args,
                'stats' : args.stats }
     if args.analyse:
         kwargs['tester'] = 'prolog.analyse'
@@ -34,7 +36,8 @@ def main():
 
 
 def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
-        ground_constraints, no_pruning, timeout, debug=False, stats=False, tester='prolog'):
+        ground_constraints, no_pruning, timeout, debug=False, stats=False, tester='prolog',
+        clingo_args=[]):
     time_entered = time.time()
 
     if timeout:
@@ -44,7 +47,8 @@ def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
     try:
         context, (Generate, Test, Constrain) = \
                 setup(mode_file, bk_file, examples_file, max_literals, eval_timeout,
-                      ground_constraints, no_pruning, debug=debug, stats=stats, tester=tester)
+                      ground_constraints, no_pruning, debug=debug, stats=stats, tester=tester,
+                      clingo_args=clingo_args)
 
         program, context = loop(context, Generate, Test, Constrain, debug=debug)
     finally:
