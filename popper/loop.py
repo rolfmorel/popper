@@ -1,9 +1,4 @@
 import time
-import threading
-try:
-    import thread
-except ImportError:
-    import _thread as thread
 
 from sys import stderr
 from functools import partial
@@ -18,19 +13,6 @@ def DBG_output_program(program):
     for clause in program_to_code(program):
          print("  " + clause, file=stderr)
 
-
-def timed_loop(*args, timeout=None, **kwargs):
-    if timeout:
-        timer = threading.Timer(timeout, lambda: thread.interrupt_main())
-        timer.start()
-
-    try:
-        ret = loop(*args, **kwargs)
-    finally:
-        if timeout:
-            timer.cancel()
-
-    return ret
 
 def test(context, Test, debug, program):
     DBG_PRINT = partial(debug_print, prefix='LOOP-test', debug=debug)
