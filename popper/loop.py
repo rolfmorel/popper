@@ -66,7 +66,7 @@ def test(context, Test, debug, program):
             if subprog != program:
                 DBG_PRINT("SUBPROGRAM:")
                 output_program(subprog)
-            DBG_PRINT("TP: {}, TN: {}, FP: {}, FN: {}".format(
+            DBG_PRINT("TP: {}, TN: {}, FN: {}, FP: {}".format(
                       num_pos - missing_answers, num_neg - incorrect_answers,
                       missing_answers, incorrect_answers))
 
