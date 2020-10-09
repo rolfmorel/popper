@@ -69,10 +69,10 @@ class DeriveMixin(object):
                     (Gen, self.generalization_constraint(program))]
         # TODO: for the following outcomes we should generate elim constraints per clause
         if (pos_outcome, neg_outcome) == (None_, None_):
-            return [(Elim, self.elimination_constraint(program))]
+            return [(Elim, self.elimination_constraint([clause])) for clause in program]
         if (pos_outcome, neg_outcome) == (None_, Some):
-            return [(Elim, self.elimination_constraint(program)),
-                    (Gen, self.generalization_constraint(program))]
+            return [(Elim, self.elimination_constraint([clause])) for clause in program] + \
+                   [(Gen, self.generalization_constraint(program))]
 
 
     def general_constraints(self, program, pos_outcome, neg_outcome):
