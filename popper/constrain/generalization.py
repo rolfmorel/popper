@@ -1,20 +1,20 @@
-from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses, \
-                    asp_literals_for_distinct_variables
+from .common import asp_literals_for_distinct_variables, clause_identifier
 
 
 class GeneralizationMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+
     def generalization_constraint(self, program):
         gen_lits = []
+
         for clause in program:
-            gen_lits += clause_to_asp_literals(clause, self.ground)
-            cl_id, _, body = clause
-            cl_id = f"C{cl_id}" if not self.ground else str(cl_id)
-            gen_lits += [f"clause_size({cl_id},{len(body)})"]
-        if not self.ground:
-            # TODO: asserting distinct clauses should not be necessary. Including these atoms increases grounging
-            gen_lits += asp_literals_for_distinct_clauses(program)
-            gen_lits += asp_literals_for_distinct_variables(program)
+            cl_id = str(clause[0]) if self.ground else f"C{clause[0]}"
+            body = clause[2]
+
+            cl_handle = clause_identifier(clause)
+            gen_lits += [f"included_clause_{cl_handle}({cl_id})",
+                         f"clause_size({cl_id},{len(body)})"]
+
         return ":-" +  ",".join(gen_lits) + "."

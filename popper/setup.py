@@ -5,13 +5,16 @@ from .util import TimeAccumulatingContext, DummyTimeAccumulatingContext
 
 
 def setup(mode_file, bk_file, examples_file,
-          max_literals, eval_timeout, ground_constraints, no_pruning, debug, stats, tester):
+          max_literals, eval_timeout, ground_constraints, no_pruning, debug, stats, tester,
+          clingo_args):
     ContextClass = TimeAccumulatingContext if stats else DummyTimeAccumulatingContext 
     context = ContextClass()
     with context:
         pos_exs, neg_exs = parse_examples(examples_file)
 
-        Generate = generate.Generate(mode_file, max_literals=max_literals, debug=debug, context=ContextClass())
+        debug = False # hack to disable debug messages from stages
+        Generate = generate.Generate(mode_file, max_literals=max_literals, debug=debug, context=ContextClass(),
+                                     clingo_args=clingo_args)
         context.add_child('generate', Generate.context)
 
         Tester = None

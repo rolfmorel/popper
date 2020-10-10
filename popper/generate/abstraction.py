@@ -27,7 +27,7 @@ class GenerateInterface(ABC):
 
 class Generate(SetupMixin,RepresentationMixin,SolverMixin,DebugMixin,GenerateInterface):
     def __init__(self, mode_file=None, max_literals=20, no_pruning=False, ground=False,
-                 context=TimeAccumulatingContext(), debug=False):
+                 context=TimeAccumulatingContext(), debug=False, clingo_args=[]):
         self.context = context
         super().__init__(debug=debug)
 
@@ -36,7 +36,7 @@ class Generate(SetupMixin,RepresentationMixin,SolverMixin,DebugMixin,GenerateInt
             self.no_pruning = no_pruning
             self.ground = ground
 
-            self.clingo_ctl = clingo.Control()
+            self.clingo_ctl = clingo.Control(clingo_args)
             self.setup(mode_file) # from SetupMixin
 
             with open(mode_file) as f:

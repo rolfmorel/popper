@@ -5,10 +5,10 @@ See the paper 'Learning programs by learning from failures', on [arXiv](https://
 
 ## Installation
 
-Currently the system relies on being run from the repository folder.
+Currently the system expects to be run from the repository folder.
 
 The python interface to `clingo`, an Answer Set Programming environment, is required.
-Test if the python library was installed with clingo by trying to run `import clingo` in your `python` interpreter.
+Test if the python library was installed along with clingo by running `import clingo` in your `python` interpreter.
 
 The `pyswip` python library is used as an interface to swi-prolog.
 
@@ -27,10 +27,10 @@ usage: popper.py [-h] [--no-pruning] [--ground-constraints] [--timeout TIMEOUT] 
 
 The `EXAMPLES_FILE` consists of ground facts representing the positive and negative examples, respectively wrapped in `pos(FACT).` and `neg(FACT)`.
 
-The `MODES_FILE` is for predicate declarations, as used in the ASP encoding. A mode declaration has the form `modeh(PRED,ARITY)` or `modeb(PRED,ARITY)`, respectively for predicates that may occur in heads and bodies. The predicate `direction(PRED,POSITION,DIRECTION)` is used to indicate a Prolog 'mode' for a predicate, i.e.~for each argument position `Position` indicate whether it works as an input, `DIRECTION=in`, or as an output `DIRECTION=out`.
-(Additional parameters for the ASP encoding can also be placed in this file.)
+The `MODES_FILE` is for predicate declarations, as used in the ASP encoding. A mode declaration has the form `modeh(PRED,ARITY)` or `modeb(PRED,ARITY)`, respectively for predicates that may occur in heads and bodies. The predicate `direction(PRED,POSITION,DIRECTION)` is used to indicate a Prolog 'mode' for a predicate. That is, for each argument position, `Position` indicates whether it works as an input, `DIRECTION=in`, or as an output, `DIRECTION=out`.
+(Parameters for optional features of the ASP encoding should be placed in this file.)
 
-The `BK_FILE` should include the Prolog predicate definitions for the predicates declared to be allowed to occur as predicates in bodies, but not in heads in the `MODES_FILE`.
+The `BK_FILE` should include Prolog predicate definitions. Any predicate declared to be allowed in bodies should be provided a definition. Currently, predicates allowed in the heads of learned clauses should not be provided definitions.
 
 The `examples` folder contains multiple examples of the `EXAMPLES_FILE`, ASP `MODES_FILE` and Prolog `BK_FILE`.
 
