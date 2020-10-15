@@ -64,9 +64,9 @@ def test(context, Test, debug, program):
     if debug:
         num_pos = len(Test.pos_examples)
         num_neg = len(Test.neg_examples)
-        for subprog in set((program,)) | subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
-            missing_answers = subprog_missing_answers[subprog]
-            incorrect_answers = subprog_incorrect_answers[subprog]
+        for subprog in set((program,)) | prog_missing_answers.keys() | prog_incorrect_answers.keys():
+            missing_answers = prog_missing_answers[subprog]
+            incorrect_answers = prog_incorrect_answers[subprog]
             if subprog != program:
                 DBG_PRINT("SUBPROGRAM:")
                 output_program(subprog)
