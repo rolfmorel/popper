@@ -16,7 +16,3 @@ class Test(SetupMixin,ConfigureMixin,EvaluateMixin,DebugMixin,TestInterface):
 
     def __init__(self, *args, **kwargs):
         PrologTest.__init__(self, *args, **kwargs)
-
-    def __del__(self):
-        self.ipc_file.close()
-        list(self.prolog.query("close(ipc)"))

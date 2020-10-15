@@ -1,6 +1,8 @@
 import os
 from popper.representation import program_to_ordered_program, clause_to_code
 
+import pyswip
+
 
 def arguments_to_prolog(arguments):
     args = []
@@ -25,17 +27,7 @@ class ConfigureMixin(object):
         self.context.configure.assert_.add_child('instrumented')
         self.context.configure.add_child('retract')
         super().__init__(*args, **kwargs)
-
-        prefix = '/dev/shm'
-        if not os.path.exists(prefix):
-            prefix = '/tmp'
-
-        self.ipc_filename = f"{prefix}/popper_x-{os.getpid()}"
-        self.ipc_file = open(self.ipc_filename, 'w+')
-        self.ipc_file.truncate() # make sure is empty, even if name was stale
-        success = list(self.prolog.query(f'open("{self.ipc_filename}", write, _, [alias(ipc)])'))
-        assert success == [{}], success
-
+        
 
     def assert_program(self, program, basic=None):
         if basic is True:
@@ -46,6 +38,7 @@ class ConfigureMixin(object):
             with self.context.configure.assert_.instrumented:
                 clauses = self.program_to_asserting_prolog(program)
                 for clause in clauses:
+                    print('clause', clause)
                     self.prolog.assertz(clause)
 
 
@@ -53,8 +46,9 @@ class ConfigureMixin(object):
         with self.context.configure.retract:
             args = ','.join(['_'] * (self.modeh.arity))
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
-            args = ','.join(['_'] * (self.modeh.arity + 2))
+            args = ','.join(['_'] * (self.modeh.arity + 1))
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
+
 
     def program_to_asserting_prolog(self, program):
         prolog_program = []
@@ -62,40 +56,32 @@ class ConfigureMixin(object):
             cl_id, head, body = clause
             head_args = ','.join(arguments_to_prolog(head.arguments))
 
-            path = 'InPath'
-            head_lit = f"{head.predicate}({head_args},{path},OutPath)"
+            head_lit = f"{head.predicate}({head_args},(RecClIdx,RecLitIdx))"
 
             body_lits = []
             for idx, atom in enumerate(body):
-                path, atom = self.literal_to_asserting_prolog(cl_id, idx + 1, atom, path)
+                atom = self.literal_to_asserting_prolog(cl_id, idx + 1, atom)
                 body_lits.append(atom)
 
             # NB: cut on empty path causes execution of later clauses, even when earlier clause is successful
 #            suffix = (f"OutPath = [({cl_id},{len(body)})|{path}]" + "," +  f"format(ipc, 'blah|~w|~w~n', [InPath,OutPath])," +
 #                      f"(InPath = [] -> !,format(ipc, 'succ|~w~n', [OutPath]),false)")
 #            prolog_program.append(f"{head_lit} :- {','.join(body_lits)},{suffix}") 
-            suffix = (f"OutPath = [({cl_id},{len(body)})|{path}]" + "," +
-                      f"(InPath = [] -> !,format(ipc, 'succ|~w~n', [OutPath]),false ; true)")
-            prolog_program.append(f"{head_lit} :- {','.join(body_lits)},{suffix}") 
+            prefix = f"enter_cl({cl_id},RecClIdx,RecLitIdx),LitIdx=idx(0),("
+            suffix = f"-> exit_cl({cl_id},-1) ; (LitIdx=idx(N),exit_cl({cl_id},N),false))"
+            prolog_program.append(f"{head_lit} :- {prefix}({','.join(body_lits)}){suffix}") 
         return prolog_program
 
-    def literal_to_asserting_prolog(self, cl_id, lit_id, atom, in_path):
-        cur_path = f"[({cl_id},{lit_id})|{in_path}]"
+
+    def literal_to_asserting_prolog(self, cl_id, lit_id, atom):
         if atom.predicate == self.modeh.predicate:
             pred = atom.predicate
             args = ','.join(arguments_to_prolog(atom.arguments))
-
-            out_path = f"Path{lit_id}"
-            atom_ = f"{pred}({args},{cur_path},{out_path})"
+            atom_ = f"{pred}({args},({cl_id},{lit_id}))"
         else:
             atom_ = atom_to_prolog(atom)
-            out_path = in_path
-        pred = atom.predicate
-        args = ','.join(arguments_to_prolog(atom.arguments))
-        return out_path, \
-               (f"({atom_} *-> true ;" + 
-                f"(format(ipc, 'fail|~w|~w|~w~n', [{pred},[{args}],{cur_path}]),false))")
-
+        return (f"({atom_}*->true;" + 
+                 f"(LitIdx=idx(N),M is max({lit_id},N),nb_setarg(1,LitIdx,M),fail))")
 #    def literal_to_asserting_prolog_old(self, cl_id, lit_id, atom):
 #        if atom.predicate == self.modeh.predicate:
 #            pred = atom.predicate
