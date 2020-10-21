@@ -1,3 +1,5 @@
+from itertools import chain
+
 from .common import clause_identifier, clause_to_asp_literals, \
                     asp_literals_for_distinct_clause_variables
 from .data_types import ConstraintType, RuleType
@@ -16,9 +18,14 @@ Elim = ConstraintType.Elimination
 Banish = ConstraintType.Banish
 
 
-class DeriveMixin(object):
+class DeriveImposeMixin(object):
     def __init__(self, *args, **kwargs):
+        self.context.add_child('derive')
+        self.context.add_child('impose')
+        self.context.impose.add_child('adding')
+        self.context.impose.add_child('grounding')
         super().__init__(*args, **kwargs)
+        self.id = 0
 
 
     def inclusion_rule(self, clause):
@@ -35,28 +42,33 @@ class DeriveMixin(object):
     def derive_inclusion_rules(self, program):
         for clause in program:
             cl_handle, rule = self.inclusion_rule(clause)
-            if cl_handle not in self.included_clause_handles:
-                self.included_clause_handles.add(cl_handle)
-                yield (RuleType.InclusionRule, rule)
+            yield (RuleType.InclusionRule, cl_handle, rule)
 
 
-    def derive_constraints(self, program, pos_outcome, neg_outcome):
-        if (pos_outcome, neg_outcome) == (All, None_):
-            return [] # program was unfalsifiable
+    def derive(self, program, pos_outcome, neg_outcome):
+        with self.context.derive:
+            if (pos_outcome, neg_outcome) == (All, None_):
+                return [] # program was unfalsifiable
 
-        if self.no_pruning:
-            return [(Banish, self.banish_constraint(program))]
+            if self.no_pruning:
+                return [(Banish, self.banish_constraint(program))]
 
-        if neg_outcome == All:
-            # we do not distinguish between entailing some or all of the negative examples
-            neg_outcome = Some  
+            if neg_outcome == All:
+                # we do not distinguish between entailing some or all of the negative examples
+                neg_outcome = Some  
 
-        if is_recursive_program(program):
-            constraints = self.general_constraints(program, pos_outcome, neg_outcome)
-        else:
-            constraints = self.separable_constraints(program, pos_outcome, neg_outcome)
+            if is_recursive_program(program):
+                constraints = self.general_constraints(program, pos_outcome, neg_outcome)
+            else:
+                constraints = self.separable_constraints(program, pos_outcome, neg_outcome)
 
-        return list(self.derive_inclusion_rules(program)) + constraints
+            named_constraints = []
+            for type_, constraint in constraints:
+                name = f"{type_.value}{self.id}"
+                self.id += 1
+                named_constraints.append((type_, name, constraint))
+
+            return chain(self.derive_inclusion_rules(program), named_constraints)
 
 
     def separable_constraints(self, program, pos_outcome, neg_outcome):
@@ -67,7 +79,6 @@ class DeriveMixin(object):
         if (pos_outcome, neg_outcome) == (Some, Some):
             return [(Spec, self.specialization_constraint(program)),
                     (Gen, self.generalization_constraint(program))]
-        # TODO: for the following outcomes we should generate elim constraints per clause
         if (pos_outcome, neg_outcome) == (None_, None_):
             return [(Elim, self.elimination_constraint([clause])) for clause in program]
         if (pos_outcome, neg_outcome) == (None_, Some):
@@ -88,3 +99,15 @@ class DeriveMixin(object):
         if (pos_outcome, neg_outcome) == (None_, Some):
             return [(Spec, self.specialization_constraint(program)),
                     (Gen, self.generalization_constraint(program))]
+
+
+    def impose(self, named_constraints):
+        with self.context.impose:
+            names = []
+            for name, constraint in named_constraints:
+                if name not in self.solver.added:
+                    with self.context.impose.adding:
+                        self.solver.add(constraint, name=name)
+                    names.append(name)
+            with self.context.impose.grounding:
+                self.solver.ground(*names)

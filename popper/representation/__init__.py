@@ -1,6 +1,6 @@
 from functools import reduce
 
-from .data_types import Atom, EvalAtom, ModeDeclaration, ArgumentMode, VAR_ANY
+from .data_types import Atom, ProgramAtom, ModeDeclaration, ArgumentMode, VAR_ANY
 
 
 #EXAMPLE_PROGRAM = [(0, Atom('f',mode,[0,1]),{Atom('tail',mode,[0,2]),Atom('head',mode,[2,1])})],

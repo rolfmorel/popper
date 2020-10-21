@@ -54,6 +54,7 @@ def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
     finally:
         if timeout:
             timer.cancel()
+    context['duration'] = time.time() - time_entered
 
     if debug:
         sys.stderr.flush()

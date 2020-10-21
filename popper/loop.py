@@ -2,6 +2,7 @@ import time
 
 from sys import stderr
 from functools import partial
+from itertools import chain
 from collections import defaultdict
 
 from .representation import program_to_ordered_program, program_to_code, is_recursive_clause
@@ -24,11 +25,10 @@ def test(context, Test, debug, program):
     prog_missing_answers = defaultdict(int)
     prog_incorrect_answers = defaultdict(int)
 
-    with Test.using(program):
+    with Test.using(program):  # TODO: create a handle which abstracts the simple vs non-simple interface
         # test the positive examples and collect subprograms with missing answers 
         for pos_ex in Test.pos_examples:
             result, _, failure_progs = Test.evaluate(program, pos_ex)
-            #DBG_PRINT(f"pos example: {pos_ex}, result: {result}")
             if not result:
                 prog_missing_answers[program] += 1
                 if result is not None: # if example evaluation did not time out
@@ -43,7 +43,7 @@ def test(context, Test, debug, program):
                 # any subprogram that had a successful trace will be retested
                 incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
             #if result is not None: # if example evaluation timed out
-                #incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
+            #    incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
 
         context['num_programs_tested'] += 1
 
@@ -80,7 +80,8 @@ def test(context, Test, debug, program):
 def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorrect_answers):
     DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
-    rules = []
+    inclusion_rules = []
+    constraints = []
 
     for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
         missing_answers = subprog_missing_answers[subprog]
@@ -100,27 +101,24 @@ def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorr
         else:
             negative_outcome = Outcome.Some
 
-        rules += Constrain.derive_constraints(subprog,
-                                              positive_outcome,
-                                              negative_outcome)
-
-    inclusion_rules = []
-    constraints = []
-    for type_, rule in rules:
-        if isinstance(type_, ConstraintType):
-            constraints.append((type_, rule))
-        else:
-            inclusion_rules.append(rule)
-    inclusion_rules = '\n'.join(inclusion_rules)
+        for type_, name, rule in Constrain.derive(subprog,
+                                                  positive_outcome,
+                                                  negative_outcome):
+            if isinstance(type_, ConstraintType):
+                constraints.append((type_, name, rule))
+            else:
+                inclusion_rules.append((type_, name, rule))
 
     if debug:
-        if inclusion_rules != "":
-            DBG_PRINT("inclusion rules:\n" + inclusion_rules)
-        for type_, constraint in constraints:
+        if inclusion_rules != []:
+            incl_rules = "\n".join(rule for _, _, rule in inclusion_rules)
+            DBG_PRINT("inclusion rules:\n" + incl_rules)
+        for type_, _, constraint in constraints:
             DBG_PRINT(f"{type_.value} constraint:\n" + constraint)
 
-    return [(f"program{context['num_programs_generated']}",
-             inclusion_rules + '\n'.join(map(lambda c: c[1], constraints)))]
+    Constrain.impose(
+        ((name, rule) for _, name, rule in chain(inclusion_rules, constraints))
+    )
 
 
 def loop(context, Generate, Test, Constrain, debug=False):
@@ -162,11 +160,8 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 # TODO: further improvement: use subsumption lattice to determine effectiveness of adding a constrain
 
                 with Constrain.context:
-                    name_constraint_pairs = constrain(context, Constrain, debug,
-                                                      subprog_missing_answers, subprog_incorrect_answers)
-
-                # deindent to get out of Constrain's context, otherwise time will be counted double, by both Constrain and Generate
-                Generate.impose_constraints(name_constraint_pairs)
+                    constrain(context, Constrain, debug,
+                              subprog_missing_answers, subprog_incorrect_answers)
         return None, context
     except KeyboardInterrupt: # Also happens on timer interrupt
         context['interrupted'] = True

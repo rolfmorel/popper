@@ -6,7 +6,7 @@ from itertools import chain
 import pyswip
 
 from popper.util import Result
-from popper.representation import EvalAtom 
+#from popper.representation import EvalAtom 
 from popper.representation.analyse.execution_forest import extract_succeeding_sub_programs, extract_failing_sub_programs
 
 from popper.test.prolog.evaluate import EvaluateMixin as PrologEvaluateMixin
