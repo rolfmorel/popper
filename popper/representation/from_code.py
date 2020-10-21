@@ -1,4 +1,4 @@
-from .data_types import ModeDeclaration, Atom
+from .data_types import ModeDeclaration, ProgramAtom
 
 EVS_MODES = """\
 modeh(evs,1). 
@@ -47,7 +47,7 @@ def from_code(modes, program_str):
             return pred, tuple(ord(arg_str) - ord('A') for arg_str in args.split(','))
 
         head_pred, head_args = parse_atom_str(head[:-1])
-        head_atom = Atom(head_pred, head_mode, head_args)
+        head_atom = ProgramAtom(head_pred, head_mode, head_args)
 
         body_atoms = []
         for atom in body:
@@ -55,7 +55,7 @@ def from_code(modes, program_str):
             body_mode = next(filter(
                 lambda m: m.predicate == body_pred and m.arity == len(body_args),
                 body_modes))
-            body_atoms.append(Atom(body_pred, body_mode, body_args))
+            body_atoms.append(ProgramAtom(body_pred, body_mode, body_args))
         clauses.append((clause_id, head_atom, tuple(body_atoms)))
 
     return tuple(clauses)
