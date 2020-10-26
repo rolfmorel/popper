@@ -7,45 +7,60 @@ import pyswip
 
 from popper.util import Result
 #from popper.representation import EvalAtom 
+from popper.representation import program_to_code
 from popper.representation.analyse.execution_forest import extract_succeeding_sub_programs, extract_failing_sub_programs
 
 from popper.test.prolog.evaluate import EvaluateMixin as PrologEvaluateMixin
-
-# instrument program with in_path's and out_path's
-# upon reaching the end of a body set out_path to in_path with current cl_id prepended.
-# upon a failure branch ipc write the in_path with additionally (cl_id, lit_id) prepended.
-# upon a success branch the out path with will contain all clauses were necessary for deriving it
-# For a failure trace, retest whether the subprogram fails for the example/all examples.
-# For a success trace, no need to retest subprogram for this example
 
 
 sld_stack = [] # will grow one-to-one with prolog's SLD-stack
 cur_lits = dict() # < max num of body literals in program
 subprogs = set() # < max num of ordered subprogs (i.e. < product(#lit(cl) for cl in program))
-successfull_subprog = None
 
 def enter_cl(cl_idx, rec_cl_idx, rec_lit_idx):
     rec_idx = (rec_cl_idx, rec_lit_idx)
     already_visited = rec_idx in cur_lits # O(1)
-    if (rec_cl_idx, rec_lit_idx) != (-1,-1): # top-level dummy value
+    
+    if rec_idx != (-1,-1): # if different from top-level dummy value
         cur_lits.add(rec_idx) # O(1)
     else:
         already_visited = True # hack
-    print(('enter', cl_idx, rec_idx, already_visited))
-    sld_stack.append(('enter', cl_idx, rec_idx, already_visited)) # O(1)
+    #print(('enter', (cl_idx, rec_idx, already_visited)))
+    sld_stack.append(('enter', (cl_idx, rec_idx, already_visited))) # O(1)
 pyswip.registerForeign(enter_cl)
 
 def exit_cl(cl_idx, lit_idx):
-    tag, cl_enter_idx, rec_idx, already_visited = sld_stack.pop() # O(1)
-    print(('exit', cl_idx, lit_idx, rec_idx, already_visited))
+    clause_successfull = lit_idx == -1
+    if clause_successfull:
+        lit_idx = math.inf
+
+    tag, _ = sld_stack[-1] # O(1)
+    if tag == 'successes':
+        _, success_set = sld_stack.pop() # O(1)
+        if clause_successfull:
+            success_set.add(cl_idx) # O(1)
+    elif clause_successfull:
+        success_set = set((cl_idx,))
+
+    tag, (cl_enter_idx, rec_idx, already_visited) = sld_stack.pop() # O(1)
+    assert tag == 'enter'
+    #print(('exit', (cl_idx, lit_idx, rec_idx, already_visited)))
     assert cl_idx == cl_enter_idx
 
-    subprog = {}
-    for cl, lit in chain(cur_lits, ((cl_idx, lit_idx),)):
-        id = subprog.get(cl, 0)
-        if lit > id:
-            subprog[cl] = lit
-    subprogs.add(tuple(subprog.items())) # O(#distinct recursive lits in branch)
+    if clause_successfull:
+        if len(sld_stack) > 0 and sld_stack[-1][0] == 'successes':
+            sld_stack[-1][1].update(success_set)
+        else:
+            sld_stack.append(('successes', success_set)) # O(1)
+    else:
+        ### START 
+        subprog = dict()
+        for cl, lit in chain(cur_lits, ((cl_idx, lit_idx),)):
+            furthest_lit_idx = subprog.get(cl, 0) # O(1)
+            if lit > furthest_lit_idx:
+                subprog[cl] = lit
+        subprogs.add(tuple(subprog.items())) 
+        ### END ==> O(#distinct recursive lits in branch)
 
     if already_visited is False:
         cur_lits.remove(rec_idx) # O(1)
@@ -119,39 +134,42 @@ class EvaluateMixin(PrologEvaluateMixin):
                 cur_lits = set()
 
                 res, _ = self.query(example)
-            #self.DBG_PRINT(f"result: {res}")
+
+            if res != None:
+                assert res.value == (sld_stack != []), (res, sld_stack)
+
+            successful_subprogs, failing_subprogs = set(), set()
+            if res: # case there was a succesfull SLD branch
+                assert len(sld_stack) == 1
+                _, succeeding_cl_ids = sld_stack[-1]
+                succeeding_clauses = []
+                for cl_idx, clause in enumerate(program):
+                    if cl_idx in succeeding_cl_ids:
+                        succeeding_clauses.append(clause)
+                successful_subprogs = set((program,
+                                          tuple(sorted(succeeding_clauses))))
+            else: # only came across failing SLD branches
+                failing_subprogs.add(program)
+                for subprog_identifier in subprogs:
+                    subprog = []
+                    for cl_idx, lit_idx in subprog_identifier:
+                        prog_cl_idx, prog_cl_head, prog_cl_body = program[cl_idx]
+                        lit_idx = min(lit_idx, len(prog_cl_body)) # for case lit_idx == math.inf
+                        subprog_cl_body = prog_cl_body[:lit_idx] # '- 1' because of index for head
+                        subprog.append((prog_cl_idx, prog_cl_head, subprog_cl_body))
+                    failing_subprogs.add(tuple(sorted(subprog)))
+
+            #print("SUCCESS:", res)
+            #print("stack:", sld_stack)
+            #print("subprogs:", subprogs)
+            #print("SUCCESSFUL SUBPROGS:", [program_to_code(p) for p in successful_subprogs])
+            #print("FAILING SUBPROGS:", [program_to_code(p) for p in failing_subprogs])
+
             if res is None:
-                #self.DBG_PRINT("query result is None")
                 self.context.evaluate.instrumented.query['timeouts'] += 1
                 return None, set(), { tuple(program) }
-            #self.DBG_PRINT("after query & before obtaining trace")
 
-
-            print("SUBPROGS:", subprogs)
-
-            success_subprogs, failure_subprogs = set(), set()
-            if res:
-                success_subprogs = set((program,))
-            else:
-                failure_subprogs = set((program,))
-            
-            #with self.context.evaluate.instrumented.conversion:
-
-            #    for result, subprog in self.extract_subprogram_from_traces(program):
-            #        if overall_result is None:
-            #            overall_result = result
-            #        if result:
-            #            overall_result = result
-            #            success_subprogs.add(subprog)
-            #        if not result:
-            #            failure_subprogs.add(subprog)
-
-            #if overall_result:
-            #    success_subprogs.add(tuple(program))
-            #else:
-            #    failure_subprogs.add(tuple(program))
-
-            return res, success_subprogs, failure_subprogs
+            return res, successful_subprogs, failing_subprogs
 
 
 #def convert_instrumentation_to_execution_forest(trace):
