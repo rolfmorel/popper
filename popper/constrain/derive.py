@@ -51,7 +51,7 @@ class DeriveMixin(object):
             # we do not distinguish between entailing some or all of the negative examples
             neg_outcome = Some  
 
-        if is_recursive_program(program):
+        if is_recursive_program(program): # FIXME: make this a check for separability
             constraints = self.general_constraints(program, pos_outcome, neg_outcome)
         else:
             constraints = self.separable_constraints(program, pos_outcome, neg_outcome)
@@ -67,11 +67,13 @@ class DeriveMixin(object):
         if (pos_outcome, neg_outcome) == (Some, Some):
             return [(Spec, self.specialization_constraint(program)),
                     (Gen, self.generalization_constraint(program))]
-        # TODO: for the following outcomes we should generate elim constraints per clause
+        # TODO: the elim constraints can be generalised so as to account the program being separable from other clauses
         if (pos_outcome, neg_outcome) == (None_, None_):
-            return [(Elim, self.elimination_constraint([clause])) for clause in program]
+            return [(Spec, self.specialization_constraint(program))] + \
+                   [(Elim, self.elimination_constraint([clause])) for clause in program]
         if (pos_outcome, neg_outcome) == (None_, Some):
-            return [(Elim, self.elimination_constraint([clause])) for clause in program] + \
+            return [(Spec, self.specialization_constraint(program))] + \
+                   [(Elim, self.elimination_constraint([clause])) for clause in program] + \
                    [(Gen, self.generalization_constraint(program))]
 
 
