@@ -1,5 +1,5 @@
-max_vars(5).
-max_body(4).
+max_vars(6).
+max_body(5).
 max_clauses(3).
 
 %% filter(A,B):-empty(A),empty(B).
@@ -48,13 +48,13 @@ same(cons2,cons2).
     body_literal(C,cons1,_,Vars),
     body_literal(C,cons2,_,Vars).
 
-:-
-    not recursive.
+%% :-
+    %% not recursive.
 
 :-
     not body_literal(0,empty,1,(0,)).
-:-
-    not body_literal(0,empty,1,(1,)).
+%% :-
+    %% not body_literal(0,empty,1,(1,)).
 :-
     body_literal(1,empty,_,_).
 :-

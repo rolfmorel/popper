@@ -1,6 +1,7 @@
-max_vars(3).
-max_body(4).
-max_clauses(2).
+%% max_vars(6).
+max_vars(4).
+max_body(5).
+max_clauses(3).
 
 %%:-
 %%    #count{Clause,Literal : body_literal(Clause,Literal,P,A)} > 5.
