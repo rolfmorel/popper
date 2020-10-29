@@ -1,6 +1,27 @@
 var(0..N-1):-
     max_vars(N).
 
+clause_var(Clause,Var):-
+    head_var(Clause,Var).
+clause_var(Clause,Var):-
+    body_var(Clause,Var).
+
+head_var(Clause,Var):-
+    head_literal(Clause,_P,_A,Vars),
+    var_member(Var,Vars).
+body_var(Clause,Var):-
+    body_literal(Clause,_P,_A,Vars),
+    var_member(Var,Vars).
+
+%% VAR IS IN VARS
+var_member(Var,Vars):-
+    var_pos(Var,Vars,_).
+
+%% VAR IS IN A LITERAL
+var_in_literal(Clause,P,Vars,Var):-
+    literal(Clause,P,Vars),
+    var_member(Var,Vars).
+
 %% mode(P,A):-
 %%     modeh(P,A).
 %% mode(P,A):-
