@@ -1,6 +1,6 @@
-max_vars(6).
-max_body(10).
-max_clauses(1).
+max_vars(7).
+max_body(7).
+max_clauses(2).
 
 %% DROPLAST
 %% f(A,B):-

@@ -1,5 +1,4 @@
 %% ALAN12
-
 #defined functional/2.
 #defined irreflexive/2.
 #defined direction/3.
@@ -19,9 +18,23 @@
 possible_clause(0..N-1):-
     max_clauses(N).
 
+%% GUESS A SINGLE HEAD LITERAL
+0 {head_literal(Clause,P,A,Vars) : modeh(P,A), head_vars(A,Vars)} 1:-
+    possible_clause(Clause).
+
+%% GUESS 1 > K <= NAT LEAST 1 BUT AT MOST N BODY LITERALS
+%% V1
+1 {body_literal(Clause,P,A,Vars) : modeb(P,A), vars(A,Vars)} N:-
+    clause(Clause),
+    max_body(N).
 
 clause(Clause):-
     head_literal(Clause,_,_,_).
+
+%% HEAD LITERAL CANNOT BE IN THE BODY
+:-
+    head_literal(Clause,P,_,Vars),
+    body_literal(Clause,P,_,Vars).
 
 %% USE CLAUSES IN ORDER
 :-
@@ -36,25 +49,6 @@ clause(Clause):-
     Var > 0,
     not var_in_literal(Clause,_,_,Var-1).
 
-%% GUESS A SINGLE HEAD LITERAL
-0 {head_literal(Clause,P,1,(0,)) : modeh(P,1)} 1:-
-    possible_clause(Clause).
-
-0 {head_literal(Clause,P,2,(0,1)) : modeh(P,2)} 1:-
-    possible_clause(Clause).
-
-0 {head_literal(Clause,P,3,(0,1,2)) : modeh(P,3)} 1:-
-    possible_clause(Clause).
-
-%% GUESS 1 > K <= NAT LEAST 1 BUT AT MOST N BODY LITERALS
-%% V1
-1 {body_literal(Clause,P,A,Vars) : modeb(P,A), vars(A,Vars)} N:-
-    clause(Clause),
-    max_body(N).
-%% HEAD LITERAL CANNOT BE IN THE BODY
-:-
-    head_literal(Clause,P,_,Vars),
-    body_literal(Clause,P,_,Vars).
 %% V2
 %% 1 {body_literal(Clause,P,A,Vars) :
 %%         modeb(P,A),
@@ -83,24 +77,14 @@ clause(Clause):-
 %%     size(N),
 %%     #count{Clause,P,Vars : literal(Clause,P,Vars)} != N.
 %% SIZE V2
-:-
-    size(N),
-    #sum{Size+1 : clause_size(Clause,Size)} != N.
+%% :-
+%%     size(N),
+%%     #sum{Size+1 : clause_size(Clause,Size)} != N.
 
 literal(Clause,P,Vars):-
     head_literal(Clause,P,_,Vars).
 literal(Clause,P,Vars):-
     body_literal(Clause,P,_,Vars).
-
-%% PREVENTS UNEEDED GROUNDING
-%% MICRO OPTIMISATION
-need_arity(A):-
-    modeh(_,A).
-need_arity(A):-
-    modeb(_,A).
-
-var(0..N-1):-
-    max_vars(N).
 
 clause_var(Clause,Var):-
     head_var(Clause,Var).
@@ -114,7 +98,6 @@ head_var(Clause,Var):-
 body_var(Clause,Var):-
     body_literal(Clause,_P,_A,Vars),
     var_member(Var,Vars).
-
 
 %% VAR IS IN VARS
 var_member(Var,Vars):-
