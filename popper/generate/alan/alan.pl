@@ -15,12 +15,10 @@
 #include "bias.pl".
 #include "vars.pl".
 
-possible_clause(0..N-1):-
-    max_clauses(N).
-
 %% GUESS A SINGLE HEAD LITERAL
 0 {head_literal(Clause,P,A,Vars) : modeh(P,A), head_vars(A,Vars)} 1:-
-    possible_clause(Clause).
+    Clause = 0..N-1,
+    max_clauses(N).
 
 %% GUESS 1 > K <= NAT LEAST 1 BUT AT MOST N BODY LITERALS
 %% V1
@@ -61,10 +59,6 @@ clause(Clause):-
 %% head_connected
 
 %% ENSURE A CLAUSE
-%% TODO
-%% V0
-%% clause(0).
-%% V1
 :-
     not clause(0).
 
