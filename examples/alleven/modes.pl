@@ -1,5 +1,5 @@
 %% max_vars(6).
-max_vars(4).
+max_vars(7).
 max_body(5).
 max_clauses(3).
 
@@ -68,13 +68,39 @@ type(length,1,int).
 direction(length,0,in).
 direction(length,1,out).
 
-modeb(sum,3).
-type(sum,0,int).
-type(sum,1,int).
-type(sum,2,int).
-direction(sum,0,in).
-direction(sum,1,in).
-direction(sum,2,out).
+modeb(dummy1,2).
+type(dummy1,0,element).
+type(dummy1,1,t1).
+direction(dummy1,0,in).
+direction(dummy1,1,out).
+
+modeb(dummy1m,1).
+type(dummy1m,0,t1).
+direction(dummy1m,0,in).
+
+modeb(dummy2,2).
+type(dummy2,0,element).
+type(dummy2,1,t2).
+direction(dummy2,0,in).
+direction(dummy2,1,out).
+
+modeb(dummy2m,1).
+type(dummy2m,0,t2).
+direction(dummy2m,0,in).
+
+modeb(dummy3,2).
+type(dummy3,0,element).
+type(dummy3,1,t3).
+direction(dummy3,0,in).
+direction(dummy3,1,out).
+
+%% modeb(sum,3).
+%% type(sum,0,int).
+%% type(sum,1,int).
+%% type(sum,2,int).
+%% direction(sum,0,in).
+%% direction(sum,1,in).
+%% direction(sum,2,out).
 
 %modeb(cons,3).
 %type(cons,0,element).

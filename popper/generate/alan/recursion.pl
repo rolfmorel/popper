@@ -36,11 +36,6 @@ has_base:-
     body_literal(C,P,A,V2),
     V1 != V2.
 
-%% THIS VERSION IS SOMETIMES FASTER
-%% :-
-%%     #count{Clause : clause(Clause)} = N,
-%%     #count{Clause : recursive(Clause)} = N.
-
 %% PREVENT LEFT RECURSION
 %% TODO: GENERALISE FOR ARITY > 3
 :-

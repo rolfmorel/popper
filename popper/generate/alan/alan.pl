@@ -29,6 +29,13 @@
 clause(Clause):-
     head_literal(Clause,_,_,_).
 
+clause_size(Clause1,N):-
+    clause(Clause1),
+    max_body(MaxN),
+    N > 0,
+    N <= MaxN,
+    #count{P1,Vars1 : body_literal(Clause1,P1,_,Vars1)} == N.
+
 literal(Clause,P,Vars):-
     head_literal(Clause,P,_,Vars).
 literal(Clause,P,Vars):-
