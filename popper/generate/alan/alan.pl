@@ -25,16 +25,25 @@
     clause(Clause),
     max_body(N).
 
-%% THERE IS A CLAUSE IF WE HAVE GUESSED THE HEAD LITERAL
+%% THERE IS A CLAUSE IF THERE IS A HEAD LITERAL
 clause(Clause):-
     head_literal(Clause,_,_,_).
 
-clause_size(Clause1,N):-
-    clause(Clause1),
-    max_body(MaxN),
-    N > 0,
-    N <= MaxN,
-    #count{P1,Vars1 : body_literal(Clause1,P1,_,Vars1)} == N.
+%% TODO: THIS IS VERY EXPENSIVE
+%% TODO: RENAME TO BODY_SIZE
+%% clause_size(Clause,N):-
+%%     clause(Clause),
+%%     body_sizes(N),
+%%     #count{P,Vars : body_literal(Clause,P,_,Vars)} == N.
+
+%% TODO: THIS VERSION SHOULD BE QUICKER MUST SEEMS SLOWER
+clause_size(Clause,BodySize):-
+    clause(Clause),
+    max_var(BodySize,MaxVar),
+    #count{P,Vars :
+        body_literal(Clause,P,_,Vars),
+        bounded_vars(MaxVar,Vars)
+    } == BodySize.
 
 literal(Clause,P,Vars):-
     head_literal(Clause,P,_,Vars).

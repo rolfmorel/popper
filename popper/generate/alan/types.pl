@@ -14,7 +14,11 @@
 %% %% TYPES V2
 %% :-
 %%     clause_var(Clause,Var),
-%%     #count{Type1 : type(P,Pos1,Type1), var_pos(Var,Vars1,Pos1), var_in_literal(Clause,P,Vars1,Var)} > 1.
+%%     #count{Type1 :
+%%         type(P,Pos1,Type1),
+%%         var_pos(Var,Vars1,Pos1),
+%%         var_in_literal(Clause,P,Vars1,Var)
+%%     } > 1.
 
 %% TYPES V3
 %% var_type(Clause,Var,Type):-

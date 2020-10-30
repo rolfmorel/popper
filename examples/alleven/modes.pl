@@ -1,7 +1,11 @@
-%% max_vars(6).
+%% max_vars(8).
+%% max_body(3).
+%% max_clauses(1).
+
 max_vars(7).
 max_body(5).
 max_clauses(3).
+%% max_clauses(1).
 
 %%:-
 %%    #count{Clause,Literal : body_literal(Clause,Literal,P,A)} > 5.
@@ -93,6 +97,16 @@ type(dummy3,0,element).
 type(dummy3,1,t3).
 direction(dummy3,0,in).
 direction(dummy3,1,out).
+
+modeb(dummy3m,1).
+type(dummy3m,0,t3).
+direction(dummy3m,0,in).
+
+modeb(dummy4,2).
+type(dummy4,0,element).
+type(dummy4,1,t4).
+direction(dummy4,0,in).
+direction(dummy4,1,out).
 
 %% modeb(sum,3).
 %% type(sum,0,int).

@@ -10,7 +10,7 @@ modeh(sum,3).
 %% BODY DECLARATIONS
 modeb(sum,3).
 modeb(and,3).
-%% modeb(or,3).
+%% modeb(or,3). % JUST ADDED
 modeb(xor,3).
 %% modeb(xnor,3).
 %% modeb(neg,2).
@@ -64,6 +64,7 @@ direction(is_not_zero,0,in).
 %% HACK 1: ENFORCE A CONTRAINT SO THAT A BK PRED SYMBOL MAY APPEAR AT MOST ONCE IN A CLAUSE
 only_once(shl).
 only_once(and).
+only_once(or).
 only_once(xor).
 only_once(equal).
 only_once(sum).

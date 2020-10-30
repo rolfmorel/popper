@@ -16,10 +16,14 @@ dummy2(_,_):-
     false.
 dummy3(_,_):-
     false.
+dummy4(_,_):-
+    false.
 
 dummy1m(_):-
     false.
 dummy2m(_):-
     false.
 dummy3m(_):-
+    false.
+dummy4m(_):-
     false.

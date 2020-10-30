@@ -3,7 +3,7 @@
 %% POPPER SETTINGS HARDCODED TO THE PERFECT VALUES
 max_vars(6).
 max_body(5).
-max_clauses(2).
+max_clauses(3).
 
 %% HEAD DECLARATION
 modeh(sum,3).

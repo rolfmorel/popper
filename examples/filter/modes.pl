@@ -1,6 +1,7 @@
-max_vars(6).
+%% max_vars(7).
+max_vars(7).
 max_body(5).
-max_clauses(3).
+max_clauses(4).
 
 %% filter(A,B):-empty(A),empty(B).
 %% filter(A,B):-cons(C,D,A),even(C),filter(D,E),cons(C,F,B).
@@ -53,8 +54,8 @@ same(cons2,cons2).
 
 :-
     not body_literal(0,empty,1,(0,)).
-%% :-
-    %% not body_literal(0,empty,1,(1,)).
+:-
+    not body_literal(0,empty,1,(1,)).
 :-
     body_literal(1,empty,_,_).
 :-

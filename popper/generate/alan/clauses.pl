@@ -5,7 +5,7 @@
 multiclause:-
     clause(1).
 
-%% SUBSUMPTION V2
+%% SUBSUMPTION
 :-
     clause_size(Clause1,N1),
     clause_size(Clause2,N2),
@@ -24,7 +24,7 @@ multiclause:-
     clause_size(C2,N2),
     N1 > N2.
 
-%% TODO: DO WE DO THE SAME FOR RECURSIVE CLAUSES?
+%% TODO: ORDER RECURSIVE CLAUSES BY SIZE
 
 %% num_vars(Clause,N):-
 %%     max_vars(MaxN),

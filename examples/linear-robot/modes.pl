@@ -1,6 +1,6 @@
-max_vars(7).
-max_body(7).
-max_clauses(2).
+max_vars(9).
+max_body(9).
+max_clauses(3).
 
 %% DROPLAST
 %% f(A,B):-
@@ -15,9 +15,9 @@ max_clauses(2).
 
 %% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
 %% PREVENT RECURSION IN THE FIRST CLAUSE
-:-
-    modeh(P,A),
-    body_literal(0,_,P,A).
+%% :-
+%%     modeh(P,A),
+%%     body_literal(0,_,P,A).
 
 modeh(f,2).
 type(f,0,world).
