@@ -8,8 +8,10 @@
 #show head_literal/4.
 #show body_literal/4.
 
+%% #include "pi.pl".
 #include "types.pl".
 #include "recursion.pl".
+#include "subsumption.pl".
 #include "clauses.pl".
 #include "direction.pl".
 #include "bias.pl".
@@ -29,14 +31,9 @@
 clause(Clause):-
     head_literal(Clause,_,_,_).
 
-%% TODO: THIS IS VERY EXPENSIVE
+%% CALC BODY SIZE
 %% TODO: RENAME TO BODY_SIZE
-%% clause_size(Clause,N):-
-%%     clause(Clause),
-%%     body_sizes(N),
-%%     #count{P,Vars : body_literal(Clause,P,_,Vars)} == N.
-
-%% TODO: THIS VERSION SHOULD BE QUICKER MUST SEEMS SLOWER
+%% TODO: IMPROVE THIS IS VERY EXPENSIVE
 clause_size(Clause,BodySize):-
     clause(Clause),
     max_var(BodySize,MaxVar),
@@ -49,6 +46,10 @@ literal(Clause,P,Vars):-
     head_literal(Clause,P,_,Vars).
 literal(Clause,P,Vars):-
     body_literal(Clause,P,_,Vars).
+
+%% ENSURE A CLAUSE
+:-
+    not clause(0).
 
 %% HEAD LITERAL CANNOT BE IN THE BODY
 :-
@@ -63,24 +64,6 @@ literal(Clause,P,Vars):-
 
 %% USE VARS IN ORDER IN A CLAUSE
 :-
-    clause(Clause),
-    var_in_literal(Clause,_,_,Var),
+    clause_var(Clause,Var),
     Var > 0,
-    not var_in_literal(Clause,_,_,Var-1).
-
-%% ENSURE A CLAUSE
-:-
-    not clause(0).
-
-%% size(5).
-%% TODO
-%% CAN WE REPLACE THIS WITH A COUNT OF BODY LITERALS?
-%% OBEY PROGRAM SIZE
-%% SIZE V1
-%% :-
-%%     size(N),
-%%     #count{Clause,P,Vars : literal(Clause,P,Vars)} != N.
-%% SIZE V2
-%% :-
-%%     size(N),
-%%     #sum{Size+1 : clause_size(Clause,Size)} != N.
+    not clause_var(Clause,Var-1).

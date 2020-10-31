@@ -23,10 +23,14 @@ var_in_literal(Clause,P,Vars,Var):-
     var_member(Var,Vars).
 
 %% TODO: GENERALISE FOR ARITIES > 4
-head_vars(1,(0,)).
-head_vars(2,(0,1)).
-head_vars(3,(0,1,2)).
-head_vars(4,(0,1,2,3)).
+head_vars(1,(0,)):-
+    modeh(_,1).
+head_vars(2,(0,1)):-
+    modeh(_,2).
+head_vars(3,(0,1,2)):-
+    modeh(_,3).
+head_vars(4,(0,1,2,3)):-
+    modeh(_,4).
 
 need_arity(A):-
     modeh(_,A).

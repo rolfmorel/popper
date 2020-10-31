@@ -1,29 +1,41 @@
-%% ########################################
-%% MULTIPLE CLAUSES
-%% ########################################
-
-multiclause:-
-    clause(1).
-
-%% SUBSUMPTION
+%% ORDER BY CLAUSE SIZE
+%% p(A)<-q(A),r(A). (CLAUSE1)
+%% p(A)<-s(A). (CLAUSE2)
+%% V1
 :-
+    Clause2 > Clause1,
+    not recursive(Clause1),
+    not recursive(Clause2),
+    head_literal(Clause1,P,A,_),
+    head_literal(Clause2,P,A,_),
     clause_size(Clause1,N1),
     clause_size(Clause2,N2),
-    N1 <= N2,
-    Clause1 != Clause2, %% TODO - CAN WE CHANGE != TO < ?
-    head_literal(Clause1,HeadPred,_,HeadVars),
-    head_literal(Clause2,HeadPred,_,HeadVars),
-    body_literal(Clause2,P,_,Vars): body_literal(Clause1,P,_,Vars).
-
-%% ORDER BY CLAUSE SIZE
-:-
-    C2 > C1,
-    not recursive(C1),
-    not recursive(C2),
-    clause_size(C1,N1),
-    clause_size(C2,N2),
     N1 > N2.
 
+%% %% ORDER BY CLAUSE SIZE
+%% %% V2
+%% bigger_clause(Clause1,Clause2):-
+%%     clause_size(Clause1,N1),
+%%     clause_size(Clause2,N2),
+%%     N1 > N2.
+%% %% ORDER BY CLAUSE SIZE
+%% :-
+%%     Clause1 < Clause2,
+%%     not recursive(Clause1),
+%%     not recursive(Clause2),
+%%     head_literal(Clause1,P,A,_),
+%%     head_literal(Clause2,P,A,_),
+%%     bigger_clause(Clause1,Clause2).
+
+%% :-
+%%     Clause2 > Clause1,
+%%     recursive(Clause1),
+%%     recursive(Clause2),
+%%     head_literal(Clause1,P,A,_),
+%%     head_literal(Clause2,P,A,_),
+%%     clause_size(Clause1,N1),
+%%     clause_size(Clause2,N2),
+%%     N1 > N2.
 %% TODO: ORDER RECURSIVE CLAUSES BY SIZE
 
 %% num_vars(Clause,N):-

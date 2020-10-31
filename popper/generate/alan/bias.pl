@@ -8,7 +8,7 @@
     clause_var(Clause,Var),
     #count{P,Vars : var_in_literal(Clause,P,Vars,Var)} == 1.
 
-%% TWO VARS CO-APPEAR IN A BODY LITERAL
+%% %% TWO VARS CO-APPEAR IN A BODY LITERAL
 share_literal(Clause,Var1,Var2):-
     body_literal(Clause,_,_,Vars),
     var_member(Var1,Vars),
@@ -26,6 +26,24 @@ head_connected(Clause,Var1):-
 :-
     body_var(Clause,Var),
     not head_connected(Clause,Var).
+
+
+%% head_connected(Clause,Var):-
+%%     head_var(Clause,Var).
+%% head_connected(Clause,Var1):-
+%%     %% Var1 > 0,
+%%     head_connected(Clause,Var2),
+%%     body_literal(Clause,_,_,Vars),
+%%     var_member(Var1,Vars),
+%%     var_member(Var2,Vars),
+%%     Var1 != Var2.
+
+%% %% MUST BE CONNECTED
+%% :-
+%%     %% Var > 0,
+%%     body_var(Clause,Var),
+%%     not head_connected(Clause,Var).
+
 
 %% REMOVE REFLEXIVE
 %% prevents: p(A):-q(A,B),q(B,A)
