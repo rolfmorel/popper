@@ -8,7 +8,7 @@
 #show head_literal/4.
 #show body_literal/4.
 
-%% #include "pi.pl".
+#include "pi.pl".
 #include "types.pl".
 #include "recursion.pl".
 #include "subsumption.pl".

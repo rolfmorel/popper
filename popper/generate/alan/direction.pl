@@ -33,6 +33,15 @@ safe_literal(Clause,P,Vars):-
         safe_var(Clause,Var)
     } == N.
 
+%% %% JUST ADDED
+%% %% UNSURE WHETHER IT IS NEEDED
+%% safe_literal(Clause,P,Vars):-
+%%     body_literal(Clause,P,A,Vars),
+%%     #count{Var,Pos :
+%%         var_pos(Var,Vars,Pos),
+%%         safe_var(Clause,Var)
+%%     } == A.
+
 %% SAFE VARS
 :-
     direction(_,_,_), % guard for when no directions are given
