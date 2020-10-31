@@ -26,8 +26,8 @@
 %% #show tmp1/1.
 %% #show invented/2.
 
-:-
-    not clause(1).
+%% :-
+    %% not clause(1).
 
 %% IF AN INVENTED SYMBOL IS IN THE HEAD OF A CLAUSE IT MUST ALSO APPEAR IN THE BODY OF A CLAUSE
 :-
