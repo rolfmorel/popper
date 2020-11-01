@@ -29,7 +29,7 @@ has_base:-
 
 %% DISALLOW TWO RECURSIVE CALLS
 %% WHY DID WE ADD THIS??
-asda:-
+:-
     recursive(C),
     head_literal(C,P,A,_),
     body_literal(C,P,A,V1),
