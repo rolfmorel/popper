@@ -19,7 +19,7 @@ meta_clause(Clause):-
     V0!=V1,V0!=V2,V1!=V2,
     clause_size(Clause,2).
 
-%% P(A,B)<-Q(A,C),R(C,B).
+%% P(A,B)<-Q(A,B).
 meta_clause(Clause):-
     head_literal(Clause,P,2,(V0,V1)),
     body_literal(Clause,Q,2,(V0,V1)),

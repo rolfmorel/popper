@@ -8,7 +8,7 @@
 #show head_literal/4.
 #show body_literal/4.
 
-#include "pi.pl".
+%% #include "pi.pl".
 #include "types.pl".
 #include "recursion.pl".
 #include "subsumption.pl".
@@ -34,13 +34,22 @@ clause(Clause):-
 %% CALC BODY SIZE
 %% TODO: RENAME TO BODY_SIZE
 %% TODO: IMPROVE THIS IS VERY EXPENSIVE
-clause_size(Clause,BodySize):-
-    clause(Clause),
-    max_var(BodySize,MaxVar),
-    #count{P,Vars :
-        body_literal(Clause,P,_,Vars),
-        bounded_vars(MaxVar,Vars)
-    } == BodySize.
+%% OLD VERSION
+clause_size(Clause1,N):-
+    clause(Clause1),
+    max_body(MaxN),
+    N > 0,
+    N <= MaxN,
+    #count{P1,Vars1 : body_literal(Clause1,P1,_,Vars1)} = N.
+
+%% %% NEW VERSION
+%% clause_size(Clause,BodySize):-
+%%     clause(Clause),
+%%     max_var(BodySize,MaxVar),
+%%     #count{P,Vars :
+%%         body_literal(Clause,P,_,Vars),
+%%         bounded_vars(MaxVar,Vars)
+%%     } == BodySize.
 
 literal(Clause,P,Vars):-
     head_literal(Clause,P,_,Vars).

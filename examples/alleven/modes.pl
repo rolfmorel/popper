@@ -108,21 +108,21 @@ type(dummy4,1,t4).
 direction(dummy4,0,in).
 direction(dummy4,1,out).
 
-%% modeb(sum,3).
-%% type(sum,0,int).
-%% type(sum,1,int).
-%% type(sum,2,int).
-%% direction(sum,0,in).
-%% direction(sum,1,in).
-%% direction(sum,2,out).
+modeb(sum,3).
+type(sum,0,int).
+type(sum,1,int).
+type(sum,2,int).
+direction(sum,0,in).
+direction(sum,1,in).
+direction(sum,2,out).
 
-%modeb(cons,3).
-%type(cons,0,element).
-%type(cons,1,list).
-%type(cons,2,list).
-%direction(cons,0,in).
-%direction(cons,1,in).
-%direction(cons,2,out).
+modeb(cons,3).
+type(cons,0,element).
+type(cons,1,list).
+type(cons,2,list).
+direction(cons,0,in).
+direction(cons,1,in).
+direction(cons,2,out).
 
 modeb(empty,1).
 type(empty,0,list).

@@ -47,3 +47,5 @@ safe_literal(Clause,P,Vars):-
     direction(_,_,_), % guard for when no directions are given
     var_in_literal(Clause,_,_,Var),
     not safe_var(Clause,Var).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -96,27 +96,27 @@ mode(P,A):-
 mode(P,A):-
     modeb(P,A).
 
-max_arity(N):-
-    #max{A : mode(_,A)} == N.
+%% max_arity(N):-
+%%     #max{A : mode(_,A)} == N.
 
-body_sizes(1..N):-
-    max_body(N).
+%% body_sizes(1..N):-
+%%     max_body(N).
 
-%% TODO: REFACTOR HORRIBLE CODE
-max_var(BodySize,Var):-
-    body_sizes(BodySize),
-    var(Var),
-    Var = (BodySize*(A-1)),
-    max_body(N),
-    max_arity(A).
-max_var(BodySize,Var):-
-    body_sizes(BodySize),
-    max_arity(A),
-    not var(BodySize*(A-1)),
-    max_vars(Var).
+%% %% TODO: REFACTOR HORRIBLE CODE
+%% max_var(BodySize,Var):-
+%%     body_sizes(BodySize),
+%%     var(Var),
+%%     Var = (BodySize*(A-1)),
+%%     max_body(N),
+%%     max_arity(A).
+%% max_var(BodySize,Var):-
+%%     body_sizes(BodySize),
+%%     max_arity(A),
+%%     not var(BodySize*(A-1)),
+%%     max_vars(Var).
 
-bounded_vars(MaxVar,Vars):-
-    vars(_,Vars),
-    var(MaxVar),
-    #max{Var : var_member(Var,Vars)} == N,
-    N <= MaxVar.
+%% bounded_vars(MaxVar,Vars):-
+%%     vars(_,Vars),
+%%     var(MaxVar),
+%%     #max{Var : var_member(Var,Vars)} == N,
+%%     N <= MaxVar.

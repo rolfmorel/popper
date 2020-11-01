@@ -60,6 +60,3 @@ direction(empty,0,in).
 modeb(zero,1).
 type(zero,0,int).
 direction(zero,0,in).
-
-#show var/4.
-#show literal/4.
