@@ -1,5 +1,5 @@
-max_vars(5).
-max_body(10).
+max_vars(6).
+max_body(4).
 max_clauses(2).
 
 %% DROPLAST
@@ -74,5 +74,5 @@ modeb(zero,1).
 type(zero,0,int).
 direction(zero,0,in).
 
-#show var/4.
-#show literal/4.
+%% #show var/4.
+%% #show literal/4.

@@ -1,3 +1,4 @@
+%% max_vars(7).
 max_vars(5).
 max_body(4).
 max_clauses(3).
@@ -48,8 +49,8 @@ same(cons2,cons2).
     body_literal(C,cons1,_,Vars),
     body_literal(C,cons2,_,Vars).
 
-:-
-    not recursive.
+%% :-
+    %% not recursive.
 
 :-
     not body_literal(0,empty,1,(0,)).

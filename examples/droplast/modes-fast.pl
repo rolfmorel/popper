@@ -1,17 +1,27 @@
 max_vars(5).
-max_body(6).
-max_clauses(1).
+max_body(4).
+max_clauses(3).
 
-%% add the last element to the head
+%% DROPLAST
 %% f(A,B):-
-%%     last(A,C),
-%%     cons(C,A,B).
+%%     tail(A,C),
+%%     empty(C),
+%%     empty(B).
+%% f(A,B):-
+%%     tail(A,C),
+%%     f(C,D),
+%%     head(A,E),
+%%     cons(E,D,B).
+
+%% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
+%% PREVENT RECURSION IN THE FIRST CLAUSE
 
 modeh(f,2).
 type(f,0,list).
 type(f,1,list).
 direction(f,0,in).
 direction(f,1,out).
+modeb(f,2).
 
 modeb(tail,2).
 type(tail,0,list).
@@ -60,3 +70,6 @@ direction(empty,0,in).
 modeb(zero,1).
 type(zero,0,int).
 direction(zero,0,in).
+
+%% #show var/4.
+%% #show literal/4.

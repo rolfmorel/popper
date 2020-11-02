@@ -1,8 +1,6 @@
-%% (base) ➜  map time popp ex.pl modes3.pl bk.pl --eval-timeout=0.01 --debug --clingo-args '-t 16'
-%% python3 /Users/andrew/icloud/code/popper/popper.py ex.pl modes3.pl bk.pl      8041.57s user 11.37s system 1476% cpu 9:05.49 total
-
-max_vars(6).
-max_body(6).
+%% max_vars(6).
+max_vars(7).
+max_body(4).
 max_clauses(2).
 
 
@@ -13,15 +11,13 @@ max_clauses(2).
 %% f(A,B):-cons(C,A,D),f(D,E),succ(C,F),cons(F,E,B).
 
 :-
-    body_literal(C,cons1,_,Vars),
-    body_literal(C,cons2,_,Vars).
-
-:-
     not recursive.
+:-
+    not body_literal(0,empty,1,(0,)).
+:-
+    not body_literal(0,empty,1,(1,)).
 %% :-
-    %% not body_literal(0,empty,1,(0,)).
-%% :-
-    %% not body_literal(0,empty,1,(1,)).
+    %% body_literal(1,empty,1,_).
 
 modeh(f,2).
 type(f,0,list).

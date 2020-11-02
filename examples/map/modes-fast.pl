@@ -1,6 +1,6 @@
 max_vars(6).
-max_body(6).
-max_clauses(2).
+max_body(4).
+max_clauses(3).
 
 
 %% f(A,B):-empty(A),empty(B).
@@ -9,10 +9,14 @@ max_clauses(2).
 %% f(A,B):-empty(A),empty(B).
 %% f(A,B):-cons(C,A,D),f(D,E),succ(C,F),cons(F,E,B).
 
+%% :-
+    %% not recursive.
 :-
     not body_literal(0,empty,1,(0,)).
 :-
     not body_literal(0,empty,1,(1,)).
+%% :-
+    %% body_literal(1,empty,1,_).
 
 modeh(f,2).
 type(f,0,list).
