@@ -78,6 +78,10 @@ class ModeDeclaration(namedtuple('ModeDeclaration', ['predicate', 'arguments']))
         return self.predicate + "(" + ",".join(mode.value for mode in self.arguments) + ")"
 
     @staticmethod
+    def from_arity(predicate, arity):
+        return __class__(predicate, (ArgumentMode.Unknown for _ in range(arity)))
+
+    @staticmethod
     def parse_direction_modes(str_, predicate, arity):
         arguments = []
         for argument_idx in range(int(arity)):
