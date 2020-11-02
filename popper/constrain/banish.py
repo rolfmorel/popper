@@ -1,4 +1,4 @@
-from .common import clause_to_asp_literals, clause_identifier
+from .common import clause_to_asp_literals
 
 
 class BanishMixin(object):
@@ -10,7 +10,7 @@ class BanishMixin(object):
 
         for clause in program:
             cl_id, _, body = clause
-            cl_handle = clause_identifier(clause)
+            cl_handle = self.clause_identifier(clause)
             banish_lits.append(f"included_clause_{cl_handle}({cl_id})")
             banish_lits += [f"clause_size({cl_id},{len(body)})"]
         banish_lits += [f"not clause({len(program)})"]

@@ -1,15 +1,6 @@
 from ..representation import VAR_ANY
 
 
-def clause_identifier(clause):
-    def atom_to_ident(atom):
-        vars_ = (f"V{var}" for var in atom.arguments)
-        return f"{atom.predicate}" + "".join(vars_)
-        
-    cl_id_, head, body = clause
-    return "".join(map(atom_to_ident, [head] + sorted(body)))
-
-
 def head_atom_to_asp_literal(cl_id, atom, ground=False):
     return "head_" + _atom_to_asp_literal(cl_id, atom, ground)
 
