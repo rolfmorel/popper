@@ -4,49 +4,24 @@
 
 #defined invented/2.
 
-%% non_invented_head:-
-    %% modeh(P,A),
-    %% head_literal(P,A,_,_),
-    %% not invented(P,A).
-
-%% asda1(N):-
-  %% #count{P,A : head_literal(_,P,A,_)} == N.
-:-
-  #count{P,A : head_literal(_,P,A,_), not invented(P,A)} == 0.
-%% asda3(N):-
-  %% #count{P,A : head_literal(_,P,A,_), invented(P,A)} == N.
-
-%% tmp1(P/A):-
-%%     head_literal(P,A,_,_),
-%%     invented(P,A).
-
-%% #show asda1/1.
-%% #show asda2/1.
-%% #show asda3/1.
-%% #show tmp1/1.
-%% #show invented/2.
-
-%% :-
-    %% not clause(1).
-
 %% IF AN INVENTED SYMBOL IS IN THE HEAD OF A CLAUSE IT MUST ALSO APPEAR IN THE BODY OF A CLAUSE
 :-
-    head_literal(_,P,A,_),
     invented(P,A),
+    head_literal(_,P,A,_),
     not body_literal(_,P,A,_).
 
 %% IF AN INVENTED SYMBOL IS IN THE BODY OF A CLAUSE THEN IT MUST ALSO APPEAR IN THE HEAD OF A CLAUSE
 :-
-    body_literal(_,P,A,_),
     invented(P,A),
+    body_literal(_,P,A,_),
     not head_literal(_,P,A,_).
 
 %% PREVENT THE FIRST CLAUSE BEING INVENTED
 :-
-    head_literal(C1,P1,A1,_),
-    head_literal(C2,P2,A2,_),
     not invented(P1,A1),
     invented(P2,A2),
+    head_literal(C1,P1,A1,_),
+    head_literal(C2,P2,A2,_),
     C2 < C1.
 
 %% PREVENTS THIS:
@@ -54,9 +29,9 @@
 %% inv1(A,B):-q(A,B).
 %% TODO: DOUBLE CHECK!!
 :-
+    invented(P,A),
     clause_size(C,1),
-    body_literal(C,P,A,_),
-    invented(P,A).
+    body_literal(C,P,A,_).
 
 multiclause(P,A):-
     head_literal(Clause1,P,A,_),
@@ -67,8 +42,8 @@ multiclause(P,A):-
 %% f(A,B):-f1(A,C),f1(C,B).
 %% f1(A,B):-right(A,B).
 :-
-    head_literal(Clause,P,A,_),
     invented(P,A),
+    head_literal(Clause,P,A,_),
     clause_size(Clause,1),
     not multiclause(P,A).
 
@@ -81,9 +56,9 @@ multiclause(P,A):-
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% X and Y should inherit the types of A and B respectively
 var_type(Clause1,Var1,Type):-
+    invented(P,A),
     Clause1 > 0,
     Clause1 != Clause2,
-    invented(P,A),
     head_literal(Clause1,P,A,Vars1),
     body_literal(Clause2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
@@ -95,9 +70,9 @@ var_type(Clause1,Var1,Type):-
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% A and B should inherit the types of X and Y respectively
 var_type(Clause2,Var2,Type):-
+    invented(P,A),
     Clause1 > 0,
     Clause1 != Clause2,
-    invented(P,A),
     head_literal(Clause1,P,A,Vars1),
     body_literal(Clause2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
@@ -113,8 +88,8 @@ var_type(Clause2,Var2,Type):-
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% if A is safe then X is safe
 safe_var(Clause1,Var1):-
-    Clause1 != Clause2,
     invented(P,A),
+    Clause1 != Clause2,
     head_literal(Clause1,P,A,Vars1),
     body_literal(Clause2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
@@ -126,11 +101,21 @@ safe_var(Clause1,Var1):-
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% if Y is safe then B is safe
 safe_var(Clause2,Var2):-
-    Clause1 != Clause2,
     invented(P,A),
+    Clause1 != Clause2,
     head_literal(Clause1,P,A,Vars1),
     body_literal(Clause2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
     var_pos(Var2,Vars2,Pos),
     safe_var(Clause1,Var1).
 
+%% INHERIT DIRECTION FROM BODY LITERALS
+%% TODO: IMPROVE HORRIBLE HACK
+direction(P1,Pos1,in):-
+    invented(P1,A1),
+    head_literal(Clause,P1,A1,Vars1),
+    var_pos(Var,Vars1,Pos1),
+    body_literal(Clause,P2,_,Vars2),
+    var_pos(Var,Vars2,Pos2),
+    direction(P2,Pos2,in),
+    #count{P3,Vars3: body_literal(Clause,P3,_,Vars3),var_pos(Var,Vars3,Pos3),direction(P3,Pos2,out)} == 0.
