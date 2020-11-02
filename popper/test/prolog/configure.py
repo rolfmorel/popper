@@ -7,6 +7,7 @@ class ConfigureMixin(object):
         self.context.configure.add_child('assert_')
         self.context.configure.add_child('retract')
         super().__init__(*args, **kwargs)
+        self.current_clauses = set()
 
 
     def assert_program(self, program, basic=None):
@@ -14,11 +15,15 @@ class ConfigureMixin(object):
         with self.context.configure.assert_:
             for clause in program:
                 self.prolog.assertz(clause_to_code(clause))
+                self.current_clauses.add(clause)
 
 
     def retract(self):
         with self.context.configure.retract:
-            args = ','.join(['_'] * self.modeh.arity)
-            self.prolog.retractall(f"{self.modeh.predicate}({args})")
-            # for asserting programs
-            self.prolog.retractall(f"{self.modeh.predicate}({args},_)")
+            head_lits = set(head for _, head, _ in self.current_clauses)
+            for head_lit in head_lits:
+                args = ','.join(['_'] * head_lit.arity)
+                self.prolog.retractall(f"{head_lit.predicate}({args})")
+                # for asserting programs
+                self.prolog.retractall(f"{head_lit.predicate}({args},_)")
+            self.current_clauses = set()
