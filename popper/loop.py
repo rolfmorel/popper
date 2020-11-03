@@ -151,8 +151,15 @@ def loop(context, Generate, Test, Constrain, debug=False):
                             test(context, Test, debug, program)
 
                 if subprog_missing_answers[program] == 0 and subprog_incorrect_answers[program] == 0:
-                    # program both complete and consistent
-                    return program, context
+                    # program both complete and consistent ...
+                    with Test.using(program, basic=True):
+                        program_str = '(' + ','.join(f"(clause_to_code(cl))" for cl in program) + ')'
+                        query_str = "current_predicate(popper_program_validation/1) -> "\
+                                    f"popper_program_validation({program_str}) ; " \
+                                    "true"
+                        if next(Test.prolog.query(query_str), None) == {}:
+                            # ... and validated as well
+                            return program, context
 
                 with Constrain.context:
                     name_constraint_pairs = constrain(context, Constrain, debug,
