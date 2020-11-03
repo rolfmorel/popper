@@ -1,5 +1,4 @@
-from .common import clause_identifier, clause_to_asp_literals, \
-                    asp_literals_for_distinct_clause_variables
+from .common import clause_to_asp_literals, asp_literals_for_distinct_clause_variables
 from .data_types import ConstraintType, RuleType
 
 from ..representation import is_recursive_program
@@ -21,8 +20,22 @@ class DeriveMixin(object):
         super().__init__(*args, **kwargs)
 
 
+    def clause_identifier(self, clause, ground=None):
+        if ground == None:
+            ground = self.ground
+
+        def atom_to_ident(atom):
+            vars_ = ((f"{var}" if ground else f"V{var}")
+                     for var in atom.arguments)
+            return f"{atom.predicate}" + "".join(vars_)
+            
+        cl_id, head, body = clause
+        return "".join(map(atom_to_ident, [head] + sorted(body))) + \
+               (f"_cl{cl_id}" if ground else "")
+
+
     def inclusion_rule(self, clause):
-        cl_handle = clause_identifier(clause)
+        cl_handle = self.clause_identifier(clause)
         cl_id = str(clause[0]) if self.ground else "C"
 
         asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
@@ -45,7 +58,8 @@ class DeriveMixin(object):
             return [] # program was unfalsifiable
 
         if self.no_pruning:
-            return [(Banish, self.banish_constraint(program))]
+            return list(self.derive_inclusion_rules(program)) + \
+                   [(Banish, self.banish_constraint(program))]
 
         if neg_outcome == All:
             # we do not distinguish between entailing some or all of the negative examples

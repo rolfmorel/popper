@@ -1,4 +1,4 @@
-from .common import asp_literals_for_distinct_clauses, clause_identifier
+from .common import asp_literals_for_distinct_clauses
 
 
 class SpecializationMixin(object):
@@ -20,7 +20,7 @@ class SpecializationMixin(object):
 
         for clause in program:
             cl_id = str(clause[0]) if self.ground else f"C{clause[0]}"
-            cl_handle = clause_identifier(clause)
+            cl_handle = self.clause_identifier(clause)
             spec_lits.append(f"included_clause_{cl_handle}({cl_id})")
             if not elimination:
                 spec_lits.append(f"{cl_id} < {len(program)}")
