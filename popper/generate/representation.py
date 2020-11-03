@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from ..representation import Atom
+from ..representation import Atom, ModeDeclaration
 
 
 PRINT_ATOMS = ['head_literal', 'body_literal']
@@ -23,7 +23,12 @@ class RepresentationMixin(object):
                 arguments = tuple(map(lambda arg: arg.number,
                                   atom.arguments[3].arguments))
 
-                head_atom = Atom(predicate, self.modeh, arguments)
+                if self.modeh.predicate == predicate:
+                    mode = self.modeh
+                else:
+                    mode = ModeDeclaration.from_arity(predicate, len(arguments))
+
+                head_atom = Atom(predicate, mode, arguments)
                 clause_id_to_head[clause_id] = head_atom
             if atom.name == "body_literal":
                 clause_id = atom.arguments[0].number
@@ -31,8 +36,11 @@ class RepresentationMixin(object):
                 arguments = tuple(map(lambda arg: arg.number,
                                   atom.arguments[3].arguments))
 
-                modeb = self.predicate_to_modeb[predicate]
-                body_atom = Atom(predicate, modeb, arguments)
+                mode = self.predicate_to_modeb.get(predicate, None)
+                if not mode:
+                    mode = ModeDeclaration.from_arity(predicate, len(arguments))
+
+                body_atom = Atom(predicate, mode, arguments)
                 clause_id_to_body[clause_id].add(body_atom)
         return tuple(map(lambda clause_key: (clause_key,
                      clause_id_to_head[clause_key],
