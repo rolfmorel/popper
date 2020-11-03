@@ -1,51 +1,13 @@
-%% max_vars(8).
-%% max_body(3).
-%% max_clauses(1).
+max_vars(3).
+max_body(2).
+max_clauses(2).
 
-max_vars(7).
-max_body(5).
-max_clauses(3).
-%% max_clauses(1).
-
-%%:-
-%%    #count{Clause,Literal : body_literal(Clause,Literal,P,A)} > 5.
-
-%% ALL EVEN
-%% f(A):-empty(A).
-%% f(A):-head(A,B),tail(A,C),even(B),f(C).
-
-%% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
-%% PREVENT RECURSION IN THE FIRST CLAUSE
-%:-
-%    modeh(P,A),
-%    body_literal(0,_,P,A).
-
-%% IF YOU UNCOMMENT THESE LINES THERE THERE ARE ONLY THREE MODELS INCLUDING THE TARGET ONE
-%%:-
-%%    #count{Clause,P,Args : body_literal(Clause,P,A,Args)} != 5.
-%%:-
-%%    not body_literal(0,empty,1,(0,)).
-%%:-
-%%    not body_literal(1,_,f,1).
-%%:-
-%%    not body_literal(1,_,even,1).
-%%:-
-%%    not body_literal(1,_,head,2).
-%%:-
-%%    not body_literal(1,_,tail,2).
-%:-
-%    body_literal(_,1,last,2).
-%:-
-%    body_literal(_,2,last,2).
-%:-
-%    body_literal(_,3,last,2).
-%%:-
-%%    body_literal(_,4,last,2).
-
-modeh(f,1).
+modeh(f,2).
 type(f,0,list).
+type(f,1,list).
 direction(f,0,in).
-modeb(f,1).
+direction(f,1,in).
+modeb(f,2).
 
 modeb(tail,2).
 type(tail,0,list).
@@ -108,21 +70,21 @@ type(dummy4,1,t4).
 direction(dummy4,0,in).
 direction(dummy4,1,out).
 
-modeb(sum,3).
-type(sum,0,int).
-type(sum,1,int).
-type(sum,2,int).
-direction(sum,0,in).
-direction(sum,1,in).
-direction(sum,2,out).
+%% modeb(sum,3).
+%% type(sum,0,int).
+%% type(sum,1,int).
+%% type(sum,2,int).
+%% direction(sum,0,in).
+%% direction(sum,1,in).
+%% direction(sum,2,out).
 
-modeb(cons,3).
-type(cons,0,element).
-type(cons,1,list).
-type(cons,2,list).
-direction(cons,0,in).
-direction(cons,1,in).
-direction(cons,2,out).
+%% modeb(cons,3).
+%% type(cons,0,element).
+%% type(cons,1,list).
+%% type(cons,2,list).
+%% direction(cons,0,in).
+%% direction(cons,1,in).
+%% direction(cons,2,out).
 
 modeb(empty,1).
 type(empty,0,list).

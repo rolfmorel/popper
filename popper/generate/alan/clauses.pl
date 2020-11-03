@@ -4,8 +4,8 @@
 %% V1
 :-
     Clause2 > Clause1,
-    not recursive(Clause1),
-    not recursive(Clause2),
+    not recursive_clause(Clause1),
+    not recursive_clause(Clause2),
     head_literal(Clause1,P,A,_),
     head_literal(Clause2,P,A,_),
     clause_size(Clause1,N1),

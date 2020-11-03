@@ -1,26 +1,12 @@
-max_vars(5).
-max_body(4).
-max_clauses(2).
-
-%% DROPLAST
-%% f(A,B):-
-%%     tail(A,C),
-%%     empty(C),
-%%     empty(B).
-%% f(A,B):-
-%%     tail(A,C),
-%%     f(C,D),
-%%     head(A,E),
-%%     cons(E,D,B).
-
-%% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
-%% PREVENT RECURSION IN THE FIRST CLAUSE
+max_vars(7).
+max_body(7).
+max_clauses(7).
 
 modeh(f,2).
 type(f,0,list).
 type(f,1,list).
 direction(f,0,in).
-direction(f,1,out).
+direction(f,1,in).
 modeb(f,2).
 
 modeb(tail,2).
@@ -29,14 +15,13 @@ type(tail,1,list).
 direction(tail,0,in).
 direction(tail,1,out).
 
-functional(tail,2).
-
 modeb(head,2).
 type(head,0,list).
 type(head,1,element).
 direction(head,0,in).
 direction(head,1,out).
 
+%% works without this
 modeb(last,2).
 type(last,0,list).
 type(last,1,element).
@@ -48,6 +33,42 @@ type(length,0,list).
 type(length,1,int).
 direction(length,0,in).
 direction(length,1,out).
+
+modeb(dummy1,2).
+type(dummy1,0,element).
+type(dummy1,1,t1).
+direction(dummy1,0,in).
+direction(dummy1,1,out).
+
+modeb(dummy1m,1).
+type(dummy1m,0,t1).
+direction(dummy1m,0,in).
+
+modeb(dummy2,2).
+type(dummy2,0,element).
+type(dummy2,1,t2).
+direction(dummy2,0,in).
+direction(dummy2,1,out).
+
+modeb(dummy2m,1).
+type(dummy2m,0,t2).
+direction(dummy2m,0,in).
+
+modeb(dummy3,2).
+type(dummy3,0,element).
+type(dummy3,1,t3).
+direction(dummy3,0,in).
+direction(dummy3,1,out).
+
+modeb(dummy3m,1).
+type(dummy3m,0,t3).
+direction(dummy3m,0,in).
+
+modeb(dummy4,2).
+type(dummy4,0,element).
+type(dummy4,1,t4).
+direction(dummy4,0,in).
+direction(dummy4,1,out).
 
 modeb(sum,3).
 type(sum,0,int).
@@ -70,8 +91,9 @@ type(empty,0,list).
 direction(empty,0,in).
 
 modeb(zero,1).
-type(zero,0,int).
+type(zero,0,element).
 direction(zero,0,in).
 
-%% #show var/4.
-%% #show literal/4.
+modeb(even,1).
+type(even,0,element).
+direction(even,0,in).

@@ -1,6 +1,10 @@
 max_vars(6).
 max_body(4).
-max_clauses(3).
+max_clauses(2).
+
+%% max_vars(4).
+%% max_body(2).
+%% max_clauses(2).
 
 
 %% f(A,B):-empty(A),empty(B).
@@ -42,10 +46,6 @@ type(succ,0,element).
 type(succ,1,element).
 direction(succ,0,in).
 direction(succ,1,out).
-
-
-%% direction(cons1,(in,in,out)).
-%% direction(cons2,(out,out,in)).
 
 modeb(cons1,3).
 type(cons1,0,element).
