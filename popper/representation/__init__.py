@@ -51,7 +51,7 @@ def program_to_ordered_program(program):
 
 def clause_to_code(clause):
     _, head, body = clause
-    head_, body_ = str(head.to_code()), map(lambda a: a.to_code(), body)
+    head_, body_ = str(head.to_code()), (atom.to_code() for atom in body)
     if type(body) == set:
         return f"{head_} :- {{ {','.join(body_)} }}"
     return f"{head_} :- {','.join(body_)}"
