@@ -8,24 +8,23 @@ non_separable:-
 separable:-
     not non_separable.
 
-:-
-    recursive_clause(0).
-
 recursive_clause(Clause):-
-    Clause > 0,
     head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,_).
 
 recursive_pred(P,A):-
-    Clause > 0,
     head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,_).
 
 has_base(P,A):-
-    modeb(P,A),
     head_literal(Clause,P,A,_),
     not recursive_clause(Clause).
 
+%% NO RECURSION IN THE FIRST CLAUSE
+:-
+    recursive_clause(0).
+
+%% CANNOT HAVE RECURSION WITHOUT A BASECASE
 :-
     recursive_pred(P,A),
     not has_base(P,A).
