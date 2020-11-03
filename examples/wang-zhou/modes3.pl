@@ -22,22 +22,6 @@ modeb(is_zero,1).
 modeb(is_not_zero,1).
 modeb(equal,2).
 
-
-
-
-%% injective(shl,2).
-
-%% functional(and,3).
-%% functional(or,3).
-%% functional(xor,3).
-%% functional(xnor,3).
-%% functional(neg,2).
-%% functional(shl,2).
-%% functional(equal,2).
-
-%% irreflexive(shl,2).
-%% irreflexive(neg,2).
-
 direction(sum,0,in).
 direction(sum,1,in).
 direction(sum,2,out).

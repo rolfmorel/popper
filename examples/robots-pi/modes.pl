@@ -1,70 +1,62 @@
-max_vars(5).
-max_body(5).
-max_clauses(5).
+max_vars(3).
+max_body(2).
+max_clauses(6).
 
 modeh(f,2).
-type(f,0,world).
-type(f,1,world).
-direction(f,0,in).
-direction(f,1,out).
-
-modeb(right,2).
-type(right,0,world).
-type(right,1,world).
-direction(right,0,in).
-direction(right,1,out).
-
-%% modeb(left,2).
-%% type(left,0,world).
-%% type(left,1,world).
-%% direction(left,0,in).
-%% direction(left,1,out).
-
 %% modeb(up,2).
-%% type(up,0,world).
-%% type(up,1,world).
-%% direction(up,0,in).
-%% direction(up,1,out).
-
 %% modeb(down,2).
-%% type(down,0,world).
-%% type(down,1,world).
-%% direction(down,0,in).
-%% direction(down,1,out).
+%% modeb(left,2).
+modeb(right,2).
 
-modeh(inv1,2).
-modeb(inv1,2).
 invented(inv1,2).
-direction(inv1,0,in).
-direction(inv1,1,out).
-
-modeh(inv2,2).
-modeb(inv2,2).
 invented(inv2,2).
-direction(inv2,0,in).
-direction(inv2,1,out).
-
-modeh(inv3,2).
-modeb(inv3,2).
 invented(inv3,2).
-direction(inv3,0,in).
-direction(inv3,1,out).
+invented(inv4,2).
+invented(inv5,2).
 
 lower(f,inv1).
-lower(f,inv2).
-lower(f,inv3).
 lower(inv1,inv2).
-lower(inv1,inv3).
-lower(inv1,inv2).
-lower(inv1,inv3).
 lower(inv2,inv3).
+lower(inv3,inv4).
+lower(inv4,inv5).
 
-%% P(A,B)<-Q(A,C),R(C,B).
+:-
+    recursive_clause(_).
+
+lower(A,B):-
+    lower(A,C),
+    lower(C,B).
+modeh(P,A):-
+    invented(P,A).
+modeb(P,A):-
+    invented(P,A).
+pred(P,A):-
+    modeh(P,A).
+pred(P,A):-
+    modeb(P,A).
+direction(P,0,in):-
+    pred(P,2).
+direction(P,1,out):-
+    pred(P,2).
+
 meta_clause(Clause):-
+    Clause > 0,
+    invented(P,2),
     head_literal(Clause,P,2,(0,1)),
     body_literal(Clause,Q,2,(0,2)),
     body_literal(Clause,R,2,(2,1)),
+    P != R,
+    P != Q,
     clause_size(Clause,2).
-:-
+
+meta_clause(0):-
+    not invented(P,2),
+    head_literal(Clause,P,2,(0,1)),
+    body_literal(Clause,Q,2,(0,2)),
+    body_literal(Clause,R,2,(2,1)),
+    P != R,
+    P != Q,
+    clause_size(Clause,2).
+asda:-
     clause(Clause),
     not meta_clause(Clause).

@@ -1,8 +1,11 @@
-%% 14 SECONDS
+%% (base) ➜  wang-zhou time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
+%% sum(A,B,C) :- is_zero(B),equal(A,C).
+%% sum(A,B,C) :- and(B,A,E),shl(E,F),xor(A,B,D),sum(D,F,C).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl   47.31s user 0.21s system 99% cpu 47.631 total
 
 %% POPPER SETTINGS HARDCODED TO THE PERFECT VALUES
 max_vars(6).
-max_body(5).
+max_body(4).
 max_clauses(2).
 
 %% HEAD DECLARATION
@@ -10,25 +13,14 @@ modeh(sum,3).
 %% BODY DECLARATIONS
 modeb(sum,3).
 modeb(and,3).
-%% modeb(or,3). % JUST ADDED
+%% modeb(or,3).
 modeb(xor,3).
 %% modeb(xnor,3).
 %% modeb(neg,2).
 modeb(shl,2).
 modeb(is_zero,1).
-modeb(is_not_zero,1).
+%% modeb(is_not_zero,1).
 modeb(equal,2).
-
-%% injective(shl,2).
-%% functional(and,3).
-%% functional(or,3).
-%% functional(xor,3).
-%% functional(xnor,3).
-%% functional(neg,2).
-%% functional(shl,2).
-%% functional(equal,2).
-%% irreflexive(shl,2).
-%% irreflexive(neg,2).
 
 %% ARGUMENT DIRECTIONS FOR THE BK
 direction(sum,0,in).
