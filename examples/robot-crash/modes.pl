@@ -20,6 +20,13 @@ invented(inv3,2).
 invented(inv4,2).
 invented(inv5,2).
 
+direction(inv1,0,in).
+direction(inv1,1,out).
+direction(inv2,0,in).
+direction(inv2,1,out).
+direction(inv3,0,in).
+direction(inv3,1,out).
+
 modeh(P,A):-
     invented(P,A).
 modeb(P,A):-

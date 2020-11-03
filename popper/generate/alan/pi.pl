@@ -2,53 +2,63 @@
 %% CLAUSES SPECIFIC TO PREDICATE INVENTION
 %% ########################################
 
+#defined invented/2.
+#defined lower/2.
+
 multiclause(P,A):-
+    invented(_,_),
     head_literal(Clause1,P,A,_),
     head_literal(Clause2,P,A,_),
     Clause1 < Clause2.
 
-#defined invented/2.
-
-%% C1: MUST HAVE NON-INVENTED TARGET PREDICATE
+%% MUST HAVE NON-INVENTED TARGET PREDICATE
 :-
     #count{P,A : head_literal(_,P,A,_), not invented(P,A)} == 0.
 
-%% C2: IF AN INVENTED SYMBOL IS IN THE HEAD OF A CLAUSE IT MUST ALSO APPEAR IN THE BODY OF A CLAUSE
+%% IF AN INVENTED SYMBOL IS IN THE HEAD OF A CLAUSE IT MUST ALSO APPEAR IN THE BODY OF A CLAUSE
 :-
     invented(P,A),
     head_literal(_,P,A,_),
     not body_literal(_,P,A,_).
 
-%% C3: IF AN INVENTED SYMBOL IS IN THE BODY OF A CLAUSE THEN IT MUST ALSO APPEAR IN THE HEAD OF A CLAUSE
+%% IF AN INVENTED SYMBOL IS IN THE BODY OF A CLAUSE THEN IT MUST ALSO APPEAR IN THE HEAD OF A CLAUSE
 :-
     invented(P,A),
     body_literal(_,P,A,_),
     not head_literal(_,P,A,_).
 
-%% C4: ORDER CLAUSES BY ORDERING
+%% FIRST CLAUSE CANNOT BE INVENTED
+:-
+    head_literal(0,P,A,_),
+    invented(P,A).
+
+%% ORDER CLAUSES BY ORDERING
 %% f(A):- inv1(A)
 %% inv2(A):- q(A) (clause1)
 %% inv1(A):- inv2(A) (clause2)
 :-
+    Clause1>0,
+    Clause2>0,
     head_literal(Clause2,P1,_,_),
     head_literal(Clause1,P2,_,_),
     lower(P1,P2),
     Clause2 > Clause1.
 
-%% C5: FORCE ORDERING
+%% FORCE ORDERING
 %% inv2(A):- inv1(A)
-%% DOES NOT SEEM TO DO ANYTHING
 :-
     Clause > 0,
     head_literal(Clause,Inv2,_,_),
     body_literal(Clause,Inv1,_,_),
     lower(Inv1,Inv2).
 
-%% C6: USE INVENTED SYMBOLS IN ORDER
+%% USE INVENTED SYMBOLS IN ORDER
 %% f(A):- inv2(A)
 %% inv2(A):- q(A)
 %% TODO: ENFORCE ONLY ON ONE DIRECTLY BELOW
 :-
+    invented(Inv2,_),
+    invented(Inv1,_),
     head_literal(_,Inv2,_,_),
     lower(Inv1,Inv2),
     not head_literal(_,Inv1,_,_).
@@ -58,12 +68,19 @@ multiclause(P,A):-
 %% inv1(A,B):-right(A,C),right(C,B).
 %% inv2(A,B):-right(A,C),right(C,B).
 %% TODO: GENERALISE FOR MULTIPLE CLAUSES
+
+%% same_size(Clause1,Clause2):-
+%%     clause_size(Clause1,N),
+%%     clause_size(Clause2,N),
+%%     Clause1 < Clause2.
+
 :-
     Clause1 > 0,
     Clause2 > 0,
     clause_size(Clause1,N),
     clause_size(Clause2,N),
     Clause1 < Clause2,
+    %% same_size(Clause1,Clause2),
     head_literal(Clause1,HeadPred1,A1,_),
     head_literal(Clause2,HeadPred2,A2,_),
     not multiclause(HeadPred1,A1),
@@ -124,7 +141,6 @@ var_type(Clause2,Var2,Type):-
     var_pos(Var2,Vars2,Pos),
     var_type(Clause1,Var1,Type).
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% DIRECTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,6 +149,7 @@ var_type(Clause2,Var2,Type):-
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% if A is safe then X is safe
 safe_var(Clause1,Var1):-
+    Clause1 > 0,
     invented(P,A),
     Clause1 != Clause2,
     head_literal(Clause1,P,A,Vars1),
@@ -146,6 +163,7 @@ safe_var(Clause1,Var1):-
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% if Y is safe then B is safe
 safe_var(Clause2,Var2):-
+    Clause1 > 0,
     invented(P,A),
     Clause1 != Clause2,
     head_literal(Clause1,P,A,Vars1),

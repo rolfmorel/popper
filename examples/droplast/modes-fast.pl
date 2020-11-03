@@ -1,20 +1,11 @@
+%% (base) ➜  droplast time popp exs.pl modes-fast.pl bk.pl --eval-timeout=0.01
+%% f(A,B) :- tail(A,B).
+%% f(A,B) :- head(A,C),tail(A,E),f(E,D),cons(C,D,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes-fast.pl bk.pl  16.41s user 0.11s system 99% cpu 16.536 total
+
 max_vars(5).
 max_body(4).
 max_clauses(2).
-
-%% DROPLAST
-%% f(A,B):-
-%%     tail(A,C),
-%%     empty(C),
-%%     empty(B).
-%% f(A,B):-
-%%     tail(A,C),
-%%     f(C,D),
-%%     head(A,E),
-%%     cons(E,D,B).
-
-%% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
-%% PREVENT RECURSION IN THE FIRST CLAUSE
 
 modeh(f,2).
 type(f,0,list).
@@ -29,33 +20,31 @@ type(tail,1,list).
 direction(tail,0,in).
 direction(tail,1,out).
 
-functional(tail,2).
-
 modeb(head,2).
 type(head,0,list).
 type(head,1,element).
 direction(head,0,in).
 direction(head,1,out).
 
-modeb(last,2).
-type(last,0,list).
-type(last,1,element).
-direction(last,0,in).
-direction(last,1,out).
+%% modeb(last,2).
+%% type(last,0,list).
+%% type(last,1,element).
+%% direction(last,0,in).
+%% direction(last,1,out).
 
-modeb(length,2).
-type(length,0,list).
-type(length,1,int).
-direction(length,0,in).
-direction(length,1,out).
+%% modeb(length,2).
+%% type(length,0,list).
+%% type(length,1,int).
+%% direction(length,0,in).
+%% direction(length,1,out).
 
-modeb(sum,3).
-type(sum,0,int).
-type(sum,1,int).
-type(sum,2,int).
-direction(sum,0,in).
-direction(sum,1,in).
-direction(sum,2,out).
+%% modeb(sum,3).
+%% type(sum,0,int).
+%% type(sum,1,int).
+%% type(sum,2,int).
+%% direction(sum,0,in).
+%% direction(sum,1,in).
+%% direction(sum,2,out).
 
 modeb(cons,3).
 type(cons,0,element).
@@ -72,6 +61,3 @@ direction(empty,0,in).
 modeb(zero,1).
 type(zero,0,int).
 direction(zero,0,in).
-
-%% #show var/4.
-%% #show literal/4.

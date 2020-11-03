@@ -1,14 +1,10 @@
-%% max_vars(7).
-%% max_body(5).
-%% max_clauses(3).
+%% (base) ➜  alleven time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
+%% f(A) :- tail(A,B),last(B,C),head(B,D),even(D),even(C).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl   35.15s user 0.07s system 99% cpu 35.462 total
 
-max_vars(4).
-max_body(5).
+max_vars(7).
+max_body(7).
 max_clauses(2).
-
-%% max_vars(4).
-%% max_body(5).
-%% max_clauses(1).
 
 modeh(f,1).
 type(f,0,list).

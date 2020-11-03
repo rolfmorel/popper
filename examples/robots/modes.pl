@@ -1,30 +1,16 @@
-max_vars(9).
-max_body(9).
+%% (base) ➜  robots time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
+%% f(A,B) :- right(A,D),right(D,F),right(F,E),right(E,C),right(C,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl   23.76s user 0.07s system 99% cpu 23.943 total
+
+max_vars(6).
+max_body(6).
 max_clauses(3).
-
-%% DROPLAST
-%% f(A,B):-
-%%     tail(A,C),
-%%     empty(C),
-%%     empty(B).
-%% f(A,B):-
-%%     tail(A,C),
-%%     f(C,D),
-%%     head(A,E),
-%%     cons(E,D,B).
-
-%% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
-%% PREVENT RECURSION IN THE FIRST CLAUSE
-%% :-
-%%     modeh(P,A),
-%%     body_literal(0,_,P,A).
 
 modeh(f,2).
 type(f,0,world).
 type(f,1,world).
 direction(f,0,in).
 direction(f,1,out).
-%modeb(f,2).
 
 modeb(up,2).
 type(up,0,world).

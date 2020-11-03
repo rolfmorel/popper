@@ -1,27 +1,18 @@
-%% max_vars(7).
-max_vars(7).
-max_body(5).
-max_clauses(4).
+%% (base) ➜  filter time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
+%% f(A,B) :- empty(A),empty(B).
+%% f(A,B) :- odd(C),cons2(C,D,A),f(D,B).
+%% f(A,B) :- even(E),cons2(E,C,A),f(C,D),cons1(E,D,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes-fast.pl bk.pl  3.89s user 0.05s system 100% cpu 3.940 total
 
-%% filter(A,B):-empty(A),empty(B).
-%% filter(A,B):-cons(C,D,A),even(C),filter(D,E),cons(C,F,B).
-%% filter(A,B):-cons(C,D,A),odd(C),filter(D,B).
 
-%% :-
-    %% not body_literal(1,even,_,_).
-
-%% :-
-    %% not body_literal(2,odd,_,_).
+max_vars(5).
+max_body(4).
+max_clauses(3).
 
 same(cons1,cons1).
 same(cons1,cons2).
 same(cons2,cons1).
 same(cons2,cons2).
-
-%% :-
-%%     body_literal(C,P,_,(_,_,L)),
-%%     same(P,_),
-%%     body_literal(C,empty,_,(L,)).
 
 :-
     body_literal(C,P,_,(H1,_,L1)),
@@ -49,9 +40,6 @@ same(cons2,cons2).
     body_literal(C,cons1,_,Vars),
     body_literal(C,cons2,_,Vars).
 
-%% :-
-    %% not recursive.
-
 :-
     not body_literal(0,empty,1,(0,)).
 :-
@@ -63,6 +51,7 @@ same(cons2,cons2).
 
 only_once(cons1).
 only_once(cons2).
+
 :-
     only_once(P),
     body_literal(C,P,_,Vars1),

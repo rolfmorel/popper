@@ -1,6 +1,10 @@
-max_vars(5).
-max_body(6).
-max_clauses(1).
+%% (base) ➜  addlast time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
+%% f(A,B) :- last(A,C),cons(C,A,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl   0.25s user 0.03s system 99% cpu 0.279 total
+
+max_vars(7).
+max_body(7).
+max_clauses(2).
 
 %% add the last element to the head
 %% f(A,B):-

@@ -1,5 +1,5 @@
 min_x(0).
-max_x(10).
+max_x(100).
 min_y(0).
 max_y(0).
 
