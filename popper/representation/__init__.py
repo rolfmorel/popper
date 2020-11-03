@@ -44,7 +44,7 @@ def program_to_ordered_program(program):
     def transform_clause(clause):
         cl_id, head, body = clause
         return (cl_id, head,
-                tuple(selection_closure(head.predicate, head.inputs, body.copy())))
+                tuple(selection_closure(head.predicate, head.inputs, body)))
 
     return tuple(map(transform_clause, program))
 
