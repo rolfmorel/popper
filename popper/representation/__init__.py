@@ -44,14 +44,14 @@ def program_to_ordered_program(program):
     def transform_clause(clause):
         cl_id, head, body = clause
         return (cl_id, head,
-                tuple(selection_closure(head.predicate, head.inputs, body.copy())))
+                tuple(selection_closure(head.predicate, head.inputs, body)))
 
     return tuple(map(transform_clause, program))
 
 
 def clause_to_code(clause):
     _, head, body = clause
-    head_, body_ = str(head.to_code()), map(lambda a: a.to_code(), body)
+    head_, body_ = str(head.to_code()), (atom.to_code() for atom in body)
     if type(body) == set:
         return f"{head_} :- {{ {','.join(body_)} }}"
     return f"{head_} :- {','.join(body_)}"
