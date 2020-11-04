@@ -64,7 +64,9 @@ def test(context, Test, debug, program):
     if debug:
         num_pos = len(Test.pos_examples)
         num_neg = len(Test.neg_examples)
-        for subprog in set((program,)) | prog_missing_answers.keys() | prog_incorrect_answers.keys():
+        for subprog in chain((program,),
+                (prog_missing_answers.keys() |
+                 prog_incorrect_answers.keys()).difference(set((program,)))):
             missing_answers = prog_missing_answers[subprog]
             incorrect_answers = prog_incorrect_answers[subprog]
             if subprog != program:
