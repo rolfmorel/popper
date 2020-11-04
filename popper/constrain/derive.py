@@ -54,10 +54,9 @@ class DeriveMixin(object):
 
 
     def derive_constraints(self, program, pos_outcome, neg_outcome):
-        if (pos_outcome, neg_outcome) == (All, None_):
-            return [] # program was unfalsifiable
-
-        if self.no_pruning:
+        if (pos_outcome, neg_outcome) == (All, None_) or self.no_pruning:
+            # program was unfalsifiable, in which we can only prune it ...
+            # or we are instructed to prune no additional programs
             return list(self.derive_inclusion_rules(program)) + \
                    [(Banish, self.banish_constraint(program))]
 
