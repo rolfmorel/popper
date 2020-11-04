@@ -157,7 +157,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                         query_str = "current_predicate(popper_program_validation/1) -> "\
                                     f"popper_program_validation({program_str}) ; " \
                                     "true"
-                        if next(Test.prolog.query(query_str), None) == {}:
+                        if next(Test.prolog.query(query_str), None) != None:
                             # ... and validated as well
                             return program, context
 
