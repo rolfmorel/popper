@@ -4,7 +4,7 @@ from sys import stderr
 from functools import partial
 from collections import defaultdict
 
-from .representation import program_to_ordered_program, program_to_code, is_recursive_clause
+from .representation import program_to_ordered_program, clause_to_code, program_to_code, is_recursive_clause
 from .util import Result, Outcome
 from .util.debug import debug_print
 from .constrain.data_types import ConstraintType
@@ -153,7 +153,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 if subprog_missing_answers[program] == 0 and subprog_incorrect_answers[program] == 0:
                     # program both complete and consistent ...
                     with Test.using(program, basic=True):
-                        program_str = '(' + ','.join(f"(clause_to_code(cl))" for cl in program) + ')'
+                        program_str = '[' + ','.join(f"({clause_to_code(cl)})" for cl in program) + ']'
                         query_str = "current_predicate(popper_program_validation/1) -> "\
                                     f"popper_program_validation({program_str}) ; " \
                                     "true"
