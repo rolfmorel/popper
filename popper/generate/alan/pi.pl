@@ -5,6 +5,18 @@
 #defined invented/2.
 #defined lower/2.
 
+pred(P,A):-
+    modeh(P,A).
+pred(P,A):-
+    modeb(P,A).
+lower(A,B):-
+    lower(A,C),
+    lower(C,B).
+modeh(P,A):-
+    invented(P,A).
+modeb(P,A):-
+    invented(P,A).
+
 multiclause(P,A):-
     invented(_,_),
     head_literal(Clause1,P,A,_),
@@ -148,29 +160,29 @@ var_type(Clause2,Var2,Type):-
 %% p(A,B):-inv1(A,B). (clause2)
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% if A is safe then X is safe
-safe_var(Clause1,Var1):-
-    Clause1 > 0,
-    invented(P,A),
-    Clause1 != Clause2,
-    head_literal(Clause1,P,A,Vars1),
-    body_literal(Clause2,P,A,Vars2),
-    var_pos(Var1,Vars1,Pos),
-    var_pos(Var2,Vars2,Pos),
-    safe_var(Clause2,Var2).
+%% safe_var(Clause1,Var1):-
+%%     Clause1 > 0,
+%%     invented(P,A),
+%%     Clause1 != Clause2,
+%%     head_literal(Clause1,P,A,Vars1),
+%%     body_literal(Clause2,P,A,Vars2),
+%%     var_pos(Var1,Vars1,Pos),
+%%     var_pos(Var2,Vars2,Pos),
+%%     safe_var(Clause2,Var2).
 
 %% INHERIT SAFETY FROM CALLED PREDICATE
 %% p(A,B):-inv1(A,B). (clause2)
 %% inv1(X,Y):-q(X,Y). (clause1)
 %% if Y is safe then B is safe
-safe_var(Clause2,Var2):-
-    Clause1 > 0,
-    invented(P,A),
-    Clause1 != Clause2,
-    head_literal(Clause1,P,A,Vars1),
-    body_literal(Clause2,P,A,Vars2),
-    var_pos(Var1,Vars1,Pos),
-    var_pos(Var2,Vars2,Pos),
-    safe_var(Clause1,Var1).
+%% safe_var(Clause2,Var2):-
+%%     Clause1 > 0,
+%%     invented(P,A),
+%%     Clause1 != Clause2,
+%%     head_literal(Clause1,P,A,Vars1),
+%%     body_literal(Clause2,P,A,Vars2),
+%%     var_pos(Var1,Vars1,Pos),
+%%     var_pos(Var2,Vars2,Pos),
+%%     safe_var(Clause1,Var1).
 
 %% INHERIT DIRECTION FROM BODY LITERALS
 %% TODO: IMPROVE HORRIBLE HACK

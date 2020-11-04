@@ -8,32 +8,36 @@ non_separable:-
 separable:-
     not non_separable.
 
-recursive_clause(Clause):-
+recursive_clause(Clause,P,A):-
+    Clause > 0,
     head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,_).
 
-recursive_pred(P,A):-
+base_clause(Clause,P,A):-
     head_literal(Clause,P,A,_),
-    body_literal(Clause,P,A,_).
-
-has_base(P,A):-
-    head_literal(Clause,P,A,_),
-    not recursive_clause(Clause).
+    not body_literal(Clause,P,A,_).
 
 %% NO RECURSION IN THE FIRST CLAUSE
 :-
-    recursive_clause(0).
+    recursive_clause(0,_,_).
+
+%% STOP RECURSION BEFORE BASE CASES
+:-
+    Clause1 > 0,
+    recursive_clause(Clause1,P,A),
+    base_clause(Clause2,P,A),
+    Clause2 > Clause1.
 
 %% CANNOT HAVE RECURSION WITHOUT A BASECASE
 :-
-    recursive_pred(P,A),
-    not has_base(P,A).
+    recursive_clause(_,P,A),
+    not base_clause(_,P,A).
 
 %% DISALLOW TWO RECURSIVE CALLS
 %% WHY DID WE ADD THIS??
 :-
     Clause > 0,
-    recursive_clause(Clause),
+    recursive_clause(Clause,P,A),
     head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,Vars1),
     body_literal(Clause,P,A,Vars2),

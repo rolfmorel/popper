@@ -24,7 +24,6 @@
 
 %% GUESS AT LEAST 1 BUT AT MOST N BODY LITERALS PER CLAUSE
 1 {body_literal(Clause,P,A,Vars) : modeb(P,A), vars(A,Vars)} N:-
-%% 1 {body_literal(Clause,P,A,Vars) : modeb(P,A), vars(A,Vars), not head_literal(Clause,P,A,Vars)} N:-
     clause(Clause),
     max_body(N).
 
