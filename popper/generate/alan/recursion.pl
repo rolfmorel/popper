@@ -9,7 +9,6 @@ separable:-
     not non_separable.
 
 recursive_clause(Clause,P,A):-
-    Clause > 0,
     head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,_).
 
