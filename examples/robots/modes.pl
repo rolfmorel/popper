@@ -1,6 +1,7 @@
-%% (base) ➜  robots time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
+%% (base) ➜  robots time popp exs.pl modes.pl bk.pl
 %% f(A,B) :- right(A,F),right(F,C),right(C,E),right(E,D),right(D,B).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl   20.07s user 0.06s system 99% cpu 20.153 total
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  19.61s user 0.06s system 99% cpu 19.667 total
+
 
 max_vars(6).
 max_body(6).

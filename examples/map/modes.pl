@@ -1,14 +1,12 @@
-%% max_vars(6).
-max_vars(7).
+%% (base) ➜  map time popp exs.pl modes.pl bk.pl
+%% f(A,B) :- empty(A),empty(B).
+%% f(A,B) :- cons2(F,D,A),succ(F,E),f(D,C),cons1(E,C,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  7.66s user 0.09s system 100% cpu 7.749 total
+
+
+max_vars(6).
 max_body(4).
 max_clauses(2).
-
-
-%% f(A,B):-empty(A),empty(B).
-%% f(A,B):-tail(A,T1),f(T1,T2),head(A,H1),succ(H1,H2),cons(H2,T2,B).
-%% =>
-%% f(A,B):-empty(A),empty(B).
-%% f(A,B):-cons(C,A,D),f(D,E),succ(C,F),cons(F,E,B).
 
 :-
     not recursive.

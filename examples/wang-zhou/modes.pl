@@ -1,7 +1,8 @@
-%% (base) ➜  wang-zhou time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
+%% (base) ➜  wang-zhou time popp exs.pl modes.pl bk.pl
 %% sum(A,B,C) :- is_zero(B),equal(A,C).
-%% sum(A,B,C) :- and(B,A,E),shl(E,F),xor(A,B,D),sum(D,F,C).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl   47.31s user 0.21s system 99% cpu 47.631 total
+%% sum(A,B,C) :- and(A,B,F),shl(F,D),xor(B,A,E),sum(E,D,C).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  115.03s user 0.26s system 99% cpu 1:55.41 total
+
 
 %% POPPER SETTINGS HARDCODED TO THE PERFECT VALUES
 max_vars(6).

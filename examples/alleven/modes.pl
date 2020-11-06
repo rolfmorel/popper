@@ -1,6 +1,6 @@
-%% (base) ➜  alleven time popp exs.pl modes.pl bk.pl --eval-timeout=0.01
-%% f(A) :- tail(A,B),last(B,C),head(B,D),even(D),even(C).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl   35.15s user 0.07s system 99% cpu 35.462 total
+%% (base) ➜  alleven time popp exs.pl modes.pl bk.pl
+%% f(A) :- tail(A,D),head(D,C),last(A,B),even(B),even(C).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  7.75s user 0.05s system 99% cpu 7.828 total
 
 max_vars(7).
 max_body(7).

@@ -3,16 +3,16 @@ max_body(2).
 max_clauses(6).
 
 modeh(f,2).
-%% modeb(up,2).
-%% modeb(down,2).
-%% modeb(left,2).
+modeb(up,2).
+modeb(down,2).
+modeb(left,2).
 modeb(right,2).
 
 invented(inv1,2).
 invented(inv2,2).
 invented(inv3,2).
 invented(inv4,2).
-invented(inv5,2).
+%% invented(inv5,2).
 
 lower(f,inv1).
 lower(inv1,inv2).
@@ -20,8 +20,8 @@ lower(inv2,inv3).
 lower(inv3,inv4).
 lower(inv4,inv5).
 
-:-
-    recursive_clause(_).
+%% :-
+    %% recursive_clause(_).
 
 lower(A,B):-
     lower(A,C),
@@ -57,6 +57,6 @@ meta_clause(0):-
     P != R,
     P != Q,
     clause_size(Clause,2).
-asda:-
+:-
     clause(Clause),
     not meta_clause(Clause).

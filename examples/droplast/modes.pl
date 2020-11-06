@@ -1,7 +1,7 @@
 %% (base) ➜  droplast time popp exs.pl modes-fast.pl bk.pl --eval-timeout=0.01
 %% f(A,B) :- tail(A,B).
-%% f(A,B) :- head(A,D),tail(A,E),f(E,C),cons(D,C,B).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes-fast.pl bk.pl  45.25s user 0.16s system 99% cpu 45.418 total
+%% f(A,B) :- head(A,D),tail(A,C),f(C,E),cons(D,E,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes-fast.pl bk.pl  8.27s user 0.08s system 99% cpu 8.357 total
 
 
 max_vars(5).
@@ -26,6 +26,12 @@ type(head,0,list).
 type(head,1,element).
 direction(head,0,in).
 direction(head,1,out).
+
+
+%% body_pred(tail, (list,list), (in,out)).
+%% body_pred(head, (list,element), (in,out)).
+%% body_pred(head, (list,element), (in,out)).
+
 
 %% modeb(last,2).
 %% type(last,0,list).
