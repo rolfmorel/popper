@@ -89,17 +89,20 @@ multiclause(P,A):-
 :-
     Clause1 > 0,
     Clause2 > 0,
-    clause_size(Clause1,N),
-    clause_size(Clause2,N),
-    Clause1 < Clause2,
+    %% TODO: DO THESE TWO HELP?
+    %% clause_size(Clause1,N),
+    %% clause_size(Clause2,N),
     %% same_size(Clause1,Clause2),
+    Clause1 < Clause2,
     head_literal(Clause1,HeadPred1,A1,_),
     head_literal(Clause2,HeadPred2,A2,_),
-    not multiclause(HeadPred1,A1),
-    not multiclause(HeadPred2,A2),
     invented(HeadPred1,A1),
     invented(HeadPred2,A2),
+    %% TODO: CHECK THIS !
+    %% lower(HeadPred1,HeadPred2),
     HeadPred1 != HeadPred2,
+    not multiclause(HeadPred1,A1),
+    not multiclause(HeadPred2,A2),
     body_literal(Clause2,P,_,Vars): body_literal(Clause1,P,_,Vars).
 
 %% PREVENTS THIS:

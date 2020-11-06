@@ -61,7 +61,6 @@ literal(Clause,P,Vars):-
     not clause(0).
 
 %% HEAD LITERAL CANNOT BE IN THE BODY
-%% TODO: MAYBE MOVE TO THE GUESS
 :-
     head_literal(Clause,P,_,Vars),
     body_literal(Clause,P,_,Vars).
@@ -75,5 +74,5 @@ literal(Clause,P,Vars):-
 %% USE VARS IN ORDER IN A CLAUSE
 :-
     clause_var(Clause,Var),
-    Var > 0,
+    Var > 1,
     not clause_var(Clause,Var-1).

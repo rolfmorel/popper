@@ -8,6 +8,9 @@ non_separable:-
 separable:-
     not non_separable.
 
+recursive:-
+    recursive_clause(_,_,_).
+
 recursive_clause(Clause,P,A):-
     head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,_).
@@ -37,7 +40,6 @@ base_clause(Clause,P,A):-
 :-
     Clause > 0,
     recursive_clause(Clause,P,A),
-    head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,Vars1),
     body_literal(Clause,P,A,Vars2),
     Vars1 < Vars2.

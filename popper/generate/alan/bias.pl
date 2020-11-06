@@ -44,6 +44,12 @@ head_connected(Clause,Var1):-
     Var2 != Var3,
     Vars1 < Vars2.
 
+%% asda:-
+%%     functional(P,2),
+%%     clause(Clause),
+%%     body_literal(Clause,P,2,(V1,_)),
+%%     #count{V2 : body_literal(Clause,P,2,(V1,V2))} > 1.
+
 %% FUNCTIONAL FOR 3
 %% TODO: GENERALISE AND REMOVE SYMMETRY
 :-

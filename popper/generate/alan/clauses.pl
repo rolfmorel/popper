@@ -12,49 +12,31 @@
     clause_size(Clause2,N2),
     N1 > N2.
 
-%% %% ORDER BY CLAUSE SIZE
-%% %% V2
-%% bigger_clause(Clause1,Clause2):-
-%%     clause_size(Clause1,N1),
-%%     clause_size(Clause2,N2),
-%%     N1 > N2.
-%% %% ORDER BY CLAUSE SIZE
-%% :-
-%%     Clause1 < Clause2,
-%%     not recursive(Clause1),
-%%     not recursive(Clause2),
-%%     head_literal(Clause1,P,A,_),
-%%     head_literal(Clause2,P,A,_),
-%%     bigger_clause(Clause1,Clause2).
-
 %% :-
 %%     Clause2 > Clause1,
-%%     recursive(Clause1),
-%%     recursive(Clause2),
-%%     head_literal(Clause1,P,A,_),
-%%     head_literal(Clause2,P,A,_),
+%%     recursive_clause(Clause1,P,A),
+%%     recursive_clause(Clause2,P,A),
+%%     head_literal(Clause1,P,A,Vars),
+%%     head_literal(Clause2,P,A,Vars),
 %%     clause_size(Clause1,N1),
 %%     clause_size(Clause2,N2),
 %%     N1 > N2.
-%% TODO: ORDER RECURSIVE CLAUSES BY SIZE
 
 %% num_vars(Clause,N):-
 %%     max_vars(MaxN),
 %%     N <= MaxN,
 %%     clause(Clause),
-%%     #count{Var : body_literal(Clause,_,_,Vars), var_member(Var,Vars)} == N.
+%%     #sum{A,P : body_literal(Clause,P,A,_)} == N.
 
-%% num_vars(Clause,N):-
-%%     max_vars(MaxN),
-%%     N <= MaxN,
-%%     clause(Clause),
-%%     #count{Var : clause_var(Clause,Var)} == N.
-
-%% %% %% ORDER CLAUSES BY NUMBER OF VARS
-%% a:-
-%%     clause_size(C1,N),
-%%     clause_size(C2,N),
-%%     C2 > C1,
-%%     num_vars(C1,NumVars1),
-%%     num_vars(C2,NumVars2),
+%% %% ORDER CLAUSES BY NUMBER OF VARS
+%% :-
+%%     Clause2 > Clause1,
+%%     not recursive_clause(Clause1,P,A),
+%%     not recursive_clause(Clause2,P,A),
+%%     head_literal(Clause1,P,A,Vars),
+%%     head_literal(Clause2,P,A,Vars),
+%%     clause_size(Clause1,N),
+%%     clause_size(Clause2,N),
+%%     num_vars(Clause1,NumVars1),
+%%     num_vars(Clause2,NumVars2),
 %%     NumVars1 > NumVars2.
