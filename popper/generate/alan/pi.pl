@@ -28,10 +28,14 @@ multiclause(P,A):-
     #count{P,A : head_literal(_,P,A,_), not invented(P,A)} == 0.
 
 %% IF AN INVENTED SYMBOL IS IN THE HEAD OF A CLAUSE IT MUST ALSO APPEAR IN THE BODY OF A CLAUSE
+in_lower(P,A):-
+    head_literal(Clause1,Q,_,_),
+    body_literal(Clause1,P,A,_),
+    lower(Q,P).
 :-
     invented(P,A),
     head_literal(_,P,A,_),
-    not body_literal(_,P,A,_).
+    not in_lower(P,A).
 
 %% IF AN INVENTED SYMBOL IS IN THE BODY OF A CLAUSE THEN IT MUST ALSO APPEAR IN THE HEAD OF A CLAUSE
 :-
