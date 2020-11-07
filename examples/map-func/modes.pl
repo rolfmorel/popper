@@ -1,8 +1,7 @@
-%% (base) ➜  map-func popp exs.pl modes.pl bk.pl
-%% f(A,B) :- empty(B),empty(A).
-%% f(A,B) :- cons2(E,D,A),succ(E,C),f(D,F),cons1(C,F,B).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  8.64s user 0.08s system 100% cpu 8.714 total
-
+%% (base) ➜  map popp exs.pl modes.pl bk.pl
+%% f(A,B) :- empty(A),empty(B).
+%% f(A,B) :- cons2(F,E,A),succ(F,D),f(E,C),cons1(D,C,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  37.46s user 0.22s system 100% cpu 37.660 total
 
 max_vars(6).
 max_body(4).
@@ -60,31 +59,8 @@ modeb(empty,1).
 type(empty,0,list).
 direction(empty,0,out).
 
-same(cons1,cons2).
 
-:-
-    body_literal(C,P,_,(H1,_,L1)),
-    body_literal(C,Q,_,(H2,_,L1)),
-    H1 != H2,
-    same(P,Q).
-:-
-    body_literal(C,P,_,(_,T1,L1)),
-    body_literal(C,Q,_,(_,T2,L1)),
-    T1 != T2,
-    same(P,Q).
 
-:-
-    body_literal(C,P,_,(H,T,L1)),
-    body_literal(C,Q,_,(H,T,L2)),
-    L1 != L2,
-    same(P,Q).
 
-:-
-    body_literal(C,P,_,(_,T,L)),
-    body_literal(C,Q,_,(_,L,T)),
-    same(P,Q).
 
-:-
-    body_literal(C,P,_,Vars),
-    body_literal(C,Q,_,Vars),
-    same(P,Q).
+

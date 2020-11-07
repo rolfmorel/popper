@@ -1,22 +1,11 @@
-%% (base) ➜  filter popp exs.pl modes.pl bk.pl
-%% f(A,B) :- empty(A),empty(B).
-%% f(A,B) :- cons2(C,D,A),odd(C),f(D,B).
-%% f(A,B) :- even(E),cons2(E,D,A),f(D,C),cons1(E,C,B).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  6.37s user 0.10s system 99% cpu 6.482 total
-
 max_vars(5).
 max_body(4).
 max_clauses(3).
 
-:-
-    not body_literal(0,empty,1,(0,)).
-:-
-    not body_literal(0,empty,1,(1,)).
-:-
-    body_literal(1,empty,_,_).
-:-
-    body_literal(2,empty,_,_).
-
+%% :-
+    %% body_literal(1,empty,_,_).
+%% :-
+    %% body_literal(2,empty,_,_).
 
 modeh(f,2).
 type(f,0,list).

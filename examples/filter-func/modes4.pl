@@ -1,22 +1,13 @@
-%% (base) ➜  filter popp exs.pl modes.pl bk.pl
+%% (base) ➜  filter-func popp exs.pl modes4.pl bk.pl --timeout=1200 --eval-timeout=0.01 --clingo-args='-t14'
 %% f(A,B) :- empty(A),empty(B).
-%% f(A,B) :- cons2(C,D,A),odd(C),f(D,B).
-%% f(A,B) :- even(E),cons2(E,D,A),f(D,C),cons1(E,C,B).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  6.37s user 0.10s system 99% cpu 6.482 total
+%% f(A,B) :- cons2(D,C,A),odd(D),f(C,B).
+%% f(A,B) :- cons2(C,D,A),even(C),f(D,E),cons1(C,E,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes4.pl bk.pl     1063.41s user 7.44s system 118% cpu 15:06.01 total
+
 
 max_vars(5).
 max_body(4).
 max_clauses(3).
-
-:-
-    not body_literal(0,empty,1,(0,)).
-:-
-    not body_literal(0,empty,1,(1,)).
-:-
-    body_literal(1,empty,_,_).
-:-
-    body_literal(2,empty,_,_).
-
 
 modeh(f,2).
 type(f,0,list).

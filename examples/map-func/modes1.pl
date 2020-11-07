@@ -1,22 +1,11 @@
-%% (base) ➜  filter popp exs.pl modes.pl bk.pl
-%% f(A,B) :- empty(A),empty(B).
-%% f(A,B) :- cons2(C,D,A),odd(C),f(D,B).
-%% f(A,B) :- even(E),cons2(E,D,A),f(D,C),cons1(E,C,B).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  6.37s user 0.10s system 99% cpu 6.482 total
+%% (base) ➜  map-func popp exs.pl modes1.pl bk.pl
+%% f(A,B) :- empty(B),empty(A).
+%% f(A,B) :- cons2(D,C,A),succ(D,F),f(C,E),cons1(F,E,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes1.pl bk.pl  113.61s user 0.65s system 100% cpu 1:54.26 total
 
-max_vars(5).
+max_vars(6).
 max_body(4).
-max_clauses(3).
-
-:-
-    not body_literal(0,empty,1,(0,)).
-:-
-    not body_literal(0,empty,1,(1,)).
-:-
-    body_literal(1,empty,_,_).
-:-
-    body_literal(2,empty,_,_).
-
+max_clauses(2).
 
 modeh(f,2).
 type(f,0,list).
@@ -25,13 +14,27 @@ direction(f,0,in).
 direction(f,1,out).
 modeb(f,2).
 
-modeb(odd,1).
-type(odd,0,element).
-direction(odd,1,in).
+%% modeb(head,2).
+%% type(head,0,list).
+%% type(head,1,element).
+%% direction(head,0,in).
+%% direction(head,1,out).
 
-modeb(even,1).
-type(even,0,element).
-direction(even,1,in).
+%% modeb(tail,2).
+%% type(tail,0,list).
+%% type(tail,1,list).
+%% direction(tail,0,in).
+%% direction(tail,1,out).
+
+modeb(succ,2).
+type(succ,0,element).
+type(succ,1,element).
+direction(succ,0,in).
+direction(succ,1,out).
+
+
+%% direction(cons1,(in,in,out)).
+%% direction(cons2,(out,out,in)).
 
 modeb(cons1,3).
 type(cons1,0,element).
@@ -81,11 +84,3 @@ same(cons1,cons2).
     body_literal(C,P,_,Vars),
     body_literal(C,Q,_,Vars),
     same(P,Q).
-
-only_once(cons1).
-only_once(cons2).
-
-:-
-    only_once(P),
-    clause(C),
-    #count{Vars : body_literal(C,P,A,Vars)} > 1.

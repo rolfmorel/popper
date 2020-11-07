@@ -1,7 +1,8 @@
-%% (base) ➜  wang-zhou popp exs.pl modes.pl bk.pl
+%% (base) ➜  wang-zhou time popp exs.pl modes.pl bk.pl
 %% sum(A,B,C) :- is_zero(B),equal(A,C).
-%% sum(A,B,C) :- xor(B,A,E),and(B,A,D),shl(D,F),sum(E,F,C).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  29.64s user 0.12s system 99% cpu 29.791 total
+%% sum(A,B,C) :- and(A,B,F),shl(F,D),xor(B,A,E),sum(E,D,C).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  115.03s user 0.26s system 99% cpu 1:55.41 total
+
 
 %% POPPER SETTINGS HARDCODED TO THE PERFECT VALUES
 max_vars(6).
@@ -68,8 +69,8 @@ only_once(sum).
 
 %% HACK(s) 2:
 %% FIRST CLAUSE MUST CONTAIN THE BODY LITERAL is_zero(B)
-:-
-    not body_literal(0,is_zero,_,(1,)).
+%% :-
+    %% not body_literal(0,is_zero,_,(1,)).
 %% FIRST CLAUSE MUST CONTAIN THE BODY LITERAL equal(A,C)
 :-
     not body_literal(0,equal,_,(0,2)).

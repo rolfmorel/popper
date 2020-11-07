@@ -1,7 +1,6 @@
-%% (base) ➜  robots time popp exs.pl modes.pl bk.pl
-%% f(A,B) :- right(A,F),right(F,C),right(C,E),right(E,D),right(D,B).
-%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  19.61s user 0.06s system 99% cpu 19.667 total
-
+%% (base) ➜  robots popp exs.pl modes.pl bk.pl
+%% f(A,B) :- right(A,C),right(C,D),right(D,F),right(F,E),right(E,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  81.60s user 0.17s system 99% cpu 1:21.78 total
 
 max_vars(6).
 max_body(6).
