@@ -16,7 +16,7 @@ class SetupMixin(object):
 
             if mode_file:
                 with open(mode_file) as handle:
-                    self.clingo_ctl.add("mode_file", [], 
+                    self.clingo_ctl.add("mode_file", [],
                                         f"%%%%% MODE FILE: {mode_file} %%%%%\n" +
                                         handle.read())
 
@@ -28,7 +28,7 @@ class SetupMixin(object):
 #external size(n).
 :-
     size(n),
-    #count{Clause,P,Vars : literal(Clause,P,Vars)} != n.
+    #sum{K+1,Clause : clause_size(Clause,K)} != n.
 """)
 
             asp_programs = [("alan", [])] + ([('mode_file',[])] if mode_file else [])
