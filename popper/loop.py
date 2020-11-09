@@ -29,7 +29,7 @@ def test(context, Test, debug, program):
         'FP': 0, # false positives
     })
 
-    with Test.using(program):  # TODO: create a handle which abstracts the simple vs non-simple interface
+    with Test.using(program): 
         # test the positive examples and collect subprograms with missing answers 
         for pos_ex in Test.pos_examples:
             result, _, failure_progs = Test.evaluate(program, pos_ex)
