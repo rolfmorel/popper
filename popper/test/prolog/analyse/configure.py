@@ -68,7 +68,7 @@ class ConfigureMixin(object):
 #                      f"(InPath = [] -> !,format(ipc, 'succ|~w~n', [OutPath]),false)")
 #            prolog_program.append(f"{head_lit} :- {','.join(body_lits)},{suffix}") 
             prefix = f"enter_cl({cl_id},RecClIdx,RecLitIdx),LitIdx=idx(0),("
-            suffix = f"-> exit_cl({cl_id},-1) ; (LitIdx=idx(N),exit_cl({cl_id},N),false))"
+            suffix = f",exit_cl({cl_id},-1) ; (LitIdx=idx(En),exit_cl({cl_id},En),false))"
             prolog_program.append(f"{head_lit} :- {prefix}({','.join(body_lits)}){suffix}") 
         return prolog_program
 
@@ -81,7 +81,7 @@ class ConfigureMixin(object):
         else:
             atom_ = atom_to_prolog(atom)
         return (f"({atom_}*->true;" + 
-                 f"(LitIdx=idx(N),M is max({lit_id},N),nb_setarg(1,LitIdx,M),fail))")
+                 f"(LitIdx=idx(N0),M0 is max({lit_id},N0),nb_setarg(1,LitIdx,M0),fail))")
 #    def literal_to_asserting_prolog_old(self, cl_id, lit_id, atom):
 #        if atom.predicate == self.modeh.predicate:
 #            pred = atom.predicate

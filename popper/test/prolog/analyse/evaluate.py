@@ -25,8 +25,8 @@ def enter_cl(cl_idx, rec_cl_idx, rec_lit_idx):
         cur_lits.add(rec_idx) # O(1)
     else:
         already_visited = True # hack
-    #print(('enter', (cl_idx, rec_idx, already_visited)))
     sld_stack.append(('enter', (cl_idx, rec_idx, already_visited))) # O(1)
+    print(('enter', (cl_idx, rec_idx, already_visited), sld_stack))
 pyswip.registerForeign(enter_cl)
 
 def exit_cl(cl_idx, lit_idx):
@@ -44,7 +44,6 @@ def exit_cl(cl_idx, lit_idx):
 
     tag, (cl_enter_idx, rec_idx, already_visited) = sld_stack.pop() # O(1)
     assert tag == 'enter'
-    #print(('exit', (cl_idx, lit_idx, rec_idx, already_visited)))
     assert cl_idx == cl_enter_idx
 
     if clause_successfull:
@@ -64,6 +63,7 @@ def exit_cl(cl_idx, lit_idx):
 
     if already_visited is False:
         cur_lits.remove(rec_idx) # O(1)
+    print(('exit', (cl_idx, lit_idx, rec_idx, already_visited), sld_stack))
 pyswip.registerForeign(exit_cl)
 
 class EvaluateMixin(PrologEvaluateMixin):
@@ -159,11 +159,11 @@ class EvaluateMixin(PrologEvaluateMixin):
                         subprog.append((prog_cl_idx, prog_cl_head, subprog_cl_body))
                     failing_subprogs.add(tuple(sorted(subprog)))
 
-            #print("SUCCESS:", res)
+            print("SUCCESS:", res)
             #print("stack:", sld_stack)
             #print("subprogs:", subprogs)
-            #print("SUCCESSFUL SUBPROGS:", [program_to_code(p) for p in successful_subprogs])
-            #print("FAILING SUBPROGS:", [program_to_code(p) for p in failing_subprogs])
+            print("SUCCESSFUL SUBPROGS:", [program_to_code(p) for p in successful_subprogs])
+            print("FAILING SUBPROGS:", [program_to_code(p) for p in failing_subprogs])
 
             if res is None:
                 self.context.evaluate.instrumented.query['timeouts'] += 1
