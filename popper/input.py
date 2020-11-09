@@ -14,6 +14,7 @@ def parse_args():
     parser.add_argument("--ground-constraints", default=False, action='store_true', help="Generate ground constraints")
     parser.add_argument("--timeout", type=float, default=600, help="Overall timeout (in seconds)")
     parser.add_argument("--eval-timeout", type=float, default=1, help="Prolog evaluation timeout (in seconds)")
+    parser.add_argument("--test-all", default=False, action='store_true', help="Test all examples even if level of incompleteness/inconsistency is determined by less testing")
     parser.add_argument("-n","--max-literals", type=int, default=10, help="Maximum number of literals allowed in program")
     parser.add_argument("--clingo-args", type=str, default="", help="Arguments to be passed to Clingo's grounder and solver")
 

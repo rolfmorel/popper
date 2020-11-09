@@ -8,6 +8,10 @@ class TestInterface(ABC):
     @abstractmethod
     def analyses(): pass
 
+    @property
+    @abstractmethod
+    def minimal_testing(): pass
+
     @abstractmethod
     def setup(self, *args, **kwargs): pass
 
