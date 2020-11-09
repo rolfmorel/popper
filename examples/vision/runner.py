@@ -15,6 +15,7 @@ MIN_VISION_SIZE = 3
 MAX_VISION_SIZE = 6
 
 
+
 def vision_until1():
     # UNTIL visionS 1
     # 000
@@ -24,9 +25,13 @@ def vision_until1():
     # 111
     # 000
     # 000
+    # metagol
     # vision1(A,B):-at_right(A),draw1(A,B).
     # vision1(A,B):-vision1_1(A,C),vision1(C,B).
     # vision1_1(A,B):-draw1(A,C),move_right(C,B).
+    # popper
+    # vision1(A,B):-at_right(A),draw1(A,B).
+    # vision1(A,B):-draw1(A,C),right(C,D),vision1(D,B).
     size = np.random.randint(MIN_VISION_SIZE, MAX_VISION_SIZE+1)
     x = list(np.random.choice([0,1], size*size))
     y = list(x)
@@ -46,6 +51,9 @@ def vision_until2():
     # vision2(A,B):-vision2_1(A,C),vision2(C,B).
     # vision2_1(A,B):-draw1(A,C),move_down(C,B).
     # vision2(A,B):-at_bottom(A),draw1(A,B).
+    # popper
+    # vision2(A,B):-at_bottom(A),draw1(A,B).
+    # vision2(A,B):-draw1(A,C),move_down(C,D),vision2(D,B).
     size = np.random.randint(MIN_VISION_SIZE, MAX_VISION_SIZE+1)
     x = list(np.random.choice([0,1], size*size))
     y = list(x)
@@ -124,6 +132,9 @@ def vision_until6():
     # vision6_1(A,B):-draw1(A,C),vision6_2(C,B).
     # vision6_2(A,B):-move_right(A,C),move_down(C,B).
     # METAGOL TIMESOUT / INFINITE LOOP
+    # popper
+    # vision6(A,B):-at_right(A),draw1(A,B).
+    # vision6(A,B):-draw1(A,C),move_right(C,D),move_down(D,E),vision6(E,B).
     size = np.random.randint(MIN_VISION_SIZE, MAX_VISION_SIZE+1)
     x = list(np.random.choice([0,1], size*size))
     y = list(x)

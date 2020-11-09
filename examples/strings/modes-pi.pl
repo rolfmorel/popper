@@ -8,22 +8,25 @@ max_clauses(3).
 
 %% :-
     %% not clause(1).
-:-
-    #count{Clause : head_literal(Clause,f,2,_)} < 2.
+%% :-
+    %% #count{Clause : head_literal(Clause,f,2,_)} < 2.
+
+%% :-
+    %% recursive.
 
 modeh(f,2).
 modeb(is_empty,1).
-%% modeb(is_letter,1).
-%% modeb(is_lowercase,1).
-%% modeb(is_number,1).
-%% modeb(is_space,1).
-%% modeb(is_uppercase,1).
-%% modeb(mk_lowercase,2).
-%% modeb(mk_uppercase,2).
+modeb(is_letter,1).
+modeb(is_lowercase,1).
+modeb(is_number,1).
+modeb(is_space,1).
+modeb(is_uppercase,1).
+modeb(mk_lowercase,2).
+modeb(mk_uppercase,2).
 modeb(copyskip1,2).
 %% modeb(copy1,2).
 modeb(skip1,2).
-%% modeb(f,2).
+modeb(f,2).
 
 lower(f,inv1).
 lower(inv1,inv2).
