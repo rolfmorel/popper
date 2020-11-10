@@ -15,9 +15,10 @@ from popper.util import TimeAccumulatingContext
 
 class Test(SetupMixin,ConfigureMixin,EvaluateMixin,DebugMixin,TestInterface):
     analyses = False
+    minimal_testing = None # set by __init__
 
     def __init__(self, modeh, bk_file=None,
-                 pos_exs=None, neg_exs=None, eval_timeout=None,
+                 pos_exs=None, neg_exs=None, eval_timeout=None, minimal_testing=True,
                  context=TimeAccumulatingContext(), debug=False):
         with context:
             self.context = context
@@ -31,6 +32,6 @@ class Test(SetupMixin,ConfigureMixin,EvaluateMixin,DebugMixin,TestInterface):
             self.pos_examples = pos_exs
             self.neg_examples = neg_exs
             self.eval_timeout = eval_timeout
-
+            self.minimal_testing = minimal_testing
 
             self.setup(bk_file) # from SetupMixin

@@ -2,6 +2,7 @@ import time
 
 from sys import stderr
 from functools import partial
+from itertools import chain
 from collections import defaultdict
 
 from .representation import program_to_ordered_program, clause_to_code, program_to_code, is_recursive_clause
@@ -18,105 +19,123 @@ def output_program(program):
 def test(context, Test, debug, program):
     DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
-    subprog_missing_answers = defaultdict(int)
-    subprog_incorrect_answers = defaultdict(int)
+    missing_answer_progs = set()
+    incorrect_answer_progs = set()
 
-    with Test.using(program):
-        # test the positive examples and collect subprograms with missing answers and how many are missing
+    confusion_matrices = defaultdict(lambda : {
+        'TP': 0, # true positives
+        'FN': 0, # false negatives
+        'TN': 0, # true negatives
+        'FP': 0, # false positives
+    })
+
+    with Test.using(program): 
+        # test the positive examples and collect subprograms with missing answers 
         for pos_ex in Test.pos_examples:
-            result, subprogs = Test.evaluate(program, pos_ex)
-            if not result: # failed to prove example
-                for subprog in filter(lambda sp: sp != program, subprogs):
-                    subprog_missing_answers[subprog] += 1
-                subprog_missing_answers[program] += 1
+            result, _, failure_progs = Test.evaluate(program, pos_ex)
+            conf_matrix = confusion_matrices[program]
+            if result:
+                conf_matrix['TP'] += 1
+            else:
+                conf_matrix['FN'] += 1
+                if result is not None: # if example evaluation did not time out
+                    # any subprogram that had a failed trace will be retested, except those that timed out
+                    missing_answer_progs = missing_answer_progs.union(failure_progs)
+            if Test.minimal_testing and conf_matrix['TP'] and conf_matrix['FN']:
+                break # program incomplete and can no longer be totally incomplete
 
-        # test the negative examples and collect subprograms with incorrect answers and how many are incorrect
+        # test the negative examples and collect subprograms with incorrect answers 
         for neg_ex in Test.neg_examples:
-            result, subprogs = Test.evaluate(program, neg_ex)
-            if result: # managed to prove example
-                for subprog in filter(lambda sp: sp != program, subprogs):
-                    subprog_incorrect_answers[subprog] += 1
-                subprog_incorrect_answers[program] += 1
+            result, success_progs, _ = Test.evaluate(program, neg_ex)
+            conf_matrix = confusion_matrices[program]
+            if not result:
+                conf_matrix['TN'] += 1
+            else: # example was erroneously entailed
+                conf_matrix['FP'] += 1
+                # any subprogram that had a successful trace will be retested
+                incorrect_answer_progs = incorrect_answer_progs.union(success_progs)
+                if Test.minimal_testing:
+                    break # testing more negative examples won't change program already being inconsistent
+
         context['num_programs_tested'] += 1
 
-    incorrect_subprogs = list(subprog_incorrect_answers.keys())
+    #TODO: filter non-useful subprograms, e.g. singular recursive clauses
+
+    #TODO: use subsumption lattice to reduce number of tests needed
     # test the subprograms with missing answers whether they also have incorrect answers
-    for subprog in filter(lambda p: p is not program, subprog_missing_answers.keys()):
+    for subprog in filter(lambda p: p != program, missing_answer_progs | incorrect_answer_progs):
         context['num_programs_tested'] += 1
-        with Test.using(subprog, basic=True):
-            for neg_ex in Test.neg_examples:
-                result, _ = Test.query(neg_ex)
-                if result: # managed to prove example
-                    subprog_incorrect_answers[subprog] += 1
-    # test the subprograms with incorrect answers whether they also have missing answers
-    for subprog in filter(lambda p: p is not program, incorrect_subprogs):
-        context['num_programs_tested'] += 1
-        with Test.using(subprog, basic=True):
+        conf_matrix = confusion_matrices[subprog]
+        with Test.using(subprog, basic=True): # guaranteed to *not* make use of an instrumented program
             for pos_ex in Test.pos_examples:
                 result, _ = Test.query(pos_ex)
-                if not result: # failed to prove example
-                    subprog_missing_answers[subprog] += 1
+                if result: conf_matrix['TP'] += 1
+                else: conf_matrix['FN'] += 1
+                if conf_matrix['TP'] and conf_matrix['FN']:
+                    break # program incomplete and can no longer be totally incomplete
+            for neg_ex in Test.neg_examples:
+                result, _ = Test.query(neg_ex)
+                if result: 
+                    conf_matrix['FP'] += 1
+                    break # testing more negative examples won't change program already being inconsistent
+                else: conf_matrix['TN'] += 1
 
-    if debug:
-        num_pos = len(Test.pos_examples)
-        num_neg = len(Test.neg_examples)
-        for subprog in set((program,)) | subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
-            missing_answers = subprog_missing_answers[subprog]
-            incorrect_answers = subprog_incorrect_answers[subprog]
+    prog_outcomes = dict()
+    num_pos, num_neg = len(Test.pos_examples), len(Test.neg_examples)
+    for subprog in chain((program,), 
+                         (prog for prog in confusion_matrices.keys() if prog != program)):
+        conf_matrix = confusion_matrices[subprog]
+
+        if conf_matrix['TP'] == num_pos:   positive_outcome = Outcome.All
+        elif conf_matrix['FN'] == num_pos: positive_outcome = Outcome.None_
+        else:                              positive_outcome = Outcome.Some
+
+        if conf_matrix['FP'] == num_neg:   negative_outcome = Outcome.All
+        elif conf_matrix['TN'] == num_neg: negative_outcome = Outcome.None_
+        else:                              negative_outcome = Outcome.Some
+
+        if debug:
             if subprog != program:
                 DBG_PRINT("SUBPROGRAM:")
                 output_program(subprog)
-            DBG_PRINT("TP: {}, TN: {}, FN: {}, FP: {}".format(
-                      num_pos - missing_answers, num_neg - incorrect_answers,
-                      missing_answers, incorrect_answers))
+            approx_pos = '+' if conf_matrix['TP'] + conf_matrix['FN'] < num_pos else ''
+            approx_neg = '+' if conf_matrix['TN'] + conf_matrix['FP'] < num_neg else ''
+            DBG_PRINT("TP: {}{}, FN: {}{}, TN: {}{}, FP: {}{}".format(
+                      conf_matrix['TP'], approx_pos, conf_matrix['FN'], approx_pos, 
+                      conf_matrix['TN'], approx_neg, conf_matrix['FP'], approx_neg, 
+                      ))
 
-    return subprog_missing_answers, subprog_incorrect_answers
+        prog_outcomes[program] = (positive_outcome, negative_outcome)
+
+    return prog_outcomes
 
 
-def constrain(context, Constrain, debug, subprog_missing_answers, subprog_incorrect_answers):
+def constrain(context, Constrain, debug, prog_outcomes):
     DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
-
-    rules = []
-
-    for subprog in subprog_missing_answers.keys() | subprog_incorrect_answers.keys():
-        missing_answers = subprog_missing_answers[subprog]
-        incorrect_answers = subprog_incorrect_answers[subprog]
-
-        if missing_answers == 0:
-            positive_outcome = Outcome.All
-        elif missing_answers == Constrain.num_pos_examples:
-            positive_outcome = Outcome.None_
-        else:
-            positive_outcome = Outcome.Some
-
-        if incorrect_answers == 0:
-            negative_outcome = Outcome.None_
-        elif incorrect_answers == Constrain.num_neg_examples:
-            negative_outcome = Outcome.All
-        else:
-            negative_outcome = Outcome.Some
-
-        rules += Constrain.derive_constraints(subprog,
-                                              positive_outcome,
-                                              negative_outcome)
 
     inclusion_rules = []
     constraints = []
-    for type_, rule in rules:
-        if isinstance(type_, ConstraintType):
-            constraints.append((type_, rule))
-        else:
-            inclusion_rules.append(rule)
-    inclusion_rules = '\n'.join(inclusion_rules)
+
+    for prog, (positive_outcome, negative_outcome) in prog_outcomes.items():
+        for type_, name, rule in Constrain.derive(prog,
+                                                  positive_outcome,
+                                                  negative_outcome):
+            if isinstance(type_, ConstraintType):
+                constraints.append((type_, name, rule))
+            else:
+                inclusion_rules.append((type_, name, rule))
 
     if debug:
-        if inclusion_rules != "":
-            DBG_PRINT("inclusion rules:\n" + inclusion_rules)
-        for type_, constraint in constraints:
+        if inclusion_rules != []:
+            incl_rules = "\n".join(rule for _, _, rule in inclusion_rules)
+            DBG_PRINT("inclusion rules:\n" + incl_rules)
+        for type_, _, constraint in constraints:
             DBG_PRINT(f"{type_.value} constraint:\n" + constraint)
 
-    return [(f"program{context['num_programs_generated']}",
-             inclusion_rules + '\n'.join(map(lambda c: c[1], constraints)))]
+    #TODO: check if constraints are already loaded into solver, not just inclusion_rules
+    Constrain.impose(
+        ((name, rule) for _, name, rule in chain(inclusion_rules, constraints))
+    )
 
 
 def loop(context, Generate, Test, Constrain, debug=False):
@@ -147,10 +166,9 @@ def loop(context, Generate, Test, Constrain, debug=False):
                     output_program(program)
 
                 with Test.context:
-                    subprog_missing_answers, subprog_incorrect_answers = \
-                            test(context, Test, debug, program)
+                    prog_outcomes = test(context, Test, debug, program)
 
-                if subprog_missing_answers[program] == 0 and subprog_incorrect_answers[program] == 0:
+                if prog_outcomes[program] == (Outcome.All, Outcome.None_): # all positives, no negatives
                     # program both complete and consistent ...
                     with Test.using(program, basic=True):
                         program_str = '[' + ','.join(f"({clause_to_code(cl)})" for cl in program) + ']'
@@ -161,12 +179,11 @@ def loop(context, Generate, Test, Constrain, debug=False):
                             # ... and validated as well
                             return program, context
 
-                with Constrain.context:
-                    name_constraint_pairs = constrain(context, Constrain, debug,
-                                                      subprog_missing_answers, subprog_incorrect_answers)
+                # TODO: keep track of already pruned programs so not to reimpose these constraints
+                # TODO: further improvement: use subsumption lattice to determine effectiveness of adding a constrain
 
-                # deindent to get out of Constrain's context, otherwise time will be counted double, by both Constrain and Generate
-                Generate.impose_constraints(name_constraint_pairs)
+                with Constrain.context:
+                    constrain(context, Constrain, debug, prog_outcomes)
         return None, context
     except KeyboardInterrupt: # Also happens on timer interrupt
         context['interrupted'] = True
