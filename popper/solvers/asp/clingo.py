@@ -21,9 +21,10 @@ class CodeFormatter(logging.Formatter):
 class Clingo():
     def __init__(self, args=[]):
         self.code_log = logging.getLogger('solver_code')
-        code_handler = logging.FileHandler('clingo_solver_code_debug.asp')
-        code_handler.setFormatter(CodeFormatter)
-        self.code_log.addHandler(code_handler)
+        #TODO: enable the following logging by a cmdline option
+        #code_handler = logging.FileHandler('clingo_solver_code_debug.asp')
+        #code_handler.setFormatter(CodeFormatter)
+        #self.code_log.addHandler(code_handler)
         self.code_log.setLevel(logging.INFO)
 
         self.code_log.warn("NEW INSTANCE")
