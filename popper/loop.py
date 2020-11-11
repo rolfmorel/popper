@@ -16,7 +16,7 @@ def output_program(program):
          print("  " + clause, file=stderr)
 
 
-def test(context, Test, debug, program):
+def test(context, Test, program, debug=None):
     DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
     missing_answer_progs = set()
@@ -62,6 +62,7 @@ def test(context, Test, debug, program):
     #TODO: filter non-useful subprograms, e.g. singular recursive clauses
 
     #TODO: use subsumption lattice to reduce number of tests needed
+
     # test the subprograms with missing answers whether they also have incorrect answers
     for subprog in filter(lambda p: p != program, missing_answer_progs | incorrect_answer_progs):
         context['num_programs_tested'] += 1
@@ -110,11 +111,10 @@ def test(context, Test, debug, program):
     return prog_outcomes
 
 
-def constrain(context, Constrain, debug, prog_outcomes):
+def constrain(context, Constrain, prog_outcomes, constraints=[], debug=None):
     DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
     inclusion_rules = []
-    constraints = []
 
     for prog, (positive_outcome, negative_outcome) in prog_outcomes.items():
         for type_, name, rule in Constrain.derive(prog,
@@ -132,11 +132,28 @@ def constrain(context, Constrain, debug, prog_outcomes):
         for type_, _, constraint in constraints:
             DBG_PRINT(f"{type_.value} constraint:\n" + constraint)
 
-    #TODO: check if constraints are already loaded into solver, not just inclusion_rules
+    #TODO: check if constraints have already been loaded into solver, as is done for inclusion_rules
     Constrain.impose(
         ((name, rule) for _, name, rule in chain(inclusion_rules, constraints))
     )
 
+
+def validate(Test, program, positive_outcome, negative_outcome):
+    with Test.using(program, basic=True):
+        program_str = '[' + ','.join(f"'{clause_to_code(cl)}'" for cl in program) + ']'
+        query_str = "current_predicate(popper_program_validation/4) -> " \
+                   f"popper_program_validation({program_str}," \
+                                             f"{positive_outcome.value}," \
+                                             f"{negative_outcome.value}," \
+                                              "Constraints) ; " \
+                    "Constraints = []"
+        
+        constraint_types = set()
+        for constraint_name in next(Test.prolog.query(query_str))['Constraints']:
+            constraint_type = ConstraintType(constraint_name)
+            constraint_types.add(constraint_type)
+
+        return constraint_types
 
 def loop(context, Generate, Test, Constrain, debug=False):
     DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
@@ -166,24 +183,29 @@ def loop(context, Generate, Test, Constrain, debug=False):
                     output_program(program)
 
                 with Test.context:
-                    prog_outcomes = test(context, Test, debug, program)
+                    prog_outcomes = test(context, Test, program, debug=debug)
 
-                if prog_outcomes[program] == (Outcome.All, Outcome.None_): # all positives, no negatives
-                    # program both complete and consistent ...
-                    with Test.using(program, basic=True):
-                        program_str = '[' + ','.join(f"({clause_to_code(cl)})" for cl in program) + ']'
-                        query_str = "current_predicate(popper_program_validation/1) -> "\
-                                    f"popper_program_validation({program_str}) ; " \
-                                    "true"
-                        if next(Test.prolog.query(query_str), None) != None:
-                            # ... and validated as well
-                            return program, context
+                constraint_types = validate(Test, program, *prog_outcomes[program])
+                # NB: constraint_types == [] means passed validation
+                if debug and constraint_types != []:
+                    DBG_PRINT("validation constraints: " + \
+                              ', '.join(type_.value for type_ in constraint_types))
+
+                constraints = []
+                for constraint_type in constraint_types:
+                    constraint = Constrain.from_type(constraint_type, program)
+                    constraint_name = f"validation{context['num_programs_generated']}{constraint_type.value}"
+                    constraints.append((constraint_type, constraint_name, constraint))
+
+                if prog_outcomes[program] == (Outcome.All, Outcome.None_) and len(constraint_types) == 0:
+                     # all positives, no negatives and validated !!
+                     return program, context 
 
                 # TODO: keep track of already pruned programs so not to reimpose these constraints
                 # TODO: further improvement: use subsumption lattice to determine effectiveness of adding a constrain
 
                 with Constrain.context:
-                    constrain(context, Constrain, debug, prog_outcomes)
+                    constrain(context, Constrain, prog_outcomes, constraints=constraints, debug=debug)
         return None, context
     except KeyboardInterrupt: # Also happens on timer interrupt
         context['interrupted'] = True

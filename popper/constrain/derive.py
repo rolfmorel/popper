@@ -18,7 +18,7 @@ Elim = ConstraintType.Elimination
 Banish = ConstraintType.Banish
 
 
-class DeriveImposeMixin(object):
+class DeriveMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('derive')
         self.context.add_child('impose')
@@ -57,6 +57,14 @@ class DeriveImposeMixin(object):
         for clause in program:
             cl_handle, rule = self.inclusion_rule(clause)
             yield (RuleType.InclusionRule, cl_handle, rule)
+
+
+    def from_type(self, constraint_type, program):
+        if constraint_type == Gen: return self.specialization_constraint(program)
+        if constraint_type == Spec: return self.specialization_constraint(program)
+        if constraint_type == Elim: return self.specialization_constraint(program)
+        if constraint_type == Banish: return self.specialization_constraint(program)
+        assert False, "do not recognize '{constraint_type}' as a constraint type"
 
 
     def derive(self, program, pos_outcome, neg_outcome):
@@ -117,14 +125,3 @@ class DeriveImposeMixin(object):
             return [(Spec, self.specialization_constraint(program)),
                     (Gen, self.generalization_constraint(program))]
 
-
-    def impose(self, named_constraints):
-        with self.context.impose:
-            names = []
-            for name, constraint in named_constraints:
-                if name not in self.solver.added:
-                    with self.context.impose.adding:
-                        self.solver.add(constraint, name=name)
-                    names.append(name)
-            with self.context.impose.grounding:
-                self.solver.ground(*names)
