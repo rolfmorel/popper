@@ -22,6 +22,7 @@ class Clingo():
     def __init__(self, args=[]):
         self.code_log = logging.getLogger('solver_code')
         #TODO: enable the following logging by a cmdline option
+        self.code_log.disabled = True
         #code_handler = logging.FileHandler('clingo_solver_code_debug.asp')
         #code_handler.setFormatter(CodeFormatter)
         #self.code_log.addHandler(code_handler)

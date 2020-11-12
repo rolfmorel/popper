@@ -91,8 +91,8 @@ def test(context, Test, program, debug=None):
         elif conf_matrix['FN'] == num_pos: positive_outcome = Outcome.None_
         else:                              positive_outcome = Outcome.Some
 
-        if conf_matrix['FP'] == num_neg:   negative_outcome = Outcome.All
-        elif conf_matrix['TN'] == num_neg: negative_outcome = Outcome.None_
+        if conf_matrix['TN'] == num_neg:   negative_outcome = Outcome.None_
+        elif conf_matrix['FP'] == num_neg: negative_outcome = Outcome.All
         else:                              negative_outcome = Outcome.Some
 
         if debug:
@@ -187,7 +187,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                 constraint_types = validate(Test, program, *prog_outcomes[program])
                 # NB: constraint_types == [] means passed validation
-                if debug and constraint_types != []:
+                if debug and len(constraint_types) != 0:
                     DBG_PRINT("validation constraints: " + \
                               ', '.join(type_.value for type_ in constraint_types))
 
