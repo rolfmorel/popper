@@ -5,6 +5,9 @@ non_separable:-
     head_literal(_,P,A,_),
     body_literal(_,P,A,_).
 
+num_recursive(N):-
+    #count{C : recursive_clause(C,_,_)} == N.
+
 separable:-
     not non_separable.
 
