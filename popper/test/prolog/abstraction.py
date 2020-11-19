@@ -35,3 +35,5 @@ class Test(SetupMixin,ConfigureMixin,EvaluateMixin,DebugMixin,TestInterface):
             self.minimal_testing = minimal_testing
 
             self.setup(bk_file) # from SetupMixin
+
+            self.program_outcomes = dict() # keep track of already tested programs (and their outcomes)
