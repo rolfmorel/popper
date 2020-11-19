@@ -24,6 +24,6 @@ class ConfigureMixin(object):
             for head_lit in head_lits:
                 args = ','.join(['_'] * head_lit.arity)
                 self.prolog.retractall(f"{head_lit.predicate}({args})")
-                # for asserting programs
-                self.prolog.retractall(f"{head_lit.predicate}({args},_)")
+                # for instrumented programs
+                self.prolog.retractall(f"{head_lit.predicate}({args},_,_)")
             self.current_clauses = set()

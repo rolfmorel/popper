@@ -106,7 +106,7 @@ def test(context, Test, program, debug=None):
                       conf_matrix['TN'], approx_neg, conf_matrix['FP'], approx_neg, 
                       ))
 
-        prog_outcomes[program] = (positive_outcome, negative_outcome)
+        prog_outcomes[subprog] = (positive_outcome, negative_outcome)
 
     return prog_outcomes
 

@@ -13,6 +13,7 @@ from .evaluate import EvaluateMixin
 
 class Test(SetupMixin,ConfigureMixin,EvaluateMixin,DebugMixin,TestInterface):
     analyses = True
+    minimal_testing = None # set by __init__
 
     def __init__(self, *args, **kwargs):
         PrologTest.__init__(self, *args, **kwargs)
