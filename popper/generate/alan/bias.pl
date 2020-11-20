@@ -23,22 +23,35 @@ head_connected(Clause,Var1):-
     body_var(Clause,Var),
     not head_connected(Clause,Var).
 
-%% REMOVE REFLEXIVE
+%% IRREFLEXIVE
 %% prevents: p(A):-q(A,B),q(B,A)
 :-
     irreflexive(P,2),
-    literal(Clause,P,(Var1,Var2)),
-    literal(Clause,P,(Var2,Var1)).
+    body_literal(Clause,P,2,Vars1),
+    body_literal(Clause,P,2,Vars2),
+    Vars1 = (Var1,Var2),
+    Vars2 = (Var2,Var1),
+    Vars1 < Vars2.
 
 %% FUNCTIONAL
 %% prevents: p(A):-q(A,B),q(A,C)
 :-
     functional(P,2),
-    literal(Clause,P,(Var1,Var2)),
-    literal(Clause,P,(Var1,Var3)),
-    Var2 != Var3.
+    body_literal(Clause,P,2,Vars1),
+    body_literal(Clause,P,2,Vars2),
+    Vars1 = (Var1,Var2),
+    Vars2 = (Var1,Var3),
+    Var2 != Var3,
+    Vars1 < Vars2.
 
-%% FUNCTIONAL FOR 3 - FIX
+%% asda:-
+%%     functional(P,2),
+%%     clause(Clause),
+%%     body_literal(Clause,P,2,(V1,_)),
+%%     #count{V2 : body_literal(Clause,P,2,(V1,V2))} > 1.
+
+%% FUNCTIONAL FOR 3
+%% TODO: GENERALISE AND REMOVE SYMMETRY
 :-
     functional(P,3),
     direction(P,0,in),

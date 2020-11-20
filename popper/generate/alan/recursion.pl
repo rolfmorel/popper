@@ -1,55 +1,67 @@
 %% ########################################
 %% RECURSION
 %% ########################################
-
 non_separable:-
     head_literal(_,P,A,_),
     body_literal(_,P,A,_).
 
+num_recursive(N):-
+    #count{C : recursive_clause(C,_,_)} == N.
+
 separable:-
     not non_separable.
 
-:-
-    recursive(0).
-
 recursive:-
-    recursive(Clause).
+    recursive_clause(_,_,_).
 
-recursive(Clause):-
+recursive_clause(Clause,P,A):-
     head_literal(Clause,P,A,_),
     body_literal(Clause,P,A,_).
 
-%% IF RECURSIVE, THERE MUST BE A NON-RECURSIVE CLAUSE
-has_base:-
-    clause(Clause),
-    not recursive(Clause).
+base_clause(Clause,P,A):-
+    head_literal(Clause,P,A,_),
+    not body_literal(Clause,P,A,_).
+
+%% NO RECURSION IN THE FIRST CLAUSE
 :-
-    recursive,
-    not has_base.
+    recursive_clause(0,_,_).
+
+%% STOP RECURSION BEFORE BASE CASES
+:-
+    Clause1 > 0,
+    recursive_clause(Clause1,P,A),
+    base_clause(Clause2,P,A),
+    Clause2 > Clause1.
+
+%% CANNOT HAVE RECURSION WITHOUT A BASECASE
+:-
+    recursive_clause(_,P,A),
+    not base_clause(_,P,A).
 
 %% DISALLOW TWO RECURSIVE CALLS
 %% WHY DID WE ADD THIS??
 :-
-    recursive(C),
-    head_literal(C,P,A,_),
-    body_literal(C,P,A,V1),
-    body_literal(C,P,A,V2),
-    V1 != V2.
+    Clause > 0,
+    recursive_clause(Clause,P,A),
+    body_literal(Clause,P,A,Vars1),
+    body_literal(Clause,P,A,Vars2),
+    Vars1 < Vars2.
 
 %% PREVENT LEFT RECURSION
 %% TODO: GENERALISE FOR ARITY > 3
 :-
-    recursive(Clause),
+    Clause > 0,
     num_in_args(P,1),
     head_literal(Clause,P,A,Vars1),
-    var_pos(Var,Vars1,Pos1),
-    direction(P,Pos1,in),
     body_literal(Clause,P,A,Vars2),
+    var_pos(Var,Vars1,Pos1),
     var_pos(Var,Vars2,Pos2),
+    direction(P,Pos1,in),
     direction(P,Pos2,in).
 
+%% TODO: REFACTOR
 :-
-    recursive(Clause),
+    Clause > 0,
     num_in_args(P,2),
     %% get the head input vars
     head_literal(Clause,P,A,HeadVars),

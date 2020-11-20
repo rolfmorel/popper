@@ -36,7 +36,7 @@ def program_to_ordered_program(program):
 
         selected_lit = next(iter(nonrec_lits + rec_lits), None)
         if selected_lit == None:
-            raise ValueError(f"literals {literals} could not be grounded")
+            raise ValueError(f"literals {literals} in program {program} could not be grounded")
         return [selected_lit] + \
                selection_closure(head_pred, grounded_vars.union(selected_lit.outputs),
                                  literals.difference({selected_lit}))

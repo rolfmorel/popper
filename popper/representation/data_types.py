@@ -93,6 +93,10 @@ class Atom():
         args = (f"{arg}" for arg in self.arguments)
         return f"{self.predicate}({','.join(args)})"
 
+    @property
+    def arity(self):
+        return len(self.arguments)
+
 
 @dataclass(frozen=True)
 class ModedAtom(Atom):
@@ -144,10 +148,6 @@ class ProgramAtom(ModedAtom):
         return ','.join(map(lambda arg: chr(ord('A') + arg), self.arguments))
 
     @property
-    def arity(self):
-        return len(self.arguments)
-
-    @property
     def inputs(self):
         return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[0]))
 
@@ -158,66 +158,3 @@ class ProgramAtom(ModedAtom):
     @property
     def unknowns(self):
         return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[2]))
-
-
-
-#class Atom(namedtuple('Atom', ('predicate', 'mode', 'arguments'))):
-#    def __str__(self):
-#        args = map(lambda arg: f"V{arg}", self.arguments)
-#        return f"{self.predicate}({','.join(args)})"
-#
-#    def to_code(self):
-#        return f"{self.predicate}({self.code_args})"
-#
-#    def __repr__(self): # strictly speaking wrong, but more useful for debugging
-#        mode_args = (f"{m.value}V{arg}" for arg, m in zip(self.arguments, self.mode.arguments))
-#        return f"{self.predicate}({','.join(mode_args)})"
-#
-#    def split_arguments(self):
-#        ins, outs, unks = set(), set(), set()
-#        
-#        for idx, (mode, arg) in enumerate(zip(self.mode.arguments, self.arguments)):
-#            if mode == ArgumentMode.Input: ins.add((idx,arg))
-#            if mode == ArgumentMode.Output: outs.add((idx,arg))
-#            if mode == ArgumentMode.Unknown: unks.add((idx,arg))
-#        return ins, outs, unks
-#
-#    @property
-#    def success(self): # interface of EvalAtom
-#        return None # signifying 'unknown'
-#
-#    @property
-#    def code_args(self):
-#        return ','.join(map(lambda arg:
-#            chr(ord('A') + arg) if type(arg) == int else f'{arg}',
-#                            self.arguments))
-#
-#    @property
-#    def arity(self):
-#        return len(self.arguments)
-#
-#    @property
-#    def inputs(self):
-#        return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[0]))
-#
-#    @property
-#    def outputs(self):
-#        return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[1]))
-#
-#    @property
-#    def unknowns(self):
-#        return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[2]))
-
-
-#class EvalAtom(namedtuple('EvalAtom', ('predicate', 'grounding', 'success'))):
-#    def __repr__(self): # strictly speaking wrong, but more useful for debugging
-#        return f"{self.predicate}({self.code_args})@{'T' if self.success else 'F'}"
-#    
-#    @property
-#    def arguments(self): return self.grounding
-#
-#    @property
-#    def code_args(self):
-#        return ','.join(map(str, self.grounding))
-
-

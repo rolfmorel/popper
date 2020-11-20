@@ -22,7 +22,7 @@
     Clause = 0..N-1,
     max_clauses(N).
 
-%% %% GUESS AT LEAST 1 BUT AT MOST N BODY LITERALS
+%% GUESS AT LEAST 1 BUT AT MOST N BODY LITERALS PER CLAUSE
 1 {body_literal(Clause,P,A,Vars) : modeb(P,A), vars(A,Vars)} N:-
     clause(Clause),
     max_body(N).
@@ -35,12 +35,12 @@ clause(Clause):-
 %% TODO: RENAME TO BODY_SIZE
 %% TODO: IMPROVE THIS IS VERY EXPENSIVE
 %% OLD VERSION
-clause_size(Clause1,N):-
-    clause(Clause1),
+clause_size(Clause,N):-
+    clause(Clause),
     max_body(MaxN),
     N > 0,
     N <= MaxN,
-    #count{P1,Vars1 : body_literal(Clause1,P1,_,Vars1)} = N.
+    #count{P,Vars : body_literal(Clause,P,_,Vars)} = N.
 
 %% %% NEW VERSION
 %% clause_size(Clause,BodySize):-
@@ -68,11 +68,11 @@ literal(Clause,P,Vars):-
 %% USE CLAUSES IN ORDER
 :-
     clause(Clause),
-    Clause > 0,
+    Clause > 1,
     not clause(Clause-1).
 
 %% USE VARS IN ORDER IN A CLAUSE
 :-
     clause_var(Clause,Var),
-    Var > 0,
+    Var > 1,
     not clause_var(Clause,Var-1).

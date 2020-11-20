@@ -1,11 +1,10 @@
-max_vars(5).
-max_body(6).
-max_clauses(1).
+%% (base) ➜  addlast time popp exs.pl bias.pl bk.pl
+%% f(A,B) :- last(A,C),cons(C,A,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl bias.pl bk.pl  0.15s user 0.03s system 90% cpu 0.199 total
 
-%% add the last element to the head
-%% f(A,B):-
-%%     last(A,C),
-%%     cons(C,A,B).
+max_vars(5).
+max_body(5).
+max_clauses(1).
 
 modeh(f,2).
 type(f,0,list).
@@ -19,6 +18,7 @@ type(tail,1,list).
 direction(tail,0,in).
 direction(tail,1,out).
 
+functional(tail,2).
 modeb(head,2).
 type(head,0,list).
 type(head,1,element).

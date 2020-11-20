@@ -1,23 +1,11 @@
-max_vars(6).
-max_body(4).
+%% (base) ➜  droplast popp exs.pl modes.pl bk.pl
+%% f(A,B) :- tail(A,B).
+%% f(A,B) :- tail(A,E),head(A,C),f(E,D),cons(C,D,B).
+%% python3 /Users/andrew/icloud/code/popper/popper.py exs.pl modes.pl bk.pl  7.78s user 0.06s system 99% cpu 7.851 total
+
+max_vars(5).
+max_body(5).
 max_clauses(2).
-
-%% DROPLAST
-%% f(A,B):-
-%%     tail(A,C),
-%%     empty(C),
-%%     empty(B).
-%% f(A,B):-
-%%     tail(A,C),
-%%     f(C,D),
-%%     head(A,E),
-%%     cons(E,D,B).
-
-%% NEED TO EVENTUALLY ADD THIS CONSTRAINT TO THE MAIN ALAN ENCODING
-%% PREVENT RECURSION IN THE FIRST CLAUSE
-:-
-    modeh(P,A),
-    body_literal(0,_,P,A).
 
 modeh(f,2).
 type(f,0,list).
@@ -73,6 +61,3 @@ direction(empty,0,in).
 modeb(zero,1).
 type(zero,0,int).
 direction(zero,0,in).
-
-%% #show var/4.
-%% #show literal/4.
