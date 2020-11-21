@@ -1,4 +1,11 @@
 class ImposeMixin(object):
+    def __init__(self, *args, **kwargs):
+        self.context.add_child('impose')
+        self.context.impose.add_child('adding')
+        self.context.impose.add_child('grounding')
+        super().__init__(*args, **kwargs)
+
+
     def impose(self, named_constraints):
         with self.context.impose:
             names = []

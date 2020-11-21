@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from .inclusion import InclusionMixin
 from .derive import DeriveMixin
 from .impose import ImposeMixin
 
@@ -31,8 +32,9 @@ class ConstrainInterface(ABC):
     def banish_constraint(self, *args, **kwargs): pass
 
 
-class Constrain(DeriveMixin,ImposeMixin,GeneralizationMixin,SpecializationMixin,
-                BanishMixin,DebugMixin,ConstrainInterface):
+class Constrain(InclusionMixin,DeriveMixin,ImposeMixin,
+                GeneralizationMixin,SpecializationMixin,BanishMixin,
+                DebugMixin,ConstrainInterface):
     def __init__(self, modeh, num_pos_examples, num_neg_examples, 
                  ground=False, no_pruning=False, context=TimeAccumulatingContext(), debug=False, solver=None):
         self.context = context
