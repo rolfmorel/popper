@@ -1,16 +1,14 @@
 import os
 from popper.representation import program_to_ordered_program, clause_to_code
 
-import pyswip
-
 
 def arguments_to_prolog(arguments):
     args = []
     for arg in arguments:
         if type(arg) == int:
-            args += [chr(ord('A') + arg)]
+            args.append(chr(ord('A') + arg))
         else:
-            args += arg
+            args.append(arg)
     return args
 
 
@@ -20,6 +18,60 @@ def atom_to_prolog(atom):
     return f"{pred}({args})"
 
 
+def instrumented_literal(atom, in_='CurLits', out='SeenLits'):
+    pred = atom.predicate
+    args = ','.join(arguments_to_prolog(atom.arguments))
+    return f"{pred}({args},{in_},{out})"
+
+
+def clause_to_instrumented_prolog(clause, head_preds):
+    cl_id, head, body = clause
+
+    def CurLits(idx=1): 
+        yield f"CurLits{idx}"
+        yield from CurLits(idx+1)
+
+    head_code = instrumented_literal(head)
+    body_codes = []
+
+    cur_lits, lit_gen = 'CurLits', CurLits()
+
+    for lit_id, body_lit in enumerate(body, start=1):
+        if body_lit.predicate in head_preds:
+            # add the calling literal's id to CurLits
+            next_lits = next(lit_gen)
+            body_codes.append(f"put_assoc(({cl_id},{lit_id}),{cur_lits},unit,{next_lits})")
+            prev_lits = cur_lits
+            cur_lits = next_lits
+
+            # make the instrumented call
+            next_lits = next(lit_gen)
+            lit_code = instrumented_literal(body_lit, in_=cur_lits, out=next_lits)
+            prev_lits = cur_lits
+            cur_lits = next_lits
+            
+            body_codes.append(lit_code) # assumes that this call always resolves with another program clause
+        else:
+            lit_code = atom_to_prolog(body_lit)
+            code = f"({lit_code}*->" \
+                    "true;" \
+                   f"put_assoc(({cl_id},{lit_id}),{cur_lits},unit,AllLits)," \
+                    "assoc_to_keys(AllLits,FailLits)," \
+                    "ffi_share(FailLits)," \
+                    "fail)"
+            body_codes.append(code)
+    body_codes.append(f"put_assoc(({cl_id},{len(body)}),{cur_lits},unit,SeenLits)")
+
+    return f"{head_code} :- " + ",\n".join(body_codes)
+
+
+def program_to_instrumented_prolog(program):
+    head_preds = [head.predicate for _, head, _ in program]
+
+    return [clause_to_instrumented_prolog(clause, head_preds)
+            for clause in program]
+
+
 class ConfigureMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('configure')
@@ -27,7 +79,7 @@ class ConfigureMixin(object):
         self.context.configure.assert_.add_child('instrumented')
         self.context.configure.add_child('retract')
         super().__init__(*args, **kwargs)
-        
+
 
     def assert_program(self, program, basic=None):
         if basic is True:
@@ -36,9 +88,8 @@ class ConfigureMixin(object):
                     self.prolog.assertz(clause_to_code(clause))
         else:
             with self.context.configure.assert_.instrumented:
-                clauses = self.program_to_asserting_prolog(program)
+                clauses = program_to_instrumented_prolog(program)
                 for clause in clauses:
-                    print('clause', clause)
                     self.prolog.assertz(clause)
 
 
@@ -46,71 +97,7 @@ class ConfigureMixin(object):
         with self.context.configure.retract:
             args = ','.join(['_'] * (self.modeh.arity))
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
-            args = ','.join(['_'] * (self.modeh.arity + 1))
+            # 2 extra args in instrumented programs
+            args = ','.join(['_'] * (self.modeh.arity + 2))  
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
 
-
-    def program_to_asserting_prolog(self, program):
-        prolog_program = []
-        for clause in program:
-            cl_id, head, body = clause
-            head_args = ','.join(arguments_to_prolog(head.arguments))
-
-            head_lit = f"{head.predicate}({head_args},(RecClIdx,RecLitIdx))"
-
-            body_lits = []
-            for idx, atom in enumerate(body):
-                atom = self.literal_to_asserting_prolog(cl_id, idx + 1, atom)
-                body_lits.append(atom)
-
-            # NB: cut on empty path causes execution of later clauses, even when earlier clause is successful
-#            suffix = (f"OutPath = [({cl_id},{len(body)})|{path}]" + "," +  f"format(ipc, 'blah|~w|~w~n', [InPath,OutPath])," +
-#                      f"(InPath = [] -> !,format(ipc, 'succ|~w~n', [OutPath]),false)")
-#            prolog_program.append(f"{head_lit} :- {','.join(body_lits)},{suffix}") 
-            prefix = f"enter_cl({cl_id},RecClIdx,RecLitIdx),LitIdx=idx(0),("
-            suffix = f",exit_cl({cl_id},-1) ; (LitIdx=idx(En),exit_cl({cl_id},En),false))"
-            prolog_program.append(f"{head_lit} :- {prefix}({','.join(body_lits)}){suffix}") 
-        return prolog_program
-
-
-    def literal_to_asserting_prolog(self, cl_id, lit_id, atom):
-        if atom.predicate == self.modeh.predicate:
-            pred = atom.predicate
-            args = ','.join(arguments_to_prolog(atom.arguments))
-            atom_ = f"{pred}({args},({cl_id},{lit_id}))"
-        else:
-            atom_ = atom_to_prolog(atom)
-        return (f"({atom_}*->true;" + 
-                 f"(LitIdx=idx(N0),M0 is max({lit_id},N0),nb_setarg(1,LitIdx,M0),fail))")
-#    def literal_to_asserting_prolog_old(self, cl_id, lit_id, atom):
-#        if atom.predicate == self.modeh.predicate:
-#            pred = atom.predicate
-#            args = ','.join(arguments_to_prolog_old(atom.arguments))
-#
-#            atom_ = f"{pred}({args},[[{cl_id},{lit_id}]|Path])"
-#        else:
-#            atom_ = atom_to_prolog(atom)
-#        pred = atom.predicate
-#        args = ','.join(arguments_to_prolog(atom.arguments))
-#        return f"({atom_} *-> format(ipc, '~d|~d|~w|~w|~w|~w~n', [{cl_id},{lit_id},{pred},[{args}],Path,true]) ; \
-#(format(ipc, '~d|~d|~w|~w|~w|~w~n', [{cl_id},{lit_id},{pred},[{args}],Path,false]),false))"
-#
-#
-#    def program_to_asserting_prolog_old(self, program):
-#        prolog_program = []
-#        for clause in program:
-#            cl_id, head, body = clause
-#            head_args = ','.join(arguments_to_prolog(head.arguments))
-#
-#            head_lit = f"{head.predicate}({head_args},Path)"
-#            body_lits = []
-#            for idx, atom in enumerate(body):
-#                body_lits += [self.literal_to_asserting_prolog(cl_id, idx + 1, atom)]
-#
-#            assert_prefix = f"format(ipc, '~d|~d|~w|~w|~w|~w~n', [{cl_id},0,{head.predicate},[{head_args}],Path"
-#            success_assert = assert_prefix + ",true])"
-#            failure_assert = assert_prefix + ",false])"
-#
-#            body = f"({','.join(body_lits)}) *-> {success_assert} ; {failure_assert},false" 
-#            prolog_program.append(f"{head_lit} :- {body},(Path = [] -> !,false)") # NB: cut on empty path causes execution of later clauses, even when early clause is successful
-#        return prolog_program
