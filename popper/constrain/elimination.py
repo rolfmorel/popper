@@ -31,7 +31,7 @@ class EliminationMixin(object):
                         something_added |= not body_pred in recursively_called
                         recursively_called.add(body_pred)
             if not something_added: break
-        print("recursively_called", recursively_called)
+        # print("recursively_called", recursively_called)
 
         program_ident = self.program_identifier(program)
 
