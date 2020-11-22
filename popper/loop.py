@@ -124,19 +124,16 @@ def test(context, Test, program, debug=None):
     return program_outcomes
 
 
-def constrain(context, Constrain, program_outcomes, constraints=[], debug=None):
+def constrain(context, Constrain, program_constraint_types, debug=None):
     DBG_PRINT = partial(debug_print, prefix=None, debug=debug)
 
+    constraints = []
     inclusion_rules = []
 
-    for prog, (positive_outcome, negative_outcome) in program_outcomes.items():
-        for type_, name, rule in Constrain.derive(prog,
-                                                  positive_outcome,
-                                                  negative_outcome):
-            if isinstance(type_, ConstraintType):
-                constraints.append((type_, name, rule))
-            else:
-                inclusion_rules.append((type_, name, rule))
+    for prog, constraint_types in program_constraint_types.items():
+        constraints += Constrain.derive_constraints(prog, constraint_types)
+        print(constraints)
+        inclusion_rules += Constrain.derive_inclusion_rules(prog, constraint_types)
 
     if debug:
         if inclusion_rules != []:
@@ -214,12 +211,6 @@ def loop(context, Generate, Test, Constrain, debug=False):
                     DBG_PRINT("validation constraints: " + \
                               ', '.join(type_.value for type_ in constraint_types))
 
-                constraints = []
-                for constraint_type in constraint_types:
-                    constraint = Constrain.from_type(constraint_type, program)
-                    constraint_name = f"validation{context['num_programs_generated']}{constraint_type.value}"
-                    constraints.append((constraint_type, constraint_name, constraint))
-
                 if program_outcomes[program] == (Outcome.All, Outcome.None_) and len(constraint_types) == 0:
                      # all positives, no negatives and validated !!
                      return program, context 
@@ -228,7 +219,15 @@ def loop(context, Generate, Test, Constrain, debug=False):
                 # TODO: further improvement: use subsumption lattice to determine effectiveness of adding a constrain
 
                 with Constrain.context:
-                    constrain(context, Constrain, program_outcomes, constraints=constraints, debug=debug)
+                    program_constraint_types = dict()
+                    for prog, (pos_out, neg_out) in program_outcomes.items():
+                        program_constraint_types[prog] = \
+                                Constrain.derive_constraint_types(prog, pos_out, neg_out)
+
+                    program_constraint_types[program] = \
+                            program_constraint_types[program].union(constraint_types)
+
+                    constrain(context, Constrain, program_constraint_types, debug=debug)
         return None, context
     except KeyboardInterrupt: # Also happens on timer interrupt
         context['interrupted'] = True

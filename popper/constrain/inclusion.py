@@ -1,8 +1,6 @@
 from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses, \
                     asp_literals_for_distinct_clause_variables
 
-from .data_types import RuleType
-
 
 class InclusionMixin(object):
     def __init__(self, *args, **kwargs):
@@ -32,14 +30,15 @@ class InclusionMixin(object):
         cl_id = str(clause[0]) if self.ground else "C"
 
         asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
+
         if not self.ground:
-            asp_lits += asp_literals_for_distinct_clauses(program)
+            asp_lits += asp_literals_for_distinct_clause_variables(clause, cl_id=cl_id)
 
         return cl_handle, f"included_clause_{cl_handle}({cl_id}):-" + ",".join(asp_lits) + "."
 
 
     def program_inclusion_rule(self, program):
-        cl_handle = self.program_identifier(program)
+        program_handle = self.program_identifier(program)
 
         asp_lits = []
         for i, cl_handle in enumerate(self.clause_identifier(cl) for cl in program):
@@ -47,14 +46,6 @@ class InclusionMixin(object):
             asp_lits.append(f"included_clause_{cl_handle}({clause_var})")
 
         if not self.ground:
-            asp_lits += asp_literals_for_distinct_clause_variables(clause, cl_id=cl_id)
+            asp_lits += asp_literals_for_distinct_clauses(program)
 
         return cl_handle, f"included_program_{program_handle}:-" + ",".join(asp_lits) + "."
-
-    
-    def derive_inclusion_rules(self, program):
-        for clause in program:
-            cl_handle, rule = self.inclusion_rule(clause)
-            if cl_handle not in self.included_clause_handles:
-                self.included_clause_handles.add(cl_handle)
-                yield (RuleType.InclusionRule, cl_handle, rule)

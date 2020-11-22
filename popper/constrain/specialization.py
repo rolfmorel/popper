@@ -30,7 +30,3 @@ class SpecializationMixin(object):
             spec_lits += asp_literals_for_distinct_clauses(program)
 
         return ":-" +  ",".join(spec_lits) + "."
-
-
-    def elimination_constraint(self, program):
-        return self.specialization_constraint(program, elimination=True)
