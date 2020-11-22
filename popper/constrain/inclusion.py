@@ -22,7 +22,7 @@ class InclusionMixin(object):
 
 
     def program_identifier(self, program, ground=None):
-        return '__'.join(sorted(self.clause_identifier(cl) for cl in program))
+        return 'program_' + '__'.join(sorted(self.clause_identifier(cl) for cl in program))
 
 
     def clause_inclusion_rule(self, clause):
@@ -48,4 +48,4 @@ class InclusionMixin(object):
         if not self.ground:
             asp_lits += asp_literals_for_distinct_clauses(program)
 
-        return cl_handle, f"included_program_{program_handle}:-" + ",".join(asp_lits) + "."
+        return program_handle, f"included_{program_handle}:-" + ",".join(asp_lits) + "."

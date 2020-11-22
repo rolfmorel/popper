@@ -31,7 +31,6 @@ class EliminationMixin(object):
                         something_added |= not body_pred in recursively_called
                         recursively_called.add(body_pred)
             if not something_added: break
-        print("recursively_called", recursively_called)
 
         program_ident = self.program_identifier(program)
 
@@ -43,4 +42,4 @@ class EliminationMixin(object):
             num_recursive = preds_num_recursive_clauses[pred]
             elim_lits.append(f"num_recursive({pred},{num_recursive})")
 
-            yield f":-included_program_{program_ident}," + ','.join(elim_lits) + '.'
+            yield f":-included_{program_ident}," + ','.join(elim_lits) + '.'
