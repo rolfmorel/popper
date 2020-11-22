@@ -8,7 +8,7 @@
 #show head_literal/4.
 #show body_literal/4.
 
-%% #include "pi.pl".
+#include "pi.pl".
 #include "types.pl".
 #include "recursion.pl".
 #include "subsumption.pl".
@@ -50,6 +50,10 @@ clause_size(Clause,N):-
 %%         body_literal(Clause,P,_,Vars),
 %%         bounded_vars(MaxVar,Vars)
 %%     } == BodySize.
+
+num_clauses(P,N):-
+    head_literal(_,P,_,_),
+    #count{C : head_literal(C,P,_,_)} == N.
 
 literal(Clause,P,Vars):-
     head_literal(Clause,P,_,Vars).
