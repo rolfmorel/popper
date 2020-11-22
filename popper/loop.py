@@ -132,7 +132,6 @@ def constrain(context, Constrain, program_constraint_types, debug=None):
 
     for prog, constraint_types in program_constraint_types.items():
         constraints += Constrain.derive_constraints(prog, constraint_types)
-        print(constraints)
         inclusion_rules += Constrain.derive_inclusion_rules(prog, constraint_types)
 
     if debug:
