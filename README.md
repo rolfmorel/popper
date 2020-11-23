@@ -27,12 +27,28 @@ usage: popper.py [-h] [--no-pruning] [--ground-constraints] [--timeout TIMEOUT] 
 
 The `EXAMPLES_FILE` consists of ground facts representing the positive and negative examples, respectively wrapped in `pos(FACT).` and `neg(FACT)`.
 
-The `MODES_FILE` is for predicate declarations, as used in the ASP encoding. A mode declaration has the form `modeh(PRED,ARITY)` or `modeb(PRED,ARITY)`, respectively for predicates that may occur in heads and bodies. The predicate `direction(PRED,POSITION,DIRECTION)` is used to indicate a Prolog 'mode' for a predicate. That is, for each argument position, `Position` indicates whether it works as an input, `DIRECTION=in`, or as an output, `DIRECTION=out`.
+The `MODES_FILE` is for predicate declarations, as used in the ASP encoding. A mode declaration has the form `modeh(PRED,ARITY)` or `modeb(PRED,ARITY)`, respectively for predicates that may occur in heads and bodies. The predicate `direction(PRED,POSITION,DIRECTION)` is used to indicate a Prolog 'mode' for a predicate. That is, for each argument position `Position` indicates whether it works as an input, `DIRECTION=in`, or as an output, `DIRECTION=out`.
 (Parameters for optional features of the ASP encoding should be placed in this file.)
 
 The `BK_FILE` should include Prolog predicate definitions. Any predicate declared to be allowed in bodies should be provided a definition. Currently, predicates allowed in the heads of learned clauses should not be provided definitions.
 
 The `examples` folder contains multiple examples of the `EXAMPLES_FILE`, ASP `MODES_FILE` and Prolog `BK_FILE`.
+
+#### Validating hypotheses
+
+In some cases a hypothesis being unfalsifiable (correctly entailing all examples) is not sufficient for it being a solution.
+For example, one might want to require a solution to be functional.
+
+We provide an optional *validation* mechanism which any generated hypothesis will be subject to.
+This validation methods is enabled by implementing the predicate `popper_program_validation(+Prog,+PositiveOutcome,+NegativeOutcome,-ConstraintTypes)` in the `BK_FILE`.
+Upon a hypthesis being generated, and after testing, this predicate is called.
+The hypothesis and its outcomes ('none', 'some', 'all') of testing positive and negative examples are provided as inputs.
+When the output ConstraintTypes, a list of constraint types, is the empty list the hypothesis passed validation.
+When validation fails, the list must contain any of `banish`, `specialisation`, `generalisation`, and `elimination`.
+The corresponding constraints will then be imposed for the hypothesis, in addition to constraints derived from testing. 
+
+The hypothesis under consideration is also asserted during execution of `popper_program_validation/4` so that it may be evaluated.
+Because validation may involve the hypothesis being executed, the evaluation timeout (`--eval-timeout`) is enforced for the call to `popper_program_validation/4`.
 
 ### Popper as a Python library
 
