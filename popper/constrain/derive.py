@@ -60,12 +60,11 @@ class DeriveMixin(object):
 
 
     def constraints_from_type(self, program, constraint_type):
-        with self.context.derive:
-            if constraint_type == Gen: return [self.generalization_constraint(program)]
-            if constraint_type == Spec: return [self.specialization_constraint(program)]
-            if constraint_type == Elim: return list(self.elimination_constraint(program))
-            if constraint_type == Banish: return [self.banish_constraint(program)]
-            assert False, "do not recognize '{constraint_type}' as a constraint type"
+        if constraint_type == Gen: return [self.generalization_constraint(program)]
+        if constraint_type == Spec: return [self.specialization_constraint(program)]
+        if constraint_type == Elim: return list(self.elimination_constraint(program))
+        if constraint_type == Banish: return [self.banish_constraint(program)]
+        assert False, "do not recognize '{constraint_type}' as a constraint type"
 
 
     def derive_constraints(self, program, constraint_types):
