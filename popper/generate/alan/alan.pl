@@ -80,3 +80,14 @@ literal(Clause,P,Vars):-
     clause_var(Clause,Var),
     Var > 1,
     not clause_var(Clause,Var-1).
+
+before(C1,C2):-
+    head_literal(C1,P,_,_),
+    head_literal(C2,Q,_,_),
+    lower(P,Q).
+
+before(C1,C2):-
+    head_literal(C1,P,_,_),
+    head_literal(C2,P,_,_),
+    not recursive_clause(C1,P,A),
+    recursive_clause(C2,P,A).
