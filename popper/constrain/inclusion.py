@@ -32,7 +32,7 @@ class InclusionMixin(object):
         asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
 
         if not self.ground:
-            asp_lits.append(f"{cl_id} >= {clause.min_num}")
+            asp_lits.append(f"{cl_id}>={clause.min_num}")
             asp_lits += asp_literals_for_distinct_clause_variables(clause, cl_id=cl_id)
 
         return cl_handle, f"included_clause_{cl_handle}({cl_id}):-" + ",".join(asp_lits) + "."
@@ -49,7 +49,7 @@ class InclusionMixin(object):
         if not self.ground:
             for cl_num1, cl_nums in program.before.items():
                 for cl_num2 in cl_nums:
-                    asp_lits.append(f"C{cl_num1} < C{cl_num2}")
+                    asp_lits.append(f"C{cl_num1}<C{cl_num2}")
 
             asp_lits += asp_literals_for_distinct_clauses(program)
 

@@ -15,18 +15,7 @@ class SpecializationMixin(object):
 #    h4 = {last(A,B):- head(A,B),sumlist(A,B). last(A,B):- head(A,B),member(B,A).}.
 
 
-    def specialization_constraint(self, program, elimination=False):
-        spec_lits = []
+    def specialization_constraint(self, program):
+        program_ident = self.program_identifier(program)
 
-        for clause in program:
-            cl_id = str(clause.num) if self.ground else f"C{clause.num}"
-            cl_handle = self.clause_identifier(clause)
-            spec_lits.append(f"included_clause_{cl_handle}({cl_id})")
-            if not elimination:
-                spec_lits.append(f"{cl_id} < {len(program)}")
-
-        spec_lits.append(f"not clause({len(program)})")
-        if not self.ground:
-            spec_lits += asp_literals_for_distinct_clauses(program)
-
-        return ":-" +  ",".join(spec_lits) + "."
+        return f":-included_{program_ident},not clause({len(program)})."

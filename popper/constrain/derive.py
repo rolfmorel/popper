@@ -54,7 +54,7 @@ class DeriveMixin(object):
                     if cl_handle not in self.included_clause_handles:
                         self.included_clause_handles.add(cl_handle)
                         yield (RuleType.InclusionRule, cl_handle, rule)
-            if Elim in constraint_types:
+            if Elim in constraint_types or Spec in constraint_types:
                 yield (RuleType.InclusionRule, *self.program_inclusion_rule(program))
 
 
