@@ -25,7 +25,7 @@ class SpecializationMixin(object):
             if not elimination:
                 spec_lits.append(f"{cl_id} < {len(program)}")
 
-        spec_lits.append(f"not clause({len(program)})" if not elimination else "separable")
+        spec_lits.append(f"not clause({len(program)})")
         if not self.ground:
             spec_lits += asp_literals_for_distinct_clauses(program)
 

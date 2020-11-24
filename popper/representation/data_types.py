@@ -9,6 +9,8 @@ from collections import abc, defaultdict
 
 VAR_ANY = None # identifier for when the particular variable does not matter
 
+ClauseNum = int
+
 
 @dataclass(frozen=True)
 class PredicateSymbol():
@@ -157,7 +159,7 @@ class ProgramAtom(ModedAtom):
 
 
 class DefiniteClauseMixin():
-    num: int 
+    num: ClauseNum 
     head: ProgramAtom
     body: abc.Collection
 
@@ -168,9 +170,17 @@ class DefiniteClauseMixin():
         return any(literal.predicate == self.head.predicate for literal in self.body)
 
 
+class ClauseMetadata():
+    min_num: ClauseNum
+
+    def __init__(self, *args, min_num=0, **kwargs):
+        self.min_num = min_num
+        super().__init__(*args, **kwargs)
+
+
 @dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
-class UnorderedClause(DefiniteClauseMixin):
-    num: int  # (original) clause number
+class UnorderedClauseFrozen(DefiniteClauseMixin):
+    num: ClauseNum  # (original) clause number
     head: ProgramAtom
     body: Set[ProgramAtom] # : abc.Collection[ProgramAtom]
 
@@ -180,10 +190,13 @@ class UnorderedClause(DefiniteClauseMixin):
         head_, body_ = str(self.head.to_code()), (atom.to_code() for atom in self.body)
         return f"{head_} :- {{ {','.join(body_)} }}"
 
+class UnorderedClause(ClauseMetadata, UnorderedClauseFrozen):
+    pass
+
 
 @dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
-class OrderedClause(DefiniteClauseMixin):
-    num: int  # (original) clause number
+class OrderedClauseFrozen(DefiniteClauseMixin):
+    num: ClauseNum  # (original) clause number
     head: ProgramAtom
     body: Tuple[ProgramAtom, ...] # : abc.Sequence[ProgramAtom, ...]
 
@@ -192,6 +205,9 @@ class OrderedClause(DefiniteClauseMixin):
     def to_code(self):
         head_, body_ = str(self.head.to_code()), (atom.to_code() for atom in self.body)
         return f"{head_} :- {','.join(body_)}"
+
+class OrderedClause(ClauseMetadata, OrderedClauseFrozen):
+    pass
 
 
 @dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
@@ -214,23 +230,19 @@ class DefiniteProgramMixin():
         return tuple(cl.to_code() for cl in self.clauses)
 
 
-class Metadata():
-    # the following are metadata
-    before: Dict[int, abc.Set] # : abc.Mapping[int, abc.Set]
-    min_clause: Dict[int, int] # : abc.Mapping[int, int]
+class ProgramMetadata():
+    before: Dict[ClauseNum, Set[ClauseNum]] 
 
     def __init__(self, *args,
                  before=defaultdict(set),
-                 min_clause=defaultdict(lambda: 0),
                  **kwargs):
         self.before = before
-        self.min_clause = min_clause
         super().__init__(*args, **kwargs)
 
 
 # NB: Not dataclasses. We do this so we that __hash__, __eq__, etc. 
 #     are on the actual program and not its metadata
-class UnorderedProgram(Metadata, DefiniteProgramMixin):
+class UnorderedProgram(ProgramMetadata, DefiniteProgramMixin):
     # clauses : Tuple[UnorderedClause] # may assume this
 
     # TODO: move this to UnorderedClause
@@ -250,18 +262,19 @@ class UnorderedProgram(Metadata, DefiniteProgramMixin):
             if selected_lit == None:
                 raise ValueError(f"literals {literals} in program {self} could not be grounded")
             return [selected_lit] + \
-                   selection_closure(head_pred, grounded_vars.union(selected_lit.outputs),
+                   selection_closure(head_pred,
+                                     grounded_vars.union(selected_lit.outputs),
                                      literals.difference({selected_lit}))
 
         def transform_clause(clause):
             cl_id, head, body = clause
             ordered_body = tuple(selection_closure(head.predicate, head.inputs, body))
-            return OrderedClause(cl_id, head, ordered_body)
+            return OrderedClause(cl_id, head, ordered_body, min_num=clause.min_num)
 
         return OrderedProgram(tuple(map(transform_clause, self)),
-                              before=self.before, min_clause=self.min_clause)
+                              before=self.before)
 
 
-class OrderedProgram(Metadata, DefiniteProgramMixin):
+class OrderedProgram(ProgramMetadata, DefiniteProgramMixin):
     # clauses : Tuple[OrderedClause] # may assume this
     pass

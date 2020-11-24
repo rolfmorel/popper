@@ -79,7 +79,8 @@ class RepresentationMixin(object):
         clauses = tuple(map(lambda clause_key: 
                             UnorderedClause(clause_key,
                                             clause_id_to_head[clause_key],
-                                            clause_id_to_body[clause_key]),
+                                            clause_id_to_body[clause_key],
+                                            min_num=min_clause[clause_key]),
                             sorted(clause_id_to_head.keys())))
         
-        return UnorderedProgram(clauses=clauses, before=before, min_clause=min_clause)
+        return UnorderedProgram(clauses=clauses, before=before)
