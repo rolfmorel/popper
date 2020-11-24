@@ -17,6 +17,13 @@ class GeneralizationMixin(object):
                          f"clause_size({cl_id},{len(clause.body)})"]
 
         if not self.ground:
+            for cl_num1, cl_nums in program.before.items():
+                for cl_num2 in cl_nums:
+                    gen_lits.append(f"C{cl_num1}<C{cl_num2}")
+
+            for clause in program:
+                gen_lits.append(f"C{clause.num}>={clause.min_num}")
+
             gen_lits += asp_literals_for_distinct_clauses(program)
 
         return ":-" +  ",".join(gen_lits) + "."
