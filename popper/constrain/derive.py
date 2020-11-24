@@ -25,10 +25,10 @@ class DeriveMixin(object):
 
     def from_type(self, constraint_type, program):
         with self.context.derive:
-            if constraint_type == Gen: return self.specialization_constraint(program)
+            if constraint_type == Gen: return self.generalization_constraint(program)
             if constraint_type == Spec: return self.specialization_constraint(program)
-            if constraint_type == Elim: return self.specialization_constraint(program)
-            if constraint_type == Banish: return self.specialization_constraint(program)
+            if constraint_type == Elim: return self.elimination_constraint(program)
+            if constraint_type == Banish: return self.banish_constraint(program)
             assert False, "do not recognize '{constraint_type}' as a constraint type"
 
 
