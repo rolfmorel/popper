@@ -19,7 +19,7 @@ class SpecializationMixin(object):
         spec_lits = []
 
         for clause in program:
-            cl_id = str(clause[0]) if self.ground else f"C{clause[0]}"
+            cl_id = str(clause.num) if self.ground else f"C{clause.num}"
             cl_handle = self.clause_identifier(clause)
             spec_lits.append(f"included_clause_{cl_handle}({cl_id})")
             if not elimination:

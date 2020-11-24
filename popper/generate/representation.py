@@ -1,6 +1,7 @@
 from collections import defaultdict
 
-from ..representation import Atom, ProgramAtom, ModeDeclaration, ArgumentMode
+from ..representation import Atom, ProgramAtom, ModeDeclaration, ArgumentMode, \
+                             UnorderedClause, UnorderedProgram
 
 
 PRINT_ATOMS = ['head_literal', 'body_literal']
@@ -15,10 +16,21 @@ class RepresentationMixin(object):
         clause_id_to_head = {}
         clause_id_to_body = defaultdict(set)
         directions = defaultdict(lambda: defaultdict(lambda: ArgumentMode.Unknown))
+        # metadata
+        before = defaultdict(set)
+        min_clause = defaultdict(lambda: 0)
 
         for atom in model:
             if atom.name in PRINT_ATOMS:
                 print('PRINT_ATOM', atom)
+            if atom.name == "before":
+                clause1 = atom.arguments[0].number
+                clause2 = atom.arguments[1].number
+                before[clause1].add(clause2)
+            if atom.name == "min_clause":
+                clause = atom.arguments[0].number
+                min_clause_num = atom.arguments[1].number
+                min_clause[clause] = max(min_clause[clause], min_clause_num)
             if atom.name == "direction":
                 pred_name = atom.arguments[0].name
                 arg_idx = atom.arguments[1].number
@@ -63,7 +75,11 @@ class RepresentationMixin(object):
                 body_with_dirs.add(ProgramAtom(atom.predicate, atom.arguments, mode))
             clause_id_to_body[cl_id] = body_with_dirs
 
-        return tuple(map(lambda clause_key: (clause_key,
-                                             clause_id_to_head[clause_key],
-                                             clause_id_to_body[clause_key]),
-                         sorted(clause_id_to_head.keys())))
+
+        clauses = tuple(map(lambda clause_key: 
+                            UnorderedClause(clause_key,
+                                            clause_id_to_head[clause_key],
+                                            clause_id_to_body[clause_key]),
+                            sorted(clause_id_to_head.keys())))
+        
+        return UnorderedProgram(clauses=clauses, before=before, min_clause=min_clause)

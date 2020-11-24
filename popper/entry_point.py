@@ -10,7 +10,6 @@ except ImportError:
 from .input import parse_args
 from .setup import setup
 from .loop import loop
-from .representation import program_to_code
 
 
 def main():
@@ -69,6 +68,6 @@ def run_experiment(*args, api_version='1', **kwargs):
         assert args == (), args
     program, context = run(*args, **kwargs)
 
-    if program: program = program_to_code(program)
+    if program: program = program.to_code()
 
     return program, context

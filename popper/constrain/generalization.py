@@ -10,12 +10,11 @@ class GeneralizationMixin(object):
         gen_lits = []
 
         for clause in program:
-            cl_id = str(clause[0]) if self.ground else f"C{clause[0]}"
-            body = clause[2]
+            cl_id = str(clause.num) if self.ground else f"C{clause.num}"
 
             cl_handle = self.clause_identifier(clause)
             gen_lits += [f"included_clause_{cl_handle}({cl_id})",
-                         f"clause_size({cl_id},{len(body)})"]
+                         f"clause_size({cl_id},{len(clause.body)})"]
 
         if not self.ground:
             gen_lits += asp_literals_for_distinct_clauses(program)

@@ -1,6 +1,3 @@
-from popper.representation import clause_to_code
-
-
 class ConfigureMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('configure')
@@ -14,7 +11,7 @@ class ConfigureMixin(object):
         assert basic in (True, None)
         with self.context.configure.assert_:
             for clause in program:
-                self.prolog.assertz(clause_to_code(clause))
+                self.prolog.assertz(clause.to_code())
                 self.current_clauses.add(clause)
 
 

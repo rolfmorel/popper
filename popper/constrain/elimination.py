@@ -1,6 +1,5 @@
 from collections import OrderedDict, defaultdict
 
-from popper.representation import is_recursive_clause
 from .common import asp_literals_for_distinct_clauses
 
 
@@ -15,7 +14,7 @@ class EliminationMixin(object):
         for clause in program:
             _, head, body = clause
             preds_num_clauses[head.predicate] += 1
-            if is_recursive_clause(clause):
+            if clause.is_recursive():
                 preds_num_recursive_clauses[head.predicate] += 1
 
         recursively_called = set()
@@ -23,7 +22,7 @@ class EliminationMixin(object):
             something_added = False
             for clause in program:
                 _, head, body = clause
-                recursive = is_recursive_clause(clause)
+                recursive = clause.is_recursive()
                 for body_pred in (blit.predicate for blit in body):
                     if body_pred not in preds_num_clauses: continue
                     if (body_pred != head.predicate and recursive) \

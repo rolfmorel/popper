@@ -5,14 +5,13 @@ from functools import partial
 from itertools import chain
 from collections import defaultdict
 
-from .representation import program_to_ordered_program, clause_to_code, program_to_code, is_recursive_clause
 from .util import Result, Outcome
 from .util.debug import debug_print
 from .constrain.data_types import ConstraintType
 
 
 def output_program(program):
-    for clause in program_to_code(program):
+    for clause in program.to_code():
          print("  " + clause, file=stderr)
 
 
@@ -148,7 +147,7 @@ def constrain(context, Constrain, program_constraint_types, debug=None):
 
 def validate(Test, program, positive_outcome, negative_outcome):
     with Test.using(program, basic=True):
-        program_str = '[' + ','.join(f"'{clause_to_code(cl)}'" for cl in program) + ']'
+        program_str = '[' + ','.join(f"'{cl.to_code()}'" for cl in program) + ']'
         query_str = "current_predicate(popper_program_validation/4) -> " \
                    f"popper_program_validation({program_str}," \
                                              f"{positive_outcome.value}," \
@@ -185,7 +184,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                     context['num_programs_generated'] += 1
 
-                program = program_to_ordered_program(unordered_program)
+                program = unordered_program.to_ordered()
                 if debug:
                     DBG_PRINT(f"program {context['num_programs_generated']}:")
                     output_program(program)

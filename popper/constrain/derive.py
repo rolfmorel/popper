@@ -2,7 +2,6 @@ from itertools import chain
 
 from .data_types import ConstraintType, RuleType
 
-from ..representation import is_recursive_program
 from ..util import Outcome
 
 

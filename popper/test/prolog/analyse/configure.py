@@ -1,5 +1,4 @@
 import os
-from popper.representation import program_to_ordered_program, clause_to_code
 
 
 def arguments_to_prolog(arguments):
@@ -85,7 +84,7 @@ class ConfigureMixin(object):
         if basic is True:
             with self.context.configure.assert_:
                 for clause in program:
-                    self.prolog.assertz(clause_to_code(clause))
+                    self.prolog.assertz(clause.to_code())
         else:
             with self.context.configure.assert_.instrumented:
                 clauses = program_to_instrumented_prolog(program)
@@ -100,4 +99,3 @@ class ConfigureMixin(object):
             # 2 extra args in instrumented programs
             args = ','.join(['_'] * (self.modeh.arity + 2))  
             self.prolog.retractall(f"{self.modeh.predicate}({args})")
-
