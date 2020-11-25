@@ -148,7 +148,7 @@ def constrain(context, Constrain, program_constraint_types, debug=None):
 def validate(Test, program, positive_outcome, negative_outcome):
     with Test.using(program, basic=True):
         program_str = '[' + ','.join(f"'{cl.to_code()}'" for cl in program) + ']'
-        query_str = "current_predicate(popper_program_validation/4) -> " \
+        query_str = "current_predicate(popper_program_validation/4)," \
                    f"popper_program_validation({program_str}," \
                                              f"{positive_outcome.value}," \
                                              f"{negative_outcome.value}," \

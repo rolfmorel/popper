@@ -25,24 +25,11 @@ even(10).
 
 :- ['exs'].
 
-
-%% non_functional(Atom1):-
-%%     Atom1=..[f,A,B],
-%%     Atom2=..[f,A,C],
-%%     call(Atom2),
-%%     B \= C.
-
-%% popper_program_validation(_Prog):-
-%%     forall(pos(Atom),\+non_functional(Atom)),!.
-
 non_functional(Atom1):-
     Atom1=..[f,A,B],
     Atom2=..[f,A,C],
     call(Atom2),
     B \= C.
 
-popper_program_validation(_Prog):-
+popper_program_validation(_Prog,_,_,[generalisation]):-
     catch(call_with_time_limit(0.1,forall(pos(Atom),\+non_functional(Atom))),time_limit_exceeded,false),!.
-
-%% popper_program_validation(_):-
-%%     writeln('FAIL!!').
