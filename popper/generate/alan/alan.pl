@@ -82,11 +82,13 @@ literal(Clause,P,Vars):-
     not clause_var(Clause,Var-1).
 
 before(C1,C2):-
+    C1 < C2,
     head_literal(C1,P,_,_),
     head_literal(C2,Q,_,_),
     lower(P,Q).
 
 before(C1,C2):-
+    C1 < C2,
     head_literal(C1,P,_,_),
     head_literal(C2,P,_,_),
     not recursive_clause(C1,P,A),
@@ -104,6 +106,3 @@ min_clause(C,N):-
     head_literal(C,P,A,_),
     not recursive_clause(C,P,A),
     count_lower(P,N).
-
-%% #show before/2.
-%% #show min_clause/2.
