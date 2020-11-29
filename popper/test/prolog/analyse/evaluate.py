@@ -75,12 +75,7 @@ class EvaluateMixin(PrologEvaluateMixin):
             elif res:
                 assert len(assignments) == 1, "must be exactly one SeenLits"
                 seen_literals = assignments[0]['SuccesLits']
-                # NB: nasty parsing of output is due to SWIPL being moronic (i.e. only returning string results)
-                def split_pairs(pair):
-                    _, cl_id, lit_id = pair.split(',')
-                    return int(cl_id[1:]), int(lit_id[:-1])
-                seen_lits = list(split_pairs(pair_cl_id_lit_id)
-                             for pair_cl_id_lit_id in seen_literals)
+                seen_lits = list(tuple(pair.args) for pair in seen_literals)
 
                 max_seen_lits = maximum_of_seen_literals(seen_lits)
 
