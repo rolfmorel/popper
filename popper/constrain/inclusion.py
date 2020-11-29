@@ -27,7 +27,7 @@ class InclusionMixin(object):
 
     def clause_inclusion_rule(self, clause):
         cl_handle = self.clause_identifier(clause)
-        cl_id = str(clause[0]) if self.ground else "C"
+        cl_id = str(clause.num) if self.ground else "C"
 
         asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
 
@@ -42,8 +42,9 @@ class InclusionMixin(object):
         program_handle = self.program_identifier(program)
 
         asp_lits = []
-        for i, cl_handle in enumerate(self.clause_identifier(cl) for cl in program):
-            clause_var = f"C{i}" if not self.ground else str(i)
+        for cl in program:
+            cl_handle = self.clause_identifier(cl)
+            clause_var = f"C{cl.num}" if not self.ground else str(cl.num)
             asp_lits.append(f"included_clause_{cl_handle}({clause_var})")
 
         if not self.ground:
