@@ -1,7 +1,5 @@
-from .common import clause_to_asp_literals, \
+from .common import clause_to_asp_literals, asp_literals_for_distinct_clauses, \
                     asp_literals_for_distinct_clause_variables
-
-from .data_types import RuleType
 
 
 class InclusionMixin(object):
@@ -24,23 +22,35 @@ class InclusionMixin(object):
 
 
     def program_identifier(self, program, ground=None):
-        return '_'.join(sorted(self.clause_identifier(cl) for cl in program))
+        return 'program_' + '__'.join(sorted(self.clause_identifier(cl) for cl in program))
 
 
-    def inclusion_rule(self, clause):
+    def clause_inclusion_rule(self, clause):
         cl_handle = self.clause_identifier(clause)
         cl_id = str(clause[0]) if self.ground else "C"
 
         asp_lits = clause_to_asp_literals(clause, self.ground, cl_id=cl_id)
+
         if not self.ground:
+            asp_lits.append(f"{cl_id}>={clause.min_num}")
             asp_lits += asp_literals_for_distinct_clause_variables(clause, cl_id=cl_id)
 
         return cl_handle, f"included_clause_{cl_handle}({cl_id}):-" + ",".join(asp_lits) + "."
 
-    
-    def derive_inclusion_rules(self, program):
-        for clause in program:
-            cl_handle, rule = self.inclusion_rule(clause)
-            if cl_handle not in self.included_clause_handles:
-                self.included_clause_handles.add(cl_handle)
-                yield (RuleType.InclusionRule, cl_handle, rule)
+
+    def program_inclusion_rule(self, program):
+        program_handle = self.program_identifier(program)
+
+        asp_lits = []
+        for i, cl_handle in enumerate(self.clause_identifier(cl) for cl in program):
+            clause_var = f"C{i}" if not self.ground else str(i)
+            asp_lits.append(f"included_clause_{cl_handle}({clause_var})")
+
+        if not self.ground:
+            for cl_num1, cl_nums in program.before.items():
+                for cl_num2 in cl_nums:
+                    asp_lits.append(f"C{cl_num1}<C{cl_num2}")
+
+            asp_lits += asp_literals_for_distinct_clauses(program)
+
+        return program_handle, f"included_{program_handle}:-" + ",".join(asp_lits) + "."

@@ -1,14 +1,15 @@
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Union, Any, Tuple
+from typing import Union, Any, Tuple, Dict, Set
 
 from enum import Enum
-from collections import namedtuple
+from collections import abc, defaultdict
 
 
 VAR_ANY = None # identifier for when the particular variable does not matter
 
+ClauseNum = int
 
 
 @dataclass(frozen=True)
@@ -25,7 +26,7 @@ class ArgumentMode(Enum):
 @dataclass(frozen=True)
 class ModeDeclaration():
     predicate: PredicateSymbol
-    arguments: Tuple[ArgumentMode, ...]
+    arguments: Tuple[ArgumentMode, ...] # : abc.Sequence[ArgumentMode, ...]
 
     @property
     def arity(self):
@@ -62,20 +63,20 @@ class ModeDeclaration():
         return modebs
 
 
-class Assigned(ABC):
-    @property
-    @abstractmethod
-    def truth_value(): pass
-
-
-class Truthy(Assigned):
-    @property
-    def truth_value(): return True
-
-
-class Falsy(Assigned):
-    @property
-    def truth_value(): return False
+#class Assigned(ABC):
+#    @property
+#    @abstractmethod
+#    def truth_value(): pass
+#
+#
+#class Truthy(Assigned):
+#    @property
+#    def truth_value(): return True
+#
+#
+#class Falsy(Assigned):
+#    @property
+#    def truth_value(): return False
 
 
 Variable = int
@@ -87,7 +88,7 @@ Variable = int
 @dataclass(frozen=True)
 class Atom():
     predicate: PredicateSymbol
-    arguments: Tuple[Union[Variable,Any], ...]
+    arguments: Tuple[Union[Variable,Any], ...] # : abc.Sequence[Union[Variable,Any], ...]
 
     def __str__(self):
         args = (f"{arg}" for arg in self.arguments)
@@ -103,16 +104,16 @@ class ModedAtom(Atom):
     mode: ModeDeclaration
 
 
-@dataclass(frozen=True)
-class TruthyAtom(Atom,Truthy):
-    def negate(self): 
-        return DeniedAtom(self.predicate, self.arguments)
-
-
-@dataclass(frozen=True)
-class FalsyAtom(Atom,Falsy):
-    def negate(self): 
-        return AssertedAtom(self.predicate, self.arguments)
+#@dataclass(frozen=True)
+#class TruthyAtom(Atom,Truthy):
+#    def negate(self): 
+#        return DeniedAtom(self.predicate, self.arguments)
+#
+#
+#@dataclass(frozen=True)
+#class FalsyAtom(Atom,Falsy):
+#    def negate(self): 
+#        return AssertedAtom(self.predicate, self.arguments)
 
 
 @dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
@@ -128,6 +129,7 @@ class ProgramAtom(ModedAtom):
 
     def __repr__(self): # strictly speaking wrong, but more useful for debugging
         mode_args = (f"{m.value}V{arg}" for arg, m in zip(self.arguments, self.mode.arguments))
+        
         return f"{self.predicate}({','.join(mode_args)})"
 
     def split_arguments(self):
@@ -138,10 +140,6 @@ class ProgramAtom(ModedAtom):
             if mode == ArgumentMode.Output: outs.add((idx,arg))
             if mode == ArgumentMode.Unknown: unks.add((idx,arg))
         return ins, outs, unks
-
-    @property
-    def success(self): # interface of EvalAtom
-        return None # signifying 'unknown'
 
     @property
     def code_args(self):
@@ -158,3 +156,125 @@ class ProgramAtom(ModedAtom):
     @property
     def unknowns(self):
         return set(map(lambda idx_arg: idx_arg[1], self.split_arguments()[2]))
+
+
+class DefiniteClauseMixin():
+    num: ClauseNum 
+    head: ProgramAtom
+    body: abc.Collection
+
+    def __iter__(self):
+        yield self.num; yield self.head; yield self.body
+
+    def is_recursive(self):
+        return any(literal.predicate == self.head.predicate for literal in self.body)
+
+
+class ClauseMetadata():
+    min_num: ClauseNum
+
+    def __init__(self, *args, min_num=0, **kwargs):
+        self.min_num = min_num
+        super().__init__(*args, **kwargs)
+
+
+@dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
+class UnorderedClauseFrozen(DefiniteClauseMixin):
+    num: ClauseNum  # (original) clause number
+    head: ProgramAtom
+    body: Set[ProgramAtom] # : abc.Collection[ProgramAtom]
+
+    # __eq__, __le__ and __hash__ auto-generated 
+
+    def to_code(self):
+        head_, body_ = str(self.head.to_code()), (atom.to_code() for atom in self.body)
+        return f"{head_} :- {{ {','.join(body_)} }}"
+
+class UnorderedClause(ClauseMetadata, UnorderedClauseFrozen):
+    pass
+
+
+@dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
+class OrderedClauseFrozen(DefiniteClauseMixin):
+    num: ClauseNum  # (original) clause number
+    head: ProgramAtom
+    body: Tuple[ProgramAtom, ...] # : abc.Sequence[ProgramAtom, ...]
+
+    # __eq__, __le__ and __hash__ auto-generated 
+
+    def to_code(self):
+        head_, body_ = str(self.head.to_code()), (atom.to_code() for atom in self.body)
+        return f"{head_} :- {','.join(body_)}"
+
+class OrderedClause(ClauseMetadata, OrderedClauseFrozen):
+    pass
+
+
+@dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
+class DefiniteProgramMixin():
+    clauses: Tuple[DefiniteClauseMixin] # : abc.Sequence[DefiniteClause,...]
+
+    # __eq__, __le__ and __hash__ auto-generated (just for self.clauses)
+
+    def __iter__(self):
+        return iter(self.clauses)
+
+    def __len__(self):
+        return len(self.clauses)
+
+    def is_recursive(self):
+        # TODO: is incorrect on mutually recursive programs
+        return any(cl.is_recursive() for cl in self.clauses)
+
+    def to_code(self):
+        return tuple(cl.to_code() for cl in self.clauses)
+
+
+class ProgramMetadata():
+    before: Dict[ClauseNum, Set[ClauseNum]] 
+
+    def __init__(self, *args,
+                 before=defaultdict(set),
+                 **kwargs):
+        self.before = before
+        super().__init__(*args, **kwargs)
+
+
+# NB: Not dataclasses. We do this so we that __hash__, __eq__, etc. 
+#     are on the actual program and not its metadata
+class UnorderedProgram(ProgramMetadata, DefiniteProgramMixin):
+    # clauses : Tuple[UnorderedClause] # may assume this
+
+    # TODO: move this to UnorderedClause
+    def to_ordered(self):
+        def selection_closure(head_pred, grounded_vars, literals):
+            if len(literals) == 0: return []
+
+            rec_lits, nonrec_lits = [], []
+            for lit in literals:
+                if lit.inputs.issubset(grounded_vars):
+                    if lit.predicate == head_pred:
+                        rec_lits.append(lit)
+                    else:
+                        nonrec_lits.append(lit)
+
+            selected_lit = next(iter(nonrec_lits + rec_lits), None)
+            if selected_lit == None:
+                raise ValueError(f"literals {literals} in program {self} could not be grounded")
+            return [selected_lit] + \
+                   selection_closure(head_pred,
+                                     grounded_vars.union(selected_lit.outputs),
+                                     literals.difference({selected_lit}))
+
+        def transform_clause(clause):
+            cl_id, head, body = clause
+            ordered_body = tuple(selection_closure(head.predicate, head.inputs, body))
+            return OrderedClause(cl_id, head, ordered_body, min_num=clause.min_num)
+
+        return OrderedProgram(tuple(map(transform_clause, self)),
+                              before=self.before)
+
+
+class OrderedProgram(ProgramMetadata, DefiniteProgramMixin):
+    # clauses : Tuple[OrderedClause] # may assume this
+    pass

@@ -1,6 +1,3 @@
-from popper.representation import program_to_code
-
-
 class ConfigureMixin(object):
     def __init__(self, *args, **kwargs):
         self.context.add_child('configure')
@@ -12,7 +9,7 @@ class ConfigureMixin(object):
         with self.context.configure:
             code_program = program
             if not code:
-                code_program = '\n'.join(program_to_code(program))
+                code_program = '\n'.join(program.to_code())
 
             self.__prog_count += 1
             prog_name = f"program{self.__prog_count}"

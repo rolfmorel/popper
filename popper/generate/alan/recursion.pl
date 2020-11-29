@@ -8,6 +8,10 @@ non_separable:-
 num_recursive(N):-
     #count{C : recursive_clause(C,_,_)} == N.
 
+num_recursive(P,N):-
+    head_literal(_,P,_,_),
+    #count{C : recursive_clause(C,P,_)} == N.
+
 separable:-
     not non_separable.
 

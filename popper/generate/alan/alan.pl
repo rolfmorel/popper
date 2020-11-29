@@ -51,6 +51,10 @@ clause_size(Clause,N):-
 %%         bounded_vars(MaxVar,Vars)
 %%     } == BodySize.
 
+num_clauses(P,N):-
+    head_literal(_,P,_,_),
+    #count{C : head_literal(C,P,_,_)} == N.
+
 literal(Clause,P,Vars):-
     head_literal(Clause,P,_,Vars).
 literal(Clause,P,Vars):-
@@ -76,3 +80,30 @@ literal(Clause,P,Vars):-
     clause_var(Clause,Var),
     Var > 1,
     not clause_var(Clause,Var-1).
+
+before(C1,C2):-
+    head_literal(C1,P,_,_),
+    head_literal(C2,Q,_,_),
+    lower(P,Q).
+
+before(C1,C2):-
+    head_literal(C1,P,_,_),
+    head_literal(C2,P,_,_),
+    not recursive_clause(C1,P,A),
+    recursive_clause(C2,P,A).
+
+count_lower(P,N):-
+    head_literal(_,P,_,_),
+    #count{Q : lower(Q,P)} == N.
+
+min_clause(C,N+1):-
+    recursive_clause(C,P,A),
+    count_lower(P,N).
+
+min_clause(C,N):-
+    head_literal(C,P,A,_),
+    not recursive_clause(C,P,A),
+    count_lower(P,N).
+
+%% #show before/2.
+%% #show min_clause/2.

@@ -20,8 +20,8 @@ modeb(is_letter,1).
 modeb(is_lowercase,1).
 modeb(is_number,1).
 modeb(is_space,1).
-modeb(is_uppercase,1).
-modeb(mk_lowercase,2).
+%% modeb(is_uppercase,1).
+%% modeb(mk_lowercase,2).
 modeb(mk_uppercase,2).
 modeb(copyskip1,2).
 %% modeb(copy1,2).

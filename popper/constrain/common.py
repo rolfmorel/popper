@@ -39,7 +39,7 @@ def asp_literals_for_distinct_clauses(program):
         for clause2 in program:
             # (in)equality constraints are symmetric, hence no need to consider both orderings
             if clause2 == clause1: break 
-            cl1_id, cl2_id = f"C{clause1[0]}", f"C{clause2[0]}"
+            cl1_id, cl2_id = f"C{clause1.num}", f"C{clause2.num}"
             # ensure clauses do not overlap (smaller grounding as well)
             lits += [cl1_id + "!=" + cl2_id] 
     return lits
