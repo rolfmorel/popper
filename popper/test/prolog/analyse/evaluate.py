@@ -63,7 +63,7 @@ class EvaluateMixin(PrologEvaluateMixin):
                                        f"{example}," \
                                         "assoc_to_keys(SeenLits,SuccesLits))"
             with self.context.evaluate.instrumented.query:
-                self.seen_lits_of_subprogs  = set()
+                self.seen_lits_of_subprogs = set()
                 res, assignments = self.query(instrumented_example_call)
 
             if res is None:
