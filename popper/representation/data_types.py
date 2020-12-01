@@ -207,8 +207,12 @@ class OrderedClauseFrozen(DefiniteClauseMixin):
         return f"{head_} :- {','.join(body_)}"
 
 class OrderedClause(ClauseMetadata, OrderedClauseFrozen):
-    pass
-
+    def subclause(self, index):  # index is inclusive for entire clause, exclusive for body
+        subclause = __class__(num=self.num, head=self.head, min_num=self.min_num,
+                              body=self.body[:index])
+        if self.is_recursive() and not subclause.is_recursive():
+            subclause.min_num -= 1
+        return subclause
 
 @dataclass(frozen=True, order=True)  # NB: order just to have an arbitrary canonical order
 class DefiniteProgramMixin():
@@ -227,7 +231,10 @@ class DefiniteProgramMixin():
         return any(cl.is_recursive() for cl in self.clauses)
 
     def to_code(self):
-        return tuple(cl.to_code() for cl in self.clauses)
+        return tuple(cl.to_code() + '.' for cl in self.clauses)
+
+    def clause_by_num(self, num):
+        return next(cl for cl in self.clauses if cl.num == num)
 
 
 class ProgramMetadata():
@@ -277,4 +284,27 @@ class UnorderedProgram(ProgramMetadata, DefiniteProgramMixin):
 
 class OrderedProgram(ProgramMetadata, DefiniteProgramMixin):
     # clauses : Tuple[OrderedClause] # may assume this
-    pass
+    def subprogram_from_indices(self, max_seen_lits: dict):
+        subprog_clauses = []
+        for cl_id in sorted(max_seen_lits.keys()):
+            lit_id = max_seen_lits[cl_id]
+            subprog_clauses.append(self.clause_by_num(cl_id).subclause(lit_id))
+
+        subprog = __class__(tuple(subprog_clauses), before=dict())
+
+        new_before = defaultdict(lambda: set())
+        for cl_num1, cl_nums in self.before.items():
+            if cl_num1 not in max_seen_lits: continue
+            for cl_num2 in cl_nums:
+                if cl_num2 not in max_seen_lits: continue
+
+                if subprog.clause_by_num(cl_num1).head.predicate != \
+                        subprog.clause_by_num(cl_num2).head.predicate:
+                    new_before[cl_num1].add(cl_num2)
+                else:
+                    if subprog.clause_by_num(cl_num2).is_recursive() and \
+                            not subprog.clause_by_num(cl_num1).is_recursive():
+                        new_before[cl_num1].add(cl_num2)
+        subprog.before = new_before
+
+        return subprog

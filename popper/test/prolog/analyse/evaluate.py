@@ -16,16 +16,6 @@ def maximum_of_seen_literals(seen_lits):
     return max_seen_lits
 
 
-def seen_literals_to_subprogram(program, max_seen_lits):
-    subprog = []
-    for cl_id in sorted(max_seen_lits.keys()):
-        lit_id = max_seen_lits[cl_id]
-        clause_id, head, body = program[cl_id]
-        subprog.append((clause_id, head, body[:lit_id]))
-
-    return tuple(subprog)
-
-
 class EvaluateMixin(PrologEvaluateMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,7 +50,7 @@ class EvaluateMixin(PrologEvaluateMixin):
                                        f"{example}," \
                                         "assoc_to_keys(SeenLits,SuccesLits))"
             with self.context.evaluate.instrumented.query:
-                self.seen_lits_of_subprogs  = set()
+                self.seen_lits_of_subprogs = set()
                 res, assignments = self.query(instrumented_example_call)
 
             if res is None:
@@ -72,19 +62,14 @@ class EvaluateMixin(PrologEvaluateMixin):
             elif res:
                 assert len(assignments) == 1, "must be exactly one SeenLits"
                 seen_literals = assignments[0]['SuccesLits']
-                # NB: nasty parsing of output is due to SWIPL being moronic (i.e. only returning string results)
-                def split_pairs(pair):
-                    _, cl_id, lit_id = pair.split(',')
-                    return int(cl_id[1:]), int(lit_id[:-1])
-                seen_lits = list(split_pairs(pair_cl_id_lit_id)
-                             for pair_cl_id_lit_id in seen_literals)
+                seen_lits = list(tuple(pair.args) for pair in seen_literals)
 
                 max_seen_lits = maximum_of_seen_literals(seen_lits)
 
-                assert all(lit_id == len(program[cl_id][2])
+                assert all(lit_id == len(program.clauses[cl_id].body)
                            for cl_id, lit_id in max_seen_lits.items()), "successful subprograms use entire clauses"
 
-                subprog = seen_literals_to_subprogram(program, max_seen_lits)
+                subprog = program.subprogram_from_indices(max_seen_lits)
                 successful_subprogs.add(subprog)
             else:
                 # TODO: filter out subprogs we know will succeed
@@ -92,7 +77,7 @@ class EvaluateMixin(PrologEvaluateMixin):
                 # strictly contained in the SLD-branch of another subprogram.
 
                 for max_seen_lits in self.seen_lits_of_subprogs:
-                    subprog = seen_literals_to_subprogram(program, dict(max_seen_lits))
+                    subprog = program.subprogram_from_indices(dict(max_seen_lits))
                     failing_subprogs.add(subprog)
 
             return res, successful_subprogs, failing_subprogs

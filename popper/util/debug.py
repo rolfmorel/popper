@@ -4,7 +4,9 @@ from sys import stderr
 from time import time
 
 
-_start_time = time()
+def init():
+    global _start_time
+    _start_time = time()
 
 def debug_print(*args, prefix="", debug=False, **kwargs):
     if debug:

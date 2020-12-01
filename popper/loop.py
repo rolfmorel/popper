@@ -157,7 +157,7 @@ def validate(Test, program, positive_outcome, negative_outcome):
         
         constraint_types = set()
         for constraint_name in next(Test.prolog.query(query_str))['Constraints']:
-            constraint_type = ConstraintType(constraint_name)
+            constraint_type = ConstraintType(constraint_name.value)
             constraint_types.add(constraint_type)
 
         return constraint_types

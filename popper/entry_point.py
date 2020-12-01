@@ -10,6 +10,7 @@ except ImportError:
 from .input import parse_args
 from .setup import setup
 from .loop import loop
+from popper import util
 
 
 def main():
@@ -38,6 +39,7 @@ def main():
 def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
         ground_constraints, no_pruning, timeout, minimal_testing=True, debug=False, stats=False, tester='prolog',
         clingo_args=[]):
+    util.debug.init()
     time_entered = time.time()
 
     if timeout:
