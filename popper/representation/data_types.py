@@ -210,7 +210,7 @@ class OrderedClause(ClauseMetadata, OrderedClauseFrozen):
     def subclause(self, index):  # index is inclusive for entire clause, exclusive for body
         subclause = __class__(num=self.num, head=self.head, min_num=self.min_num,
                               body=self.body[:index])
-        if self.is_recursive and not subclause.is_recursive:
+        if self.is_recursive() and not subclause.is_recursive():
             subclause.min_num -= 1
         return subclause
 
@@ -231,7 +231,7 @@ class DefiniteProgramMixin():
         return any(cl.is_recursive() for cl in self.clauses)
 
     def to_code(self):
-        return tuple(cl.to_code() for cl in self.clauses)
+        return tuple(cl.to_code() + '.' for cl in self.clauses)
 
     def clause_by_num(self, num):
         return next(cl for cl in self.clauses if cl.num == num)
