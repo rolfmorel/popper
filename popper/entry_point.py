@@ -21,6 +21,7 @@ def main():
                'minimal_testing' : not args.test_all,
                'debug' : args.debug,
                'clingo_args' : clingo_args,
+               'func_test' : args.func_test,
                'stats' : args.stats }
     if args.analyse:
         kwargs['tester'] = 'prolog.analyse'
@@ -38,7 +39,7 @@ def main():
 
 def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
         ground_constraints, no_pruning, timeout, minimal_testing=True, debug=False, stats=False, tester='prolog',
-        clingo_args=[]):
+        clingo_args=[], func_test=False):
     util.debug.init()
     time_entered = time.time()
 
@@ -51,7 +52,7 @@ def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
                 setup(mode_file, bk_file, examples_file, max_literals, eval_timeout,
                       ground_constraints, no_pruning, minimal_testing=minimal_testing, 
                       debug=debug, stats=stats, tester=tester,
-                      clingo_args=clingo_args)
+                      clingo_args=clingo_args, func_test=func_test)
 
         program, context = loop(context, Generate, Test, Constrain, debug=debug)
     finally:
