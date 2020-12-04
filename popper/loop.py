@@ -145,20 +145,28 @@ def constrain(context, Constrain, program_constraint_types, debug=None):
     )
 
 
-def validate(Test, program, positive_outcome, negative_outcome):
+def validate(Test, program, positive_outcome, negative_outcome, func_test=False):
     with Test.using(program, basic=True):
         program_str = '[' + ','.join(f"'{cl.to_code()}'" for cl in program) + ']'
-        query_str = "current_predicate(popper_program_validation/4)," \
-                   f"popper_program_validation({program_str}," \
-                                             f"{positive_outcome.value}," \
-                                             f"{negative_outcome.value}," \
-                                              "Constraints) ; " \
-                    "Constraints = []"
+        query_str = "(current_predicate(popper_program_validation/4)," \
+                    f"popper_program_validation({program_str}," \
+                                              f"{positive_outcome.value}," \
+                                              f"{negative_outcome.value}," \
+                                               "Constraints) ; " \
+                     "Constraints = [])"
         
         constraint_types = set()
-        for constraint_name in next(Test.prolog.query(query_str))['Constraints']:
+        _, assignments = Test.query(query_str)
+        for constraint_name in assignments[0]['Constraints']:
             constraint_type = ConstraintType(constraint_name.value)
             constraint_types.add(constraint_type)
+
+        if func_test:
+            for pos_ex in Test.pos_examples:
+                res, _ = Test.query(f"popper_non_functional({pos_ex})")
+                if res:
+                    constraint_types.add(ConstraintType.Generalisation)
+                    break
 
         return constraint_types
 
@@ -202,7 +210,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
                         Test.program_outcomes[subprog] = outcomes
                 program_outcomes = new_program_outcomes
 
-                constraint_types = validate(Test, program, *program_outcomes[program])
+                constraint_types = validate(Test, program, *program_outcomes[program], func_test=Test.func_test)
                 # NB: len(constraint_types) == 0 iff passed validation
                 if debug and len(constraint_types) != 0:
                     DBG_PRINT("validation constraints: " + \
