@@ -1,3 +1,4 @@
+import time
 import logging
 from collections import OrderedDict
 
@@ -19,7 +20,10 @@ class CodeFormatter(logging.Formatter):
 
 
 class Clingo():
-    def __init__(self, args=[]):
+    def __init__(self, args=[], end_time=None):
+        self.end_time = end_time
+        self.args = args
+
         self.code_log = logging.getLogger('solver_code')
         #TODO: enable the following logging by a cmdline option
         self.code_log.disabled = True
@@ -30,7 +34,7 @@ class Clingo():
 
         self.code_log.warn("NEW INSTANCE")
 
-        self.clingo_ctl = clingo.Control(args)
+        self.clingo_ctl = clingo.Control(self.args)
 
         self.added = OrderedDict()
         self.grounded = []
@@ -71,8 +75,13 @@ class Clingo():
         return self.clingo_ctl.assign_external(symbol, truth_value, *args, **kwargs)
 
     def get_model(self):
-        with self.clingo_ctl.solve(yield_=True) as handle:
-            model = next(handle, None)
-            if model:
-                return model.symbols(atoms=True)
-            return model
+        with self.clingo_ctl.solve(yield_=True, async_=True) as handle:
+            handle.resume()
+            timeout = self.end_time - time.time() if self.end_time else None
+            did_finish = handle.wait(timeout)
+            if timeout and not did_finish:
+                raise InterruptedError(f"Clingo did not return a model within {timeout} seconds")
+            m = handle.model()
+            if m:
+                return m.symbols(atoms=True)
+            return m
