@@ -234,7 +234,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                     constrain(context, Constrain, program_constraint_types, debug=debug)
         return None, context
-    except KeyboardInterrupt: # Also happens on timer interrupt
+    except (KeyboardInterrupt, InterruptedError): # Also happens on timer interrupt
         context['interrupted'] = True
         return False, context
     except Exception as ex:

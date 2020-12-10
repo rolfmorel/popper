@@ -1,3 +1,5 @@
+import time
+
 from . import generate, test, constrain
 
 from .solvers.asp import Clingo
@@ -7,7 +9,7 @@ from .util import TimeAccumulatingContext, DummyTimeAccumulatingContext
 
 def setup(mode_file, bk_file, examples_file,
           max_literals, eval_timeout, ground_constraints, no_pruning,
-          minimal_testing, debug, stats, tester, clingo_args, func_test):
+          minimal_testing, debug, stats, tester, clingo_args, func_test, timeout):
     ContextClass = TimeAccumulatingContext if stats else DummyTimeAccumulatingContext 
     context = ContextClass()
     with context:
@@ -15,7 +17,7 @@ def setup(mode_file, bk_file, examples_file,
 
         debug = False # hack to disable debug messages from stages
 
-        asp_solver = Clingo(clingo_args)
+        asp_solver = Clingo(clingo_args, end_time=time.time() + timeout)
 
         Generate = generate.Generate(mode_file, max_literals=max_literals, debug=debug, context=ContextClass(),
                                      solver=asp_solver)

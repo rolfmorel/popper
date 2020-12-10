@@ -52,7 +52,7 @@ def run(mode_file, bk_file, examples_file, max_literals, eval_timeout,
                 setup(mode_file, bk_file, examples_file, max_literals, eval_timeout,
                       ground_constraints, no_pruning, minimal_testing=minimal_testing, 
                       debug=debug, stats=stats, tester=tester,
-                      clingo_args=clingo_args, func_test=func_test)
+                      clingo_args=clingo_args, func_test=func_test, timeout=timeout)
 
         program, context = loop(context, Generate, Test, Constrain, debug=debug)
     finally:
