@@ -3,45 +3,44 @@
 %% ########################################
 
 #defined invented/2.
-#defined lower/2.
+#defined inv_lower/2.
 
-pred(P,A):-
-    modeh(P,A).
-pred(P,A):-
-    modeb(P,A).
+lower(P,Q):-
+    modeh(P,_),
+    invented(Q,_).
+lower(P,Q):-
+    inv_lower(P,Q).
 lower(A,B):-
     lower(A,C),
     lower(C,B).
-modeh(P,A):-
-    invented(P,A).
-modeb(P,A):-
-    invented(P,A).
 
-multiclause(P,A):-
-    invented(_,_),
-    head_literal(Clause1,P,A,_),
-    head_literal(Clause2,P,A,_),
-    Clause1 < Clause2.
+%% AN INVENTED SYMBOL MUST APPEAR IN THE HEAD OF A CLAUSE
+:-
+    invented(P,A),
+    not head_literal(_,P,A,_).
+
+%% AN INVENTED SYMBOL MUST APPEAR IN THE BODY OF A CLAUSE
+:-
+    invented(P,A),
+    not body_literal(_,P,A,_).
+
+:-
+    invented(P,_),
+    inv_lower(Q,P),
+    not invented(Q,_).
+
+%% USE INVENTED SYMBOLS IN ORDER
+:-
+    invented(P,_),
+    lower(Q,P),
+    not head_literal(_,Q,_,_).
 
 %% MUST HAVE NON-INVENTED TARGET PREDICATE
 :-
-    #count{P,A : head_literal(_,P,A,_), not invented(P,A)} == 0.
-
-%% IF AN INVENTED SYMBOL IS IN THE HEAD OF A CLAUSE IT MUST ALSO APPEAR IN THE BODY OF A CLAUSE
-in_lower(P,A):-
-    head_literal(Clause1,Q,_,_),
-    body_literal(Clause1,P,A,_),
-    lower(Q,P).
-:-
-    invented(P,A),
-    head_literal(_,P,A,_),
-    not in_lower(P,A).
-
-%% IF AN INVENTED SYMBOL IS IN THE BODY OF A CLAUSE THEN IT MUST ALSO APPEAR IN THE HEAD OF A CLAUSE
-:-
-    invented(P,A),
-    body_literal(_,P,A,_),
+    modeh(P,A),
     not head_literal(_,P,A,_).
+%% :-
+%%     #count{P,A : head_literal(_,P,A,_), not invented(P,A)} == 0.
 
 %% FIRST CLAUSE CANNOT BE INVENTED
 :-
@@ -50,22 +49,22 @@ in_lower(P,A):-
 
 %% ORDER CLAUSES BY ORDERING
 %% f(A):- inv1(A)
-%% inv2(A):- q(A) (clause1)
-%% inv1(A):- inv2(A) (clause2)
+%% inv2(A):- q(A) (C1)
+%% inv1(A):- inv2(A) (C2)
 :-
-    Clause1>0,
-    Clause2>0,
-    head_literal(Clause2,P1,_,_),
-    head_literal(Clause1,P2,_,_),
+    C1 > 0,
+    C2 > 0,
+    head_literal(C2,P1,_,_),
+    head_literal(C1,P2,_,_),
     lower(P1,P2),
-    Clause2 > Clause1.
+    C2 > C1.
 
 %% FORCE ORDERING
 %% inv2(A):- inv1(A)
 :-
-    Clause > 0,
-    head_literal(Clause,Inv2,_,_),
-    body_literal(Clause,Inv1,_,_),
+    C > 0,
+    head_literal(C,Inv2,_,_),
+    body_literal(C,Inv1,_,_),
     lower(Inv1,Inv2).
 
 %% USE INVENTED SYMBOLS IN ORDER
@@ -85,29 +84,18 @@ in_lower(P,A):-
 %% inv2(A,B):-right(A,C),right(C,B).
 %% TODO: GENERALISE FOR MULTIPLE CLAUSES
 
-%% same_size(Clause1,Clause2):-
-%%     clause_size(Clause1,N),
-%%     clause_size(Clause2,N),
-%%     Clause1 < Clause2.
-
 :-
-    Clause1 > 0,
-    Clause2 > 0,
-    %% TODO: DO THESE TWO HELP?
-    %% clause_size(Clause1,N),
-    %% clause_size(Clause2,N),
-    %% same_size(Clause1,Clause2),
-    Clause1 < Clause2,
-    head_literal(Clause1,HeadPred1,A1,_),
-    head_literal(Clause2,HeadPred2,A2,_),
+    C1 > 0,
+    C2 > 0,
+    C1 < C2,
+    head_literal(C1,HeadPred1,A1,_),
+    head_literal(C2,HeadPred2,A2,_),
     invented(HeadPred1,A1),
     invented(HeadPred2,A2),
-    %% TODO: CHECK THIS !
-    %% lower(HeadPred1,HeadPred2),
     HeadPred1 != HeadPred2,
-    not multiclause(HeadPred1,A1),
-    not multiclause(HeadPred2,A2),
-    body_literal(Clause2,P,_,Vars): body_literal(Clause1,P,_,Vars).
+    %% not multiclause(HeadPred1,A1),
+    %% not multiclause(HeadPred2,A2),
+    body_literal(C2,P,_,Vars): body_literal(C1,P,_,Vars).
 
 %% PREVENTS THIS:
 %% p(A,B):-inv1(A,B).
@@ -133,63 +121,63 @@ in_lower(P,A):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% INHERIT TYPE FROM CALLING PREDICATE
-%% p(A,B):-inv1(A,B). (clause2)
-%% inv1(X,Y):-q(X,Y). (clause1)
+%% p(A,B):-inv1(A,B). (C2)
+%% inv1(X,Y):-q(X,Y). (C1)
 %% X and Y should inherit the types of A and B respectively
-var_type(Clause1,Var1,Type):-
+var_type(C1,Var1,Type):-
     invented(P,A),
-    Clause1 > 0,
-    Clause1 != Clause2,
-    head_literal(Clause1,P,A,Vars1),
-    body_literal(Clause2,P,A,Vars2),
+    C1 > 0,
+    C1 != C2,
+    head_literal(C1,P,A,Vars1),
+    body_literal(C2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
     var_pos(Var2,Vars2,Pos),
-    var_type(Clause2,Var2,Type).
+    var_type(C2,Var2,Type).
 
 %% INHERIT TYPE FROM CALLED PREDICATE
-%% p(A,B):-inv1(A,B). (clause2)
-%% inv1(X,Y):-q(X,Y). (clause1)
+%% p(A,B):-inv1(A,B). (C2)
+%% inv1(X,Y):-q(X,Y). (C1)
 %% A and B should inherit the types of X and Y respectively
-var_type(Clause2,Var2,Type):-
+var_type(C2,Var2,Type):-
     invented(P,A),
-    Clause1 > 0,
-    Clause1 != Clause2,
-    head_literal(Clause1,P,A,Vars1),
-    body_literal(Clause2,P,A,Vars2),
+    C1 > 0,
+    C1 != C2,
+    head_literal(C1,P,A,Vars1),
+    body_literal(C2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
     var_pos(Var2,Vars2,Pos),
-    var_type(Clause1,Var1,Type).
+    var_type(C1,Var1,Type).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% DIRECTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% INHERIT SAFETY FROM CALLING PREDICATE
-%% p(A,B):-inv1(A,B). (clause2)
-%% inv1(X,Y):-q(X,Y). (clause1)
+%% p(A,B):-inv1(A,B). (C2)
+%% inv1(X,Y):-q(X,Y). (C1)
 %% if A is safe then X is safe
-%% safe_var(Clause1,Var1):-
-%%     Clause1 > 0,
+%% safe_var(C1,Var1):-
+%%     C1 > 0,
 %%     invented(P,A),
-%%     Clause1 != Clause2,
-%%     head_literal(Clause1,P,A,Vars1),
-%%     body_literal(Clause2,P,A,Vars2),
+%%     C1 != C2,
+%%     head_literal(C1,P,A,Vars1),
+%%     body_literal(C2,P,A,Vars2),
 %%     var_pos(Var1,Vars1,Pos),
 %%     var_pos(Var2,Vars2,Pos),
-%%     safe_var(Clause2,Var2).
+%%     safe_var(C2,Var2).
 
 %% INHERIT SAFETY FROM CALLED PREDICATE
-%% p(A,B):-inv1(A,B). (clause2)
-%% inv1(X,Y):-q(X,Y). (clause1)
+%% p(A,B):-inv1(A,B). (C2)
+%% inv1(X,Y):-q(X,Y). (C1)
 %% if Y is safe then B is safe
-%% safe_var(Clause2,Var2):-
-%%     Clause1 > 0,
+%% safe_var(C2,Var2):-
+%%     C1 > 0,
 %%     invented(P,A),
-%%     Clause1 != Clause2,
-%%     head_literal(Clause1,P,A,Vars1),
-%%     body_literal(Clause2,P,A,Vars2),
+%%     C1 != C2,
+%%     head_literal(C1,P,A,Vars1),
+%%     body_literal(C2,P,A,Vars2),
 %%     var_pos(Var1,Vars1,Pos),
 %%     var_pos(Var2,Vars2,Pos),
-%%     safe_var(Clause1,Var1).
+%%     safe_var(C1,Var1).
 
 %% INHERIT DIRECTION FROM BODY LITERALS
 %% TODO: IMPROVE HORRIBLE HACK

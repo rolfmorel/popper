@@ -1,4 +1,4 @@
-%% TYPE MATCHING
+%% %% TYPE MATCHING
 var_type(Clause,Var,Type):-
     var_in_literal(Clause,P,Vars,Var),
     var_pos(Var,Vars,Pos),

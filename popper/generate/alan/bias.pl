@@ -27,8 +27,8 @@ head_connected(Clause,Var1):-
 %% prevents: p(A):-q(A,B),q(B,A)
 :-
     irreflexive(P,2),
-    body_literal(Clause,P,2,Vars1),
-    body_literal(Clause,P,2,Vars2),
+    body_literal(C,P,2,Vars1),
+    body_literal(C,P,2,Vars2),
     Vars1 = (Var1,Var2),
     Vars2 = (Var2,Var1),
     Vars1 < Vars2.
