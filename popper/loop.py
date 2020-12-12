@@ -236,7 +236,8 @@ def loop(context, Generate, Test, Constrain, debug=False):
         return None, context
     except (KeyboardInterrupt, InterruptedError) as e: # Also happens on timer interrupt
         context['interrupted'] = True
-        print(str(e), file=stderr, flush=True)
+        if str(e):
+            print(str(e), file=stderr, flush=True)
         return False, context
     except Exception as ex:
         print("PROGRAM:", file=stderr)
