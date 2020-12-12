@@ -8,6 +8,7 @@ from collections import defaultdict
 from .util import Result, Outcome
 from .util.debug import debug_print
 from .constrain.data_types import ConstraintType
+from .solvers.asp.clingo import SolvingTimeout, GroundingTimeout
 
 
 def output_program(program):
@@ -234,10 +235,9 @@ def loop(context, Generate, Test, Constrain, debug=False):
 
                     constrain(context, Constrain, program_constraint_types, debug=debug)
         return None, context
-    except (KeyboardInterrupt, InterruptedError) as e: # Also happens on timer interrupt
+    except (GroundingTimeout, SolvingTimeout) as e: 
         context['interrupted'] = True
-        if str(e):
-            print(str(e), file=stderr, flush=True)
+        print(str(e), file=stderr, flush=True)
         return False, context
     except Exception as ex:
         print("PROGRAM:", file=stderr)

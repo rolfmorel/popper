@@ -8,6 +8,14 @@ import clingo
 from clingo import Function
 
 
+class SolvingTimeout(BaseException):
+    pass
+
+
+class GroundingTimeout(BaseException):
+    pass
+
+
 class CodeFormatter(logging.Formatter):
     info_fmt = logging.Formatter('{message}', style='{')
     warning_fmt = logging.Formatter('% WARN: {message}', style='{')
@@ -73,7 +81,7 @@ class Clingo():
         except (KeyboardInterrupt, TimeoutError) as exc:
             future.cancel()
             if time.time() > self.end_time:
-                raise InterruptedError(f"Gringo did not finish grounding within {timeout} seconds") from exc
+                raise GroundingTimeout(f"Grounding did not terminate within {timeout} seconds") from exc
             else:
                 raise exc
 
@@ -97,7 +105,7 @@ class Clingo():
             timeout = self.end_time - time.time() if self.end_time else None
             did_finish = handle.wait(timeout)
             if timeout and not did_finish:
-                raise InterruptedError(f"Clingo did not return a model within {timeout} seconds")
+                raise SolvingTimeout(f"Solving did not terminate within {timeout} seconds")
             m = handle.model()
             if m:
                 return m.symbols(atoms=True)
