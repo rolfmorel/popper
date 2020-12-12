@@ -1,5 +1,7 @@
 import time
 import logging
+import concurrent.futures.thread
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from collections import OrderedDict
 
 import clingo
@@ -36,6 +38,8 @@ class Clingo():
 
         self.clingo_ctl = clingo.Control(self.args)
 
+        self.executor= ThreadPoolExecutor(max_workers=1)
+
         self.added = OrderedDict()
         self.grounded = []
         self.assigned = OrderedDict()
@@ -59,7 +63,20 @@ class Clingo():
             grounded = set(name for name, _ in self.grounded)
             parts = list((name, []) for name in self.added not in grounded)
 
-        self.clingo_ctl.ground(parts, context=context)
+        future = self.executor.submit(lambda : self.clingo_ctl.ground(parts, context=context))
+        # The following is a hack to make sure that a cancelled thread won't be joined on by Python
+        if next(iter(self.executor._threads)) in concurrent.futures.thread._threads_queues:
+            del concurrent.futures.thread._threads_queues[next(iter(self.executor._threads))]
+        timeout = self.end_time - time.time()
+        try:
+            future.result(timeout=timeout)
+        except (KeyboardInterrupt, TimeoutError) as exc:
+            future.cancel()
+            if time.time() > self.end_time:
+                raise InterruptedError(f"Gringo did not finish grounding within {timeout} seconds") from exc
+            else:
+                raise exc
+
         self.grounded.extend(parts)
 
     def release(self, atom, *args, **kwargs):
