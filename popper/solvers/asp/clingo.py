@@ -1,7 +1,7 @@
 import time
 import logging
-import concurrent.futures.thread
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+import queue
+from threading import Thread
 from collections import OrderedDict
 
 import clingo
@@ -30,6 +30,12 @@ class CodeFormatter(logging.Formatter):
 
 
 class Clingo():
+    def grounding_worker(self):
+        while True:
+            parts, context = self.grounding_queue.get()
+            self.clingo_ctl.ground(parts, context=context)
+            self.grounding_finished.put((parts, context))
+
     def __init__(self, args=[], end_time=None):
         self.end_time = end_time
         self.args = args
@@ -46,7 +52,10 @@ class Clingo():
 
         self.clingo_ctl = clingo.Control(self.args)
 
-        self.executor= ThreadPoolExecutor(max_workers=1)
+        self.grounding_queue = queue.Queue()
+        self.grounding_finished = queue.Queue()
+        self.grounding_thread = Thread(target=self.grounding_worker, daemon=True)
+        self.grounding_thread.start()
 
         self.added = OrderedDict()
         self.grounded = []
@@ -71,19 +80,14 @@ class Clingo():
             grounded = set(name for name, _ in self.grounded)
             parts = list((name, []) for name in self.added not in grounded)
 
-        future = self.executor.submit(lambda : self.clingo_ctl.ground(parts, context=context))
-        # The following is a hack to make sure that a cancelled thread won't be joined on by Python
-        if next(iter(self.executor._threads)) in concurrent.futures.thread._threads_queues:
-            del concurrent.futures.thread._threads_queues[next(iter(self.executor._threads))]
+        self.grounding_queue.put((parts, context))
         timeout = self.end_time - time.time()
         try:
-            future.result(timeout=timeout)
-        except (KeyboardInterrupt, TimeoutError) as exc:
-            future.cancel()
-            if time.time() > self.end_time:
-                raise GroundingTimeout(f"Grounding did not terminate within {timeout} seconds") from exc
-            else:
-                raise exc
+            self.grounding_finished.get(timeout=timeout)
+        except queue.Empty:
+            raise GroundingTimeout(f"Grounding did not terminate within {timeout} seconds") 
+        except KeyboardInterrupt as e: # for some reason get() throws this instead of Empty...
+            raise GroundingTimeout(f"Grounding did not terminate within {timeout} seconds") from e
 
         self.grounded.extend(parts)
 
@@ -113,5 +117,5 @@ class Clingo():
                 if m:
                     return m.symbols(atoms=True)
                 return m
-        except KeyboardInterrupt as ex:
+        except KeyboardInterrupt as ex: # sometimes thrown by solve() instead of wait(timeout) indicating a timeout
             raise SolvingTimeout(f"Solving did not terminate within {timeout} seconds") from ex
