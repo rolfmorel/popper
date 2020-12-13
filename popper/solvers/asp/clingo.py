@@ -100,13 +100,18 @@ class Clingo():
         return self.clingo_ctl.assign_external(symbol, truth_value, *args, **kwargs)
 
     def get_model(self):
-        with self.clingo_ctl.solve(yield_=True, async_=True) as handle:
-            handle.resume()
-            timeout = self.end_time - time.time() if self.end_time else None
-            did_finish = handle.wait(timeout)
-            if timeout and not did_finish:
-                raise SolvingTimeout(f"Solving did not terminate within {timeout} seconds")
-            m = handle.model()
-            if m:
-                return m.symbols(atoms=True)
-            return m
+        timeout = self.end_time - time.time() if self.end_time else None
+        try:
+            with self.clingo_ctl.solve(yield_=True, async_=True) as handle:
+                handle.resume()
+
+                did_finish = handle.wait(timeout)
+                if timeout and not did_finish:
+                    raise SolvingTimeout(f"Solving did not terminate within {timeout} seconds")
+
+                m = handle.model()
+                if m:
+                    return m.symbols(atoms=True)
+                return m
+        except KeyboardInterrupt as ex:
+            raise SolvingTimeout(f"Solving did not terminate within {timeout} seconds") from ex
