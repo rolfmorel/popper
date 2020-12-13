@@ -237,7 +237,7 @@ def loop(context, Generate, Test, Constrain, debug=False):
         return None, context
     except (GroundingTimeout, SolvingTimeout) as e: 
         context['interrupted'] = True
-        print(str(e), file=stderr, flush=True)
+        DBG_PRINT(str(e))
         return False, context
     except Exception as ex:
         print("PROGRAM:", file=stderr)
