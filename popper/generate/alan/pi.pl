@@ -26,15 +26,21 @@ lower(A,B):-
     lower(A,C),
     lower(C,B).
 
-%% %% AN INVENTED SYMBOL MUST APPEAR IN THE HEAD OF A CLAUSE
+%% AN INVENTED SYMBOL MUST APPEAR IN THE HEAD OF A CLAUSE
 :-
     invented(P,A),
     not head_literal(_,P,A,_).
 
-%% %% AN INVENTED SYMBOL MUST APPEAR IN THE BODY OF A CLAUSE
+appears_before(P,A):-
+    invented(P,A),
+    lower(Q,P),
+    head_literal(C,Q,_,_),
+    body_literal(C,P,_,_).
+
+%% AN INVENTED SYMBOL MUST APPEAR IN THE BODY OF A CLAUSE
 :-
     invented(P,A),
-    not body_literal(_,P,A,_).
+    not appears_before(P,A).
 
 %% %% MUST INVENT IN ORDER
 :-
