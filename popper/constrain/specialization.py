@@ -18,4 +18,4 @@ class SpecializationMixin(object):
     def specialization_constraint(self, program):
         program_ident = self.program_identifier(program)
 
-        return f":-included_{program_ident},not clause({len(program)})."
+        return f":-included_program({program_ident}),not clause({len(program)})."

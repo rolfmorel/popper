@@ -41,4 +41,4 @@ class EliminationMixin(object):
             num_recursive = preds_num_recursive_clauses[pred]
             elim_lits.append(f"num_recursive({pred},{num_recursive})")
 
-            yield f":-included_{program_ident}," + ','.join(elim_lits) + '.'
+            yield f":-included_program({program_ident})," + ','.join(elim_lits) + '.'
