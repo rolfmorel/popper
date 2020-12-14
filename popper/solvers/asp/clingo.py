@@ -1,9 +1,19 @@
 import time
 import logging
+import concurrent.futures.thread
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from collections import OrderedDict
 
 import clingo
 from clingo import Function
+
+
+class SolvingTimeout(BaseException):
+    pass
+
+
+class GroundingTimeout(BaseException):
+    pass
 
 
 class CodeFormatter(logging.Formatter):
@@ -36,6 +46,8 @@ class Clingo():
 
         self.clingo_ctl = clingo.Control(self.args)
 
+        self.executor= ThreadPoolExecutor(max_workers=1)
+
         self.added = OrderedDict()
         self.grounded = []
         self.assigned = OrderedDict()
@@ -59,7 +71,20 @@ class Clingo():
             grounded = set(name for name, _ in self.grounded)
             parts = list((name, []) for name in self.added not in grounded)
 
-        self.clingo_ctl.ground(parts, context=context)
+        future = self.executor.submit(lambda : self.clingo_ctl.ground(parts, context=context))
+        # The following is a hack to make sure that a cancelled thread won't be joined on by Python
+        if next(iter(self.executor._threads)) in concurrent.futures.thread._threads_queues:
+            del concurrent.futures.thread._threads_queues[next(iter(self.executor._threads))]
+        timeout = self.end_time - time.time()
+        try:
+            future.result(timeout=timeout)
+        except (KeyboardInterrupt, TimeoutError) as exc:
+            future.cancel()
+            if time.time() > self.end_time:
+                raise GroundingTimeout(f"Grounding did not terminate within {timeout} seconds") from exc
+            else:
+                raise exc
+
         self.grounded.extend(parts)
 
     def release(self, atom, *args, **kwargs):
@@ -75,13 +100,18 @@ class Clingo():
         return self.clingo_ctl.assign_external(symbol, truth_value, *args, **kwargs)
 
     def get_model(self):
-        with self.clingo_ctl.solve(yield_=True, async_=True) as handle:
-            handle.resume()
-            timeout = self.end_time - time.time() if self.end_time else None
-            did_finish = handle.wait(timeout)
-            if timeout and not did_finish:
-                raise InterruptedError(f"Clingo did not return a model within {timeout} seconds")
-            m = handle.model()
-            if m:
-                return m.symbols(atoms=True)
-            return m
+        timeout = self.end_time - time.time() if self.end_time else None
+        try:
+            with self.clingo_ctl.solve(yield_=True, async_=True) as handle:
+                handle.resume()
+
+                did_finish = handle.wait(timeout)
+                if timeout and not did_finish:
+                    raise SolvingTimeout(f"Solving did not terminate within {timeout} seconds")
+
+                m = handle.model()
+                if m:
+                    return m.symbols(atoms=True)
+                return m
+        except KeyboardInterrupt as ex:
+            raise SolvingTimeout(f"Solving did not terminate within {timeout} seconds") from ex
