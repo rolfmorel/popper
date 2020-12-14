@@ -3,8 +3,20 @@
 %% ########################################
 
 #defined invented/2.
-#defined inv_lower/2.
 
+index(P,0):-
+    modeh(P,_).
+index(inv1,1).
+index(inv2,2).
+index(inv3,3).
+index(inv4,4).
+index(inv5,5).
+
+inv_lower(P,Q):-
+    A > 0,
+    A < B,
+    index(P,A),
+    index(Q,B).
 lower(P,Q):-
     modeh(P,_),
     invented(Q,_).
@@ -19,6 +31,7 @@ lower(A,B):-
     invented(P,A),
     not head_literal(_,P,A,_).
 
+%% AN INVENTED SYMBOL MUST APPEAR IN THE BODY OF A CLAUSE
 appears_before(P,A):-
     invented(P,A),
     lower(Q,P),
@@ -30,97 +43,42 @@ appears_before(P,A):-
     invented(P,A),
     not appears_before(P,A).
 
+%% MUST INVENT IN ORDER
 :-
     invented(P,_),
     inv_lower(Q,P),
     not invented(Q,_).
 
-%% USE INVENTED SYMBOLS IN ORDER
-:-
-    invented(P,_),
-    lower(Q,P),
-    not head_literal(_,Q,_,_).
-
-%% MUST HAVE NON-INVENTED TARGET PREDICATE
-:-
-    modeh(P,A),
-    not head_literal(_,P,A,_).
-%% :-
-%%     #count{P,A : head_literal(_,P,A,_), not invented(P,A)} == 0.
-
-%% FIRST CLAUSE CANNOT BE INVENTED
-:-
-    head_literal(0,P,A,_),
-    invented(P,A).
-
-%% ORDER CLAUSES BY ORDERING
-%% f(A):- inv1(A)
-%% inv2(A):- q(A) (C1)
-%% inv1(A):- inv2(A) (C2)
-:-
-    C1 > 0,
-    C2 > 0,
-    head_literal(C2,P1,_,_),
-    head_literal(C1,P2,_,_),
-    lower(P1,P2),
-    C2 > C1.
-
 %% FORCE ORDERING
 %% inv2(A):- inv1(A)
 :-
     C > 0,
-    head_literal(C,Inv2,_,_),
-    body_literal(C,Inv1,_,_),
-    lower(Inv1,Inv2).
+    head_literal(C,P,_,_),
+    body_literal(C,Q,_,_),
+    lower(Q,P).
 
 %% USE INVENTED SYMBOLS IN ORDER
 %% f(A):- inv2(A)
 %% inv2(A):- q(A)
 %% TODO: ENFORCE ONLY ON ONE DIRECTLY BELOW
-:-
-    invented(Inv2,_),
-    invented(Inv1,_),
-    head_literal(_,Inv2,_,_),
-    lower(Inv1,Inv2),
-    not head_literal(_,Inv1,_,_).
+%% :-
+%%     invented(P,_),
+%%     head_literal(_,P,_,_),
+%%     inv_lower(Q,P),
+%%     not head_literal(_,Q,_,_).
 
 %% PREVENT DUPLICATE INVENTED CLAUSES
 %% f(A,B):-inv1(A,C),inv2(C,B).
-%% inv1(A,B):-right(A,C),right(C,B).
-%% inv2(A,B):-right(A,C),right(C,B).
-%% TODO: GENERALISE FOR MULTIPLE CLAUSES
-
 :-
     C1 > 0,
     C2 > 0,
     C1 < C2,
-    head_literal(C1,HeadPred1,A1,_),
-    head_literal(C2,HeadPred2,A2,_),
-    invented(HeadPred1,A1),
-    invented(HeadPred2,A2),
-    HeadPred1 != HeadPred2,
-    %% not multiclause(HeadPred1,A1),
-    %% not multiclause(HeadPred2,A2),
-    body_literal(C2,P,_,Vars): body_literal(C1,P,_,Vars).
-
-%% PREVENTS THIS:
-%% p(A,B):-inv1(A,B).
-%% inv1(A,B):-q(A,B).
-%% TODO: DOUBLE CHECK!!
-:-
-    invented(P,A),
-    clause_size(C,1),
-    body_literal(C,P,A,_).
-
-%% NO POINT INVENTING A SYMBOL IF IT ONLY HAS ONLY BODY LITERAL AND IS NOT A DISJUNCTION
-%% f(A,B):-f1(A,C),f1(C,B).
-%% f1(A,B):-right(A,B).
-:-
-    Clause > 0,
-    invented(P,A),
-    head_literal(Clause,P,A,_),
-    clause_size(Clause,1),
-    not multiclause(P,A).
+    lower(P,Q),
+    head_literal(C1,P,_,_),
+    head_literal(C2,Q,_,_),
+    invented(P,_),
+    invented(Q,_),
+    same_body(C1,C2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% TYPES
@@ -132,8 +90,7 @@ appears_before(P,A):-
 %% X and Y should inherit the types of A and B respectively
 var_type(C1,Var1,Type):-
     invented(P,A),
-    C1 > 0,
-    C1 != C2,
+    C1 > C2,
     head_literal(C1,P,A,Vars1),
     body_literal(C2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
@@ -146,8 +103,7 @@ var_type(C1,Var1,Type):-
 %% A and B should inherit the types of X and Y respectively
 var_type(C2,Var2,Type):-
     invented(P,A),
-    C1 > 0,
-    C1 != C2,
+    C1 > C2,
     head_literal(C1,P,A,Vars1),
     body_literal(C2,P,A,Vars2),
     var_pos(Var1,Vars1,Pos),
@@ -195,3 +151,38 @@ var_type(C2,Var2,Type):-
 %%     var_pos(Var,Vars2,Pos2),
 %%     direction(P2,Pos2,in),
 %%     #count{P3,Vars3: body_literal(Clause,P3,_,Vars3),var_pos(Var,Vars3,Pos3),direction(P3,Pos2,out)} == 0.
+
+
+%% PRUNES SINGLE CLAUSE/LITERAL INVENTIONS
+%% inv(A,B):-right(A,B).
+:-
+    invented(P,A),
+    head_literal(Clause,P,A,_),
+    clause_size(Clause,1),
+    not multiclause(P,A).
+
+%% PREVENTS SINGLE CLAUSE/LITERAL CALLS
+%% f(A,B):-inv(A,B)
+:-
+    head_literal(C,P,Pa,_),
+    invented(Q,Qa),
+    body_literal(C,Q,Qa,_),
+    clause_size(C,1),
+    not multiclause(P,Pa).
+
+only_once(P,A):-
+    invented(P,A),
+    head_literal(_,P,A,_),
+    #count{C,Vars : body_literal(C,P,A,Vars)} == 1.
+
+:-
+    invented(P,A),
+    head_literal(C1,P,A,_),
+    not multiclause(P,A),
+    only_once(P,A),
+    C2 < C1,
+    body_literal(C2,P,A,_),
+    clause_size(C1,N1),
+    clause_size(C2,N2),
+    max_body(MaxN),
+    N1 + N2 - 1 <= MaxN.
