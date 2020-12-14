@@ -1,27 +1,27 @@
 %% DATALOG
 :-
-    head_var(Clause,Var),
-    not body_var(Clause,Var).
+    head_var(C,Var),
+    not body_var(C,Var).
 
 %% ELIMINATE SINGLETONS
 :-
-    clause_var(Clause,Var),
-    #count{P,Vars : var_in_literal(Clause,P,Vars,Var)} == 1.
+    clause_var(C,Var),
+    #count{P,Vars : var_in_literal(C,P,Vars,Var)} == 1.
 
 %% MUST BE CONNECTED
-head_connected(Clause,Var):-
-    head_var(Clause,Var).
-head_connected(Clause,Var1):-
+head_connected(C,Var):-
+    head_var(C,Var).
+head_connected(C,Var1):-
     Var1 > 0,
-    head_connected(Clause,Var2),
-    body_literal(Clause,_,_,Vars),
+    head_connected(C,Var2),
+    body_literal(C,_,_,Vars),
     var_member(Var1,Vars),
     var_member(Var2,Vars),
     Var1 != Var2.
 :-
     Var > 0,
-    body_var(Clause,Var),
-    not head_connected(Clause,Var).
+    body_var(C,Var),
+    not head_connected(C,Var).
 
 %% IRREFLEXIVE
 %% prevents: p(A):-q(A,B),q(B,A)
@@ -43,12 +43,6 @@ head_connected(Clause,Var1):-
     Vars2 = (Var1,Var3),
     Var2 != Var3,
     Vars1 < Vars2.
-
-%% asda:-
-%%     functional(P,2),
-%%     clause(Clause),
-%%     body_literal(Clause,P,2,(V1,_)),
-%%     #count{V2 : body_literal(Clause,P,2,(V1,V2))} > 1.
 
 %% FUNCTIONAL FOR 3
 %% TODO: GENERALISE AND REMOVE SYMMETRY

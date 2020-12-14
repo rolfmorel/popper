@@ -5,39 +5,36 @@ non_separable:-
     head_literal(_,P,A,_),
     body_literal(_,P,A,_).
 
-num_recursive(N):-
-    #count{C : recursive_clause(C,_,_)} == N.
+separable:-
+    not non_separable.
 
 num_recursive(P,N):-
     head_literal(_,P,_,_),
     #count{C : recursive_clause(C,P,_)} == N.
 
-separable:-
-    not non_separable.
-
 recursive:-
     recursive_clause(_,_,_).
 
-recursive_clause(Clause,P,A):-
-    head_literal(Clause,P,A,_),
-    body_literal(Clause,P,A,_).
+recursive_clause(C,P,A):-
+    head_literal(C,P,A,_),
+    body_literal(C,P,A,_).
 
-base_clause(Clause,P,A):-
-    head_literal(Clause,P,A,_),
-    not body_literal(Clause,P,A,_).
+base_clause(C,P,A):-
+    head_literal(C,P,A,_),
+    not body_literal(C,P,A,_).
 
 %% NO RECURSION IN THE FIRST CLAUSE
 :-
     recursive_clause(0,_,_).
 
-%% STOP RECURSION BEFORE BASE CASES
+%% PREVENT RECURSION BEFORE BASE CASES
 :-
-    Clause1 > 0,
-    recursive_clause(Clause1,P,A),
-    base_clause(Clause2,P,A),
-    Clause2 > Clause1.
+    C1 > 0,
+    C2 > C1,
+    recursive_clause(C1,P,A),
+    base_clause(C2,P,A).
 
-%% CANNOT HAVE RECURSION WITHOUT A BASECASE
+%% PREVENT RECURSION WITHOUT A BASECASE
 :-
     recursive_clause(_,P,A),
     not base_clause(_,P,A).
@@ -45,10 +42,10 @@ base_clause(Clause,P,A):-
 %% DISALLOW TWO RECURSIVE CALLS
 %% WHY DID WE ADD THIS??
 :-
-    Clause > 0,
-    recursive_clause(Clause,P,A),
-    body_literal(Clause,P,A,Vars1),
-    body_literal(Clause,P,A,Vars2),
+    C > 0,
+    recursive_clause(C,P,A),
+    body_literal(C,P,A,Vars1),
+    body_literal(C,P,A,Vars2),
     Vars1 < Vars2.
 
 %% PREVENT LEFT RECURSION

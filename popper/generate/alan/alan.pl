@@ -28,40 +28,49 @@ body_aux(P,A):-
 body_aux(P,A):-
     invented(P,A).
 
-%% GUESS HEAD LITERALS
-{head_literal(Clause,P,A,Vars)}:-
+{head_literal(C,P,A,Vars)}:-
     head_aux(P,A),
+    index(P,I),
+    C >= I,
     head_vars(A,Vars),
-    Clause = 0..N-1,
-    max_clauses(N).
+    max_clauses(N),
+    C = 0..N-1.
 
-%% GUESS BODY LITERALS
-{body_literal(Clause,P,A,Vars)}:-
+{body_literal(C,P,A,Vars)}:-
     body_aux(P,A),
     vars(A,Vars),
-    clause(Clause).
+    clause(C).
 
-%% COUNT BODY LITERALS
-clause_size(Clause,N):-
-    clause(Clause),
-    max_body(MaxN),
-    N > 0,
-    N <= MaxN,
-    #count{P,Vars : body_literal(Clause,P,_,Vars)} = N.
-
-
+%% NO MORE THAN ONE HEAD LITERAL PER CLAUSE
 :-
     clause(C),
-    #count{P,A : head_literal(C,P,A,_)} != 1.
+    #count{P,A : head_literal(C,P,A,_)} > 1.
 
 %% OBEY SIZE
 :-
     clause(C),
     not clause_size(C,_).
 
-%% THERE IS A CLAUSE IF THERE IS A HEAD LITERAL
-clause(Clause):-
-    head_literal(Clause,_,_,_).
+%% 0 {head_literal(C,P,A,Vars) : head_aux(P,A), head_vars(A,Vars), index(P,I), C >= I} 1:-
+%%     max_clauses(N),
+%%     C = 0..N-1.
+
+%% 1 {body_literal(C,P,A,Vars) : body_aux(P,A), vars(A,Vars)} N:-
+%%     clause(C),
+%%     max_body(N).
+
+%% CLAUSE IF THERE IS A HEAD LITERAL
+clause(C):-
+    head_literal(C,_,_,_).
+
+%% COUNT BODY LITERALS
+%% TODO: IMPROVE
+clause_size(C,N):-
+    clause(C),
+    max_body(MaxN),
+    N > 0,
+    N <= MaxN,
+    #count{P,Vars : body_literal(C,P,_,Vars)} == N.
 
 %% COUNT CLAUSES
 num_clauses(P,N):-
@@ -84,20 +93,19 @@ literal(C,P,Vars):-
 
 %% USE CLAUSES IN ORDER
 :-
-    clause(Clause),
-    Clause > 1,
-    not clause(Clause-1).
+    clause(C),
+    C > 1,
+    not clause(C-1).
 
 %% USE VARS IN ORDER IN A CLAUSE
 :-
-    clause_var(Clause,Var),
+    clause_var(C,Var),
     Var > 1,
-    not clause_var(Clause,Var-1).
+    not clause_var(C,Var-1).
 
 multiclause(P,A):-
-    head_literal(C1,P,A,_),
-    head_literal(C2,P,A,_),
-    C1 < C2.
+    head_literal(_,P,A,_),
+    not num_clauses(P,1).
 
 pred(P,A):-
     modeh(P,A).
@@ -105,3 +113,4 @@ pred(P,A):-
     modeb(P,A).
 pred(P,A):-
     invented(P,A).
+

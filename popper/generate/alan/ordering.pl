@@ -1,3 +1,15 @@
+%% ORDER CLAUSES BY ORDERING
+%% f(A):- inv1(A)
+%% inv2(A):- q(A) (C1)
+%% inv1(A):- inv2(A) (C2)
+:-
+    C1 > 0,
+    C2 > 0,
+    C2 > C1,
+    head_literal(C1,P2,_,_),
+    head_literal(C2,P1,_,_),
+    lower(P1,P2).
+
 before(C1,C2):-
     C1 < C2,
     head_literal(C1,P,_,_),
@@ -16,6 +28,7 @@ count_lower(P,N):-
     #count{Q : lower(Q,P)} == N.
 
 min_clause(C,N+1):-
+    C > 0,
     recursive_clause(C,P,A),
     count_lower(P,N).
 
