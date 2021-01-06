@@ -124,27 +124,8 @@ is_number_aux('9').
 
 :- ['exs/p1'].
 
-non_functional(Atom1):-
+popper_non_functional(Atom1):-
     Atom1=..[f,s(In,Out1),s(_,[])],
     Atom2=..[f,s(In,Out2),s(_,[])],
     call(Atom2),
     Out2 \= Out1.
-
-popper_program_validation(_Prog):-
-    forall(pos(Atom),\+non_functional(Atom)),!.
-    %% writeln('SUCCESS!!!'-Prog).
-
-%% popper_program_validation(Prog):-
-    %% writeln('FAIL!!!'-Prog),false.
-
-
-
-%% popper_func_test(Atom1,Atom2):-
-
-%% func_test(Atom1,Atom2,Condition):-
-%%   Atom1 = [P,In/B,_/[]],
-%%   Atom2 = [P,In/Z,_/[]],
-%%   Condition = (Z = B).
-
-
-
