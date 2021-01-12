@@ -6,7 +6,8 @@
 #defined size/1.
 
 #show head_literal/4.
-#show body_literal/4.
+#show pbody_literal/4.
+#show nbody_literal/4.
 
 #include "pi.pl".
 #include "types.pl".
@@ -36,10 +37,24 @@ body_aux(P,A):-
     max_clauses(N),
     C = 0..N-1.
 
-{body_literal(C,P,A,Vars)}:-
+{pbody_literal(C,P,A,Vars)}:-
     body_aux(P,A),
     vars(A,Vars),
     clause(C).
+
+%% {nbody_literal(C,P,A,Vars)}:-
+%%     body_aux(P,A),
+%%     vars(A,Vars),
+%%     clause(C).
+
+:-
+    pbody_literal(C,P,A,Vs),
+    nbody_literal(C,P,A,Vs).
+
+body_literal(C,P,A,Vars):-
+    pbody_literal(C,P,A,Vars).
+body_literal(C,P,A,Vars):-
+    nbody_literal(C,P,A,Vars).
 
 %% NO MORE THAN ONE HEAD LITERAL PER CLAUSE
 :-
@@ -50,14 +65,6 @@ body_aux(P,A):-
 :-
     clause(C),
     not clause_size(C,_).
-
-%% 0 {head_literal(C,P,A,Vars) : head_aux(P,A), head_vars(A,Vars), index(P,I), C >= I} 1:-
-%%     max_clauses(N),
-%%     C = 0..N-1.
-
-%% 1 {body_literal(C,P,A,Vars) : body_aux(P,A), vars(A,Vars)} N:-
-%%     clause(C),
-%%     max_body(N).
 
 %% CLAUSE IF THERE IS A HEAD LITERAL
 clause(C):-

@@ -186,3 +186,96 @@ only_once(P,A):-
     clause_size(C2,N2),
     max_body(MaxN),
     N1 + N2 - 1 <= MaxN.
+
+
+
+
+%% calls(C1,C2):-
+%%     C2 > C1,
+%%     body_literal(C1,P,A,_),
+%%     head_literal(C2,P,A,_).
+
+%% a:-
+%%     calls(C1,C2),
+%%     body_literal(C1,P,A,Vs),
+%%     body_literal(C2,P,A,Vs).
+%% :-
+%%     a.
+
+
+%% :-
+    %% not head_literal(_,inv2,_,_).
+
+
+
+%% ap(A) :- inv1(A),x8(A).
+%% inv1(A) :- inv2(A),x8(A).
+%% inv2(A) :- x4(A),x8(A).
+
+
+%% f(A,B):- good(A), inv1(A,B).
+%% inv1(A,B):- good(A),
+
+
+%% ap(A) :- inv1(A),x8(A).
+
+
+
+%% inv1(A) :- inv2(A),x8(A).
+%% inv2(A) :- x4(A),x8(A).
+%% =>
+%% inv1(A) :- x4(A),x8(A),x8(A).
+
+
+
+%% ==========
+
+% f(A,B) :- inv1(A,C),right(C,D),right(D,B).
+% inv1(A,B) :- right(A,C),right(C,B).
+% =>
+% f(A,B) :- right(A,Z),right(Z,C),right(C,D),right(D,B).
+
+% f(A,B) :- right(A,C),inv1(C,D),right(D,B).
+% inv1(X,Y) :- right(X,Z),right(Z,Y).
+% =>
+% f(A,B) :- right(A,C),right(C,Z),right(Z,D),right(D,B).
+
+% f(A,B) :- right(A,C),right(C,D),inv1(D,B).
+% inv1(X,Y) :- right(X,Z),right(Z,Y).
+% =>
+% f(A,B) :- right(A,C),right(C,D),right(D,Z),right(Z,B).
+
+%% ==========
+
+% f(A,B):-inv1(A,B),wants_coffee(B).
+% inv1(A,B):-pour_coffee(A,B),wants_coffee(B),wants_tea(A).
+
+f :- a, inv1.
+inv1 :- b, c.
+
+calls(C1,C2):-
+    comp_literal(C1,C2,_,_,_).
+
+comp_literal(C1,C2,P,A,Vs):-
+    C1 < C2,
+    body_literal(C1,P,A,Vs),
+    head_literal(C2,P,A).
+    %% what about vars?
+
+unfolded(C,P,A,Vs):-
+    body_literal(C,P,A,Vs),
+    not comp_literal(C,_,P,A,Vs).
+unfolded(C1,P,A,Vs):-
+    calls(C1,C2),
+    body_literal(C2,P,)
+
+
+
+
+
+%% a:-
+%%     calls(C1,C2),
+%%     body_literal(C1,P,A,Vs),
+%%     body_literal(C2,P,A,Vs).
+%% :-
+%%     a.
