@@ -5,9 +5,10 @@
 #defined type/3.
 #defined size/1.
 
+
 #show head_literal/4.
-#show pbody_literal/4.
-#show nbody_literal/4.
+#show body_literal/4.
+%% #show nbody_literal/4.
 
 #include "pi.pl".
 #include "types.pl".
@@ -18,6 +19,7 @@
 #include "bias.pl".
 #include "vars.pl".
 #include "ordering.pl".
+#include "unfold2.pl".
 
 head_aux(P,A):-
     modeh(P,A).
@@ -47,14 +49,14 @@ body_aux(P,A):-
 %%     vars(A,Vars),
 %%     clause(C).
 
-:-
-    pbody_literal(C,P,A,Vs),
-    nbody_literal(C,P,A,Vs).
+%% :-
+%%     pbody_literal(C,P,A,Vs),
+%%     nbody_literal(C,P,A,Vs).
 
 body_literal(C,P,A,Vars):-
     pbody_literal(C,P,A,Vars).
-body_literal(C,P,A,Vars):-
-    nbody_literal(C,P,A,Vars).
+%% body_literal(C,P,A,Vars):-
+    %% nbody_literal(C,P,A,Vars).
 
 %% NO MORE THAN ONE HEAD LITERAL PER CLAUSE
 :-
@@ -107,8 +109,8 @@ literal(C,P,Vars):-
 %% USE VARS IN ORDER IN A CLAUSE
 :-
     clause_var(C,Var),
-    Var > 1,
-    not clause_var(C,Var-1).
+    lower_var(Lower,Var),
+    not clause_var(C,Lower).
 
 multiclause(P,A):-
     head_literal(_,P,A,_),
@@ -121,3 +123,12 @@ pred(P,A):-
 pred(P,A):-
     invented(P,A).
 
+max_size(I*J):-
+    max_body(I),
+    max_clauses(J).
+
+prog_size(Size):-
+    Size > 1,
+    #sum{K+1,Clause : clause_size(Clause,K)} == Size,
+    max_size(MaxSize),
+    Size <= MaxSize.

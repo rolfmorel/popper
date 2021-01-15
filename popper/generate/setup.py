@@ -20,12 +20,21 @@ class SetupMixin(object):
                 with open(mode_file) as handle:
                     self.solver.add(handle.read(), name='modes_file')
 
+#             self.solver.add("""\
+# %%% External atom for number of literals in the program %%%%%
+# #external size(n).
+# :-
+#     size(n),
+#     #sum{K+1,Clause : clause_size(Clause,K)} != n.
+# """, name='program_size', arguments=['n'])
+
             self.solver.add("""\
 %%% External atom for number of literals in the program %%%%%
 #external size(n).
 :-
     size(n),
-    #sum{K+1,Clause : clause_size(Clause,K)} != n.
+    prog_size(K),
+    K != n.
 """, name='program_size', arguments=['n'])
 
             fragments = ['alan'] + (['modes_file'] if mode_file else [])

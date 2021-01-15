@@ -49,11 +49,11 @@ blit(C,P,A,Vs):-
 
 head_literal(0,f,2,("a","b")).
 body_literal(0,inv1,2,("a","c")).
-body_literal(0,inv1,2,("c","b")).
+body_literal(0,right,2,("c","b")).
 
 head_literal(1,inv1,2,("a","b")).
 body_literal(1,inv2,2,("a","c")).
-body_literal(1,inv2,2,("c","b")).
+body_literal(1,right,2,("c","b")).
 
 head_literal(2,inv2,2,("a","b")).
 body_literal(2,right,2,("a","c")).
@@ -61,5 +61,27 @@ body_literal(2,right,2,("c","b")).
 
 %% #show unfolded_body/4.
 
-#show hlit/4.
-#show blit/4.
+%% #show hlit/4.
+%% #show blit/4.
+
+
+lit(C,P,A,Vs):-
+    hlit(C,P,A,Vs).
+lit(C,P,A,Vs):-
+    blit(C,P,A,Vs).
+
+clause(C):-
+    head_literal(C,_,_,_).
+
+clause_size(C,N):-
+    clause(C),
+    #count{P,Vars : body_literal(C,P,_,Vars)} == N.
+
+prog_size(N):-
+    #sum{K+1,Clause : clause_size(Clause,K)} == N.
+
+unfolded_size(N):-
+    #count{C,P,Vars : lit(C,P,_,Vars)} == N.
+
+#show prog_size/1.
+#show unfolded_size/1.

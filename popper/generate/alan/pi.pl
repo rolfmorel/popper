@@ -26,6 +26,9 @@ lower(A,B):-
     lower(A,C),
     lower(C,B).
 
+has_pi:-
+    invented(_,_).
+
 %% AN INVENTED SYMBOL MUST APPEAR IN THE HEAD OF A CLAUSE
 :-
     invented(P,A),
@@ -175,7 +178,7 @@ only_once(P,A):-
     head_literal(_,P,A,_),
     #count{C,Vars : body_literal(C,P,A,Vars)} == 1.
 
-:-
+a:-
     invented(P,A),
     head_literal(C1,P,A,_),
     not multiclause(P,A),
@@ -250,32 +253,32 @@ only_once(P,A):-
 % f(A,B):-inv1(A,B),wants_coffee(B).
 % inv1(A,B):-pour_coffee(A,B),wants_coffee(B),wants_tea(A).
 
-f :- a, inv1.
-inv1 :- b, c.
+%% f :- a, inv1.
+%% inv1 :- b, c.
 
-calls(C1,C2):-
-    comp_literal(C1,C2,_,_,_).
+%% calls(C1,C2):-
+%%     comp_literal(C1,C2,_,_,_).
 
-comp_literal(C1,C2,P,A,Vs):-
-    C1 < C2,
-    body_literal(C1,P,A,Vs),
-    head_literal(C2,P,A).
-    %% what about vars?
-
-unfolded(C,P,A,Vs):-
-    body_literal(C,P,A,Vs),
-    not comp_literal(C,_,P,A,Vs).
-unfolded(C1,P,A,Vs):-
-    calls(C1,C2),
-    body_literal(C2,P,)
-
-
-
-
-
-%% a:-
-%%     calls(C1,C2),
+%% comp_literal(C1,C2,P,A,Vs):-
+%%     C1 < C2,
 %%     body_literal(C1,P,A,Vs),
-%%     body_literal(C2,P,A,Vs).
-%% :-
-%%     a.
+%%     head_literal(C2,P,A).
+%%     %% what about vars?
+
+%% unfolded(C,P,A,Vs):-
+%%     body_literal(C,P,A,Vs),
+%%     not comp_literal(C,_,P,A,Vs).
+%% unfolded(C1,P,A,Vs):-
+%%     calls(C1,C2),
+%%     body_literal(C2,P,)
+
+
+
+
+
+%% %% a:-
+%% %%     calls(C1,C2),
+%% %%     body_literal(C1,P,A,Vs),
+%% %%     body_literal(C2,P,A,Vs).
+%% %% :-
+%% %%     a.

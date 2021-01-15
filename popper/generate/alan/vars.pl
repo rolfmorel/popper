@@ -1,5 +1,19 @@
-var(0..N-1):-
+#script (python)
+import clingo
+import itertools
+def mkvar(var):
+    return str(var)
+def mkheadvars(arity):
+    return tuple(str(x) for x in range(arity.number))
+def lowervar(var):
+    return str(var.number-1)
+#end.
+
+lower_var(@lowervar(V),@mkvar(V)):-
+    V = 1..N,
     max_vars(N).
+var(V):-
+    lower_var(V,_).
 
 clause_var(C,Var):-
     head_var(C,Var).
@@ -20,16 +34,8 @@ var_in_literal(C,P,Vars,Var):-
     literal(C,P,Vars),
     var_member(Var,Vars).
 
-%% TODO: GENERALISE FOR ARITIES > 4
-head_vars(1,(0,)):-
-    modeh(_,1).
-head_vars(2,(0,1)):-
-    modeh(_,2).
-head_vars(3,(0,1,2)):-
-    modeh(_,3).
-head_vars(4,(0,1,2,3)):-
-    modeh(_,4).
-
+head_vars(A,@mkheadvars(A)):-
+    modeh(_,A).
 need_arity(A):-
     modeh(_,A).
 need_arity(A):-

@@ -1,46 +1,63 @@
-clause(C):-
-    head_literal(C,_,_,_).
+#script (python)
+import clingo
+def pybind(c1,c2, vars1, vars2, vars3):
+    vars1 = [str(x) for x in vars1.arguments]
+    vars2 = [str(x) for x in vars2.arguments]
+    vars3 = [str(x) for x in vars3.arguments]
+    key = f'{c1}_{c2}_' + '_'.join(vars1) + '_'
+    def rename(k):
+        new_k = key + k
+        return new_k
+    vars2 = [rename(x) for x in vars2]
+    vars3 = [rename(x) for x in vars3]
+    d = {v:vars1[i] for i, v in enumerate(vars2)}
+    out = []
+    for v in vars3:
+        if v in d:
+            out.append(d[v])
+        else:
+            out.append(v)
+    return tuple(out)
+#end.
 
-clause_size(C,N):-
-    clause(C),
-    #count{P,Vars : body_literal(C,P,_,Vars)} == N.
+disjunctive_invention:-
+    invented(P,A),
+    multiclause(P,A).
 
-prog_size(N):-
-    #sum{K+1,Clause : clause_size(Clause,K)} == N.
+should_unfold:-
+    has_pi,
+    not recursive,
+    not disjunctive_invention.
 
-unfolded_size(N):-
-    #count{C,P,Vars : lit(C,P,_,Vars)} == N.
-
-#show prog_size/1.
-#show unfolded_size/1.
-
-calls(C1,C2):-
-    comp_literal(C1,C2,_,_,_).
-
-comp_literal(C1,C2,P,A,Vs):-
+comp_literal(C1,C2,P,A):-
+    %% should_unfold,
     C1 < C2,
-    body_literal(C1,P,A,Vs),
-    head_literal(C2,P,A,Vs).
-    %% what about vars?
+    body_literal(C1,P,A,_),
+    head_literal(C2,P,A,_).
 
-unfolded_body(C,P,A,Vs):-
-    body_literal(C,P,A,Vs),
-    not comp_literal(C,_,P,A,Vs).
-unfolded_body(C1,P,A,Vs):-
-    calls(C1,C2),
-    unfolded_body(C2,P,A,Vs),
-    not comp_literal(C2,_,P,A,Vs).
+unfolded_body(C1,P,A,C1Vars):-
+    %% should_unfold,
+    body_literal(C1,P,A,C1Vars),
+    not comp_literal(C1,_,P,A).
+
+unfolded_body(C1,Q,A,@pybind(C1,C2,C1Vars,C2HeadVars,C2BodyVars)):-
+    %% should_unfold,
+    C2 > C1,
+    body_literal(C1,P,A,C1Vars),
+    head_literal(C2,P,A,C2HeadVars),
+    unfolded_body(C2,Q,A,C2BodyVars).
 
 redundant(C):-
-    calls(_,C).
-
-
+    %% should_unfold,
+    comp_literal(_,C,_,_).
 
 hlit(C,P,A,Vs):-
+    %% should_unfold,
     head_literal(C,P,A,Vs),
     not redundant(C).
 
 blit(C,P,A,Vs):-
+    %% should_unfold,
     unfolded_body(C,P,A,Vs),
     not redundant(C).
 
@@ -49,5 +66,26 @@ lit(C,P,A,Vs):-
 lit(C,P,A,Vs):-
     blit(C,P,A,Vs).
 
-#show hlit/4.
-#show blit/4.
+%% max_size(I*J):-
+%%     max_body(I),
+%%     max_clauses(J).
+
+%% prog_size(Size):-
+%%     #sum{K+1,Clause : clause_size(Clause,K)} == Size,
+%%     max_size(MaxSize),
+%%     Size <= MaxSize.
+
+unfolded_size(N):-
+    #count{C,P,Vars : lit(C,P,_,Vars)} == N,
+    N < 30.
+
+:-
+    should_unfold,
+    prog_size(N1),
+    unfolded_size(N2),
+    N1 >= N2.
+
+
+#show prog_size/1.
+%% #show unfolded_size/1.
+

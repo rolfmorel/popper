@@ -11,14 +11,8 @@ modeb(right,2).
 invented(inv1,2).
 invented(inv2,2).
 invented(inv3,2).
-invented(inv4,2).
+%% invented(inv4,2).
 %% invented(inv5,2).
-
-lower(f,inv1).
-lower(inv1,inv2).
-lower(inv2,inv3).
-lower(inv3,inv4).
-lower(inv4,inv5).
 
 %% :-
     %% recursive_clause(_).
