@@ -1,3 +1,5 @@
+# IMPORTANT: THIS VERSION OF POPPER IS A MAJ0R-WORK-IN-PROGESS. IT IS SLOW AND CONTAINS BUGS. WE RECOMMEND THAT YOU DO NOT USE IT YET. WE WILL SOON RELEASE A FAR BETTER AND STABLE VERSION. PLEASE WAIT!
+
 # Popper
 
 An Inductive Logic Programming system that learns Prolog/Datalog programs from examples by learning constraints.
