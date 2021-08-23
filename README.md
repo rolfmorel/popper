@@ -1,4 +1,4 @@
-# IMPORTANT: THIS VERSION OF POPPER IS ONLY AVAILABLE FOR ARCHIVAL PURPOSESS. See https://github.com/logic-and-learning-lab/Popper for the actively maintained version.
+# IMPORTANT: THIS VERSION OF POPPER IS ONLY AVAILABLE FOR ARCHIVAL PURPOSES. See https://github.com/logic-and-learning-lab/Popper for the actively maintained version.
 
 # Popper
 
